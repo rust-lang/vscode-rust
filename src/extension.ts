@@ -141,8 +141,7 @@ class RustRefProvider implements vscode.ReferenceProvider {
                 // TODO use map
                 let results = [];
                 for (let r of body) {
-                    console.log("ref: " + r)
-                    results.push(pos_from_span(r));
+                    results.push(loc_from_span(r));
                 }
                 resolve(results);
             }));
@@ -156,6 +155,10 @@ function uri_from_span(span): vscode.Uri {
 
 function pos_from_span(span): vscode.Position {
     return new vscode.Position(span.line - 1, span.col);
+}
+
+function loc_from_span(span): vscode.Location {
+    return new vscode.Location(vscode.Uri.file(span.filepath), new vscode.Position(span.line - 1, span.col));
 }
 
 function build_input_pos(document: vscode.TextDocument, position: vscode.Position): string {

@@ -15,6 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerCompletionItemProvider('rust', new RustCompletionProvider(), ".");
     vscode.languages.registerDefinitionProvider('rust', new RustDefProvider);
     vscode.languages.registerReferenceProvider('rust', new RustRefProvider);
+    vscode.languages.registerRenameProvider('rust', new RustRenameProvider);
     vscode.workspace.onDidChangeTextDocument(onChange);
 }
 
@@ -119,10 +120,9 @@ class RustDefProvider implements vscode.DefinitionProvider {
 
                 console.log("Def provider: " + body.Ok[1]);
                 let span = body.Ok[0];
-                resolve(new vscode.Location(uri_from_span(span), pos_from_span(span)));
+                resolve(new vscode.Location(uri_from_pos(span), pos_from_pos(span)));
             }));
         });
-        
     }
 }
 
@@ -138,29 +138,55 @@ class RustRefProvider implements vscode.ReferenceProvider {
                 json: true,
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
-                // TODO use map
-                let results = [];
-                for (let r of body) {
-                    results.push(loc_from_span(r));
-                }
-                resolve(results);
+                resolve(body.map(loc_from_span));
             }));
         });
-        
     }
 }
-function uri_from_span(span): vscode.Uri {
-    return vscode.Uri.file(span.filepath);
+
+class RustRenameProvider implements vscode.RenameProvider {
+    public provideRenameEdits(document: vscode.TextDocument,
+                              position: vscode.Position,
+                              newName: String,
+                              token: vscode.CancellationToken): Promise<vscode.WorkspaceEdit> {
+        return new Promise<vscode.WorkspaceEdit>((resolve, reject) => {
+            checkTimeout(document).then(() => request({
+                url: rls_url + "find_refs",
+                method: "POST",
+                json: true,
+                body: build_input_pos(document, position)
+            }, function(err, res, body) {
+                let newString = newName.toString();
+                let edit = new vscode.WorkspaceEdit;
+                for (let r of body) {
+                    edit.replace(uri_from_span(r), range_from_span(r), newString);
+                }
+                resolve(edit);
+            }));
+        });
+    }
 }
 
-function pos_from_span(span): vscode.Position {
-    return new vscode.Position(span.line - 1, span.col);
+function uri_from_pos(pos): vscode.Uri {
+    return vscode.Uri.file(pos.filepath);
+}
+
+function uri_from_span(span): vscode.Uri {
+    return vscode.Uri.file(span.file_name);
+}
+
+
+function pos_from_pos(pos): vscode.Position {
+    return new vscode.Position(pos.line - 1, pos.col);
+}
+
+function range_from_span(span): vscode.Range {
+    return new vscode.Range(span.line_start - 1, span.column_start, span.line_end - 1, span.column_end);
 }
 
 function loc_from_span(span): vscode.Location {
-    return new vscode.Location(vscode.Uri.file(span.filepath), new vscode.Position(span.line - 1, span.col));
+    return new vscode.Location(uri_from_span(span), range_from_span(span));
 }
-
 function build_input_pos(document: vscode.TextDocument, position: vscode.Position): string {
     let range = document.getWordRangeAtPosition(position);
     if (range) {

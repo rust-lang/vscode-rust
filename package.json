@@ -15,10 +15,18 @@
     ],
     "main": "./out/src/extension",
     "contributes": {
-        "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
-        }]
+        "languages": [
+            {
+            "id": "rust",
+            "aliases": [
+                "Rust",
+                "rs"
+            ],
+            "extensions": [
+                ".rs"
+            ]
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "node ./node_modules/vscode/bin/compile",

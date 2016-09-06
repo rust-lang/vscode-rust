@@ -7,6 +7,8 @@ import request = require('request');
 
 let rls_url = "http://127.0.0.1:9000/";
 
+let diagnosticCollection: vscode.DiagnosticCollection;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -16,7 +18,14 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerDefinitionProvider('rust', new RustDefProvider);
     vscode.languages.registerReferenceProvider('rust', new RustRefProvider);
     vscode.languages.registerRenameProvider('rust', new RustRenameProvider);
-    vscode.workspace.onDidChangeTextDocument(onChange);
+
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('rust');
+    context.subscriptions.push(diagnosticCollection);
+
+    vscode.workspace.onDidSaveTextDocument(doc => onChange(doc));
+    vscode.workspace.onDidChangeTextDocument(e => onChange(e.document));
+    vscode.workspace.onDidOpenTextDocument(doc => onChange(doc));
+    vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor) => onChange(editor.document));
 }
 
 let changeTimeout = null;
@@ -39,19 +48,33 @@ function save(document: vscode.TextDocument): Promise<boolean> {
             method: "POST",
             json: true,
             body: ''
+        }, function(err, res, body) {
+            diagnosticCollection.clear();
+            if (body.Failure) {
+                let failure = JSON.parse(body.Failure);
+                let diag = new vscode.Diagnostic(
+                    new vscode.Range(
+                        new vscode.Position(failure.spans[0].line_start-1, failure.spans[0].column_start-1),
+                        new vscode.Position(failure.spans[0].line_end-1, failure.spans[0].column_end-1)
+                    ),
+                    failure.message,
+                    vscode.DiagnosticSeverity.Error);
+
+                diagnosticCollection.set(document.uri, [diag]);
+            }
         }));
         resolve(true);
     });
 }
 
-function onChange(event: vscode.TextDocumentChangeEvent) {
+function onChange(doc: vscode.TextDocument) {
     if (changeTimeout) {
         clearTimeout(changeTimeout);
         changeTimeout = null;
     }
 
     changeTimeout = setTimeout(() => {
-        save(event.document).then(() => {
+        save(doc).then(() => {
             changeTimeout = null;
         });
     }, 1000);
@@ -174,7 +197,6 @@ function uri_from_pos(pos): vscode.Uri {
 function uri_from_span(span): vscode.Uri {
     return vscode.Uri.file(span.file_name);
 }
-
 
 function pos_from_pos(pos): vscode.Position {
     return new vscode.Position(pos.line - 1, pos.col);

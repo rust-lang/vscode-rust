@@ -51,16 +51,21 @@ function save(document: vscode.TextDocument): Promise<boolean> {
         }, function(err, res, body) {
             diagnosticCollection.clear();
             if (body.Failure) {
-                let failure = JSON.parse(body.Failure);
-                let diag = new vscode.Diagnostic(
-                    new vscode.Range(
-                        new vscode.Position(failure.spans[0].line_start-1, failure.spans[0].column_start-1),
-                        new vscode.Position(failure.spans[0].line_end-1, failure.spans[0].column_end-1)
-                    ),
-                    failure.message,
-                    vscode.DiagnosticSeverity.Error);
+                try {
+                    let failure = JSON.parse(body.Failure);
+                    let diag = new vscode.Diagnostic(
+                        new vscode.Range(
+                            new vscode.Position(failure.spans[0].line_start-1, failure.spans[0].column_start-1),
+                            new vscode.Position(failure.spans[0].line_end-1, failure.spans[0].column_end-1)
+                        ),
+                        failure.message,
+                        vscode.DiagnosticSeverity.Error);
 
-                diagnosticCollection.set(document.uri, [diag]);
+                    diagnosticCollection.set(document.uri, [diag]);
+                }
+                catch (e) {
+
+                }
             }
         }));
         resolve(true);
@@ -116,7 +121,7 @@ class RustCompletionProvider implements vscode.CompletionItemProvider {
                     let item = new vscode.CompletionItem(body[o].name);
                     item.detail = body[o].context;
                     results.push(item);
-                    console.log("complete: " + item)
+                    //console.log("complete: " + item)
                 }
                 resolve(new vscode.CompletionList(results, false));
             }));
@@ -140,10 +145,14 @@ class RustDefProvider implements vscode.DefinitionProvider {
                     resolve(null);
                     return;
                 }
-
-                console.log("Def provider: " + body.Ok[1]);
-                let span = body.Ok[0];
-                resolve(new vscode.Location(uri_from_pos(span), pos_from_pos(span)));
+                if (body.Ok) {
+                    console.log("Def provider: " + body.Ok[1]);
+                    let span = body.Ok[0];
+                    resolve(new vscode.Location(uri_from_pos(span), pos_from_pos(span)));
+                    return;
+                }
+                resolve(null);
+                return;
             }));
         });
     }

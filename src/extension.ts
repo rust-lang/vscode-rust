@@ -18,6 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerDefinitionProvider('rust', new RustDefProvider);
     vscode.languages.registerReferenceProvider('rust', new RustRefProvider);
     vscode.languages.registerRenameProvider('rust', new RustRenameProvider);
+    vscode.languages.registerDocumentHighlightProvider('rust', new RustHighlightProvider);
 
     diagnosticCollection = vscode.languages.createDiagnosticCollection('rust');
     context.subscriptions.push(diagnosticCollection);
@@ -217,6 +218,27 @@ class RustRenameProvider implements vscode.RenameProvider {
                     edit.replace(uri_from_span(r), range_from_span(r), newString);
                 }
                 resolve(edit);
+            }));
+        });
+    }
+}
+
+class RustHighlightProvider implements vscode.DocumentHighlightProvider {
+    public provideDocumentHighlights(document: vscode.TextDocument,
+                                     position: vscode.Position,
+                                     token: vscode.CancellationToken): Promise<vscode.DocumentHighlight[]> {
+        return new Promise<vscode.DocumentHighlight[]>((resolve, reject) => {
+            checkTimeout(document).then(() => request({
+                url: rls_url + "find_refs",
+                method: "POST",
+                json: true,
+                body: build_input_pos(document, position)
+            }, function(err, res, body) {
+                if (body) {
+                    resolve(body.map((span) => new vscode.DocumentHighlight(range_from_span(span))));
+                } else {
+                    resolve(null);
+                }
             }));
         });
     }

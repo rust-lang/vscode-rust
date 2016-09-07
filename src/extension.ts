@@ -13,11 +13,13 @@ let diagnosticCollection: vscode.DiagnosticCollection;
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     // TODO disposables?
-    vscode.languages.registerHoverProvider('rust', new RustHoverProvider());
+    vscode.languages.registerHoverProvider('rust', new RustTypeHoverProvider());
+    vscode.languages.registerHoverProvider('rust', new RustDocHoverProvider());
     vscode.languages.registerCompletionItemProvider('rust', new RustCompletionProvider(), ".");
     vscode.languages.registerDefinitionProvider('rust', new RustDefProvider);
     vscode.languages.registerReferenceProvider('rust', new RustRefProvider);
     vscode.languages.registerRenameProvider('rust', new RustRenameProvider);
+    vscode.languages.registerDocumentHighlightProvider('rust', new RustHighlightProvider);
 
     diagnosticCollection = vscode.languages.createDiagnosticCollection('rust');
     context.subscriptions.push(diagnosticCollection);
@@ -89,7 +91,7 @@ function onChange(doc: vscode.TextDocument) {
     }, 1000);
 }
 
-class RustHoverProvider implements vscode.HoverProvider {
+class RustTypeHoverProvider implements vscode.HoverProvider {
     public provideHover(document: vscode.TextDocument,
                         position: vscode.Position,
                         token: vscode.CancellationToken): Promise<vscode.Hover> {
@@ -101,7 +103,37 @@ class RustHoverProvider implements vscode.HoverProvider {
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
                 if (body) {
-                    resolve(new vscode.Hover({language: "rust", value: body}));
+                    if (body.ty) {
+                        resolve(new vscode.Hover({language: "rust", value: body.ty}));
+                    } else {
+                        resolve(null);
+                    }
+                } else {
+                    resolve(null);
+                }
+            }));
+        });
+    }
+}
+
+class RustDocHoverProvider implements vscode.HoverProvider {
+    public provideHover(document: vscode.TextDocument,
+                        position: vscode.Position,
+                        token: vscode.CancellationToken): Promise<vscode.Hover> {
+        return new Promise<vscode.Hover>((resolve, reject) => {
+            checkTimeout(document).then(() => request({
+                url: rls_url + "title",
+                method: "POST",
+                json: true,
+                body: build_input_pos(document, position)
+            }, function(err, res, body) {
+                if (body) {
+                    let docs = body.docs;
+                    if (body.docs) {
+                        resolve(new vscode.Hover(docs));
+                    } else {
+                        resolve(null);
+                    }
                 } else {
                     resolve(null);
                 }
@@ -144,7 +176,7 @@ class RustDefProvider implements vscode.DefinitionProvider {
                 json: true,
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
-                if (body.Err) {
+                if (!body || body.Err) {
                     console.log("Error resolving definition");
                     resolve(null);
                     return;
@@ -167,6 +199,7 @@ class RustRefProvider implements vscode.ReferenceProvider {
                              position: vscode.Position,
                              context: vscode.ReferenceContext,
                              token: vscode.CancellationToken): Promise<vscode.Location[]> {
+        // TODO we always provide the decl, we should only do this if the context requests it
         return new Promise<vscode.Definition>((resolve, reject) => {
             checkTimeout(document).then(() => request({
                 url: rls_url + "find_refs",
@@ -174,7 +207,11 @@ class RustRefProvider implements vscode.ReferenceProvider {
                 json: true,
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
-                resolve(body.map(loc_from_span));
+                if (body) {
+                    resolve(body.map(loc_from_span));
+                } else {
+                    resolve(null);
+                }
             }));
         });
     }
@@ -198,6 +235,27 @@ class RustRenameProvider implements vscode.RenameProvider {
                     edit.replace(uri_from_span(r), range_from_span(r), newString);
                 }
                 resolve(edit);
+            }));
+        });
+    }
+}
+
+class RustHighlightProvider implements vscode.DocumentHighlightProvider {
+    public provideDocumentHighlights(document: vscode.TextDocument,
+                                     position: vscode.Position,
+                                     token: vscode.CancellationToken): Promise<vscode.DocumentHighlight[]> {
+        return new Promise<vscode.DocumentHighlight[]>((resolve, reject) => {
+            checkTimeout(document).then(() => request({
+                url: rls_url + "find_refs",
+                method: "POST",
+                json: true,
+                body: build_input_pos(document, position)
+            }, function(err, res, body) {
+                if (body) {
+                    resolve(body.map((span) => new vscode.DocumentHighlight(range_from_span(span))));
+                } else {
+                    resolve(null);
+                }
             }));
         });
     }

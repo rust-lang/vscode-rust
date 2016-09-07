@@ -43,12 +43,14 @@ function checkTimeout(document: vscode.TextDocument): Promise<boolean> {
 
 function save(document: vscode.TextDocument): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
+        vscode.window.setStatusBarMessage("Analysis: in progress");
         document.save().then(() => request({
             url: rls_url + "on_change",
             method: "POST",
             json: true,
             body: ''
         }, function(err, res, body) {
+            vscode.window.setStatusBarMessage("Analysis: done");
             diagnosticCollection.clear();
             if (body.Failure) {
                 try {
@@ -99,13 +101,7 @@ class RustHoverProvider implements vscode.HoverProvider {
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
                 if (body) {
-                    let results = (<string>body).split(": ");
-                    if (results.length > 1) {
-                        resolve(new vscode.Hover({language: "rust", value: results[results.length-1]}));
-                    }
-                    else {
-                        resolve(new vscode.Hover({language: "rust", value: results[0]}));
-                    }
+                    resolve(new vscode.Hover({language: "rust", value: body}));
                 } else {
                     resolve(null);
                 }

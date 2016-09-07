@@ -61,10 +61,12 @@ function save(document: vscode.TextDocument): Promise<boolean> {
                         failure.message,
                         vscode.DiagnosticSeverity.Error);
 
-                    diagnosticCollection.set(document.uri, [diag]);
+                    if (document.uri.path.search(failure.spans[0].file_name) >= 0) {
+                        diagnosticCollection.set(document.uri, [diag]);
+                    }
                 }
                 catch (e) {
-
+                    console.log("Cannot parse: " + body.Failure);
                 }
             }
         }));
@@ -97,7 +99,13 @@ class RustHoverProvider implements vscode.HoverProvider {
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
                 if (body) {
-                    resolve(new vscode.Hover(body));
+                    let results = (<string>body).split(": ");
+                    if (results.length > 1) {
+                        resolve(new vscode.Hover({language: "rust", value: results[results.length-1]}));
+                    }
+                    else {
+                        resolve(new vscode.Hover({language: "rust", value: results[0]}));
+                    }
                 } else {
                     resolve(null);
                 }

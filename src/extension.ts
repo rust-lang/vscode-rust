@@ -45,6 +45,11 @@ function checkTimeout(document: vscode.TextDocument): Promise<boolean> {
 
 function save(document: vscode.TextDocument): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
+        if (!document.isDirty) {
+            resolve(true);
+            return;
+        }
+        console.log("building...");
         vscode.window.setStatusBarMessage("Analysis: in progress");
         document.save().then(() => request({
             url: rls_url + "on_change",
@@ -52,26 +57,54 @@ function save(document: vscode.TextDocument): Promise<boolean> {
             json: true,
             body: ''
         }, function(err, res, body) {
-            vscode.window.setStatusBarMessage("Analysis: done");
-            diagnosticCollection.clear();
-            if (body.Failure) {
-                try {
-                    let failure = JSON.parse(body.Failure);
-                    let diag = new vscode.Diagnostic(
-                        new vscode.Range(
-                            new vscode.Position(failure.spans[0].line_start-1, failure.spans[0].column_start-1),
-                            new vscode.Position(failure.spans[0].line_end-1, failure.spans[0].column_end-1)
-                        ),
-                        failure.message,
-                        vscode.DiagnosticSeverity.Error);
+            if (body) {
+                console.log(body);
+                vscode.window.setStatusBarMessage("Analysis: done");
+                diagnosticCollection.clear();
+                if (body.Failure) {
+                    try {
+                        let failure = JSON.parse(body.Failure);
+                        let diag = new vscode.Diagnostic(
+                            new vscode.Range(
+                                new vscode.Position(failure.spans[0].line_start-1, failure.spans[0].column_start-1),
+                                new vscode.Position(failure.spans[0].line_end-1, failure.spans[0].column_end-1)
+                            ),
+                            "[error] " + (failure.spans[0].label ? failure.spans[0].label : failure.message),
+                            vscode.DiagnosticSeverity.Error);
 
-                    if (document.uri.path.search(failure.spans[0].file_name) >= 0) {
-                        diagnosticCollection.set(document.uri, [diag]);
+                        if (document.uri.path.search(failure.spans[0].file_name) >= 0) {
+                            diagnosticCollection.set(document.uri, [diag]);
+                        }
+                    }
+                    catch (e) {
+                        //console.log("Cannot parse: " + body.Failure);
+                        vscode.window.setStatusBarMessage("Analysis: bad JSON response");
                     }
                 }
-                catch (e) {
-                    console.log("Cannot parse: " + body.Failure);
+                else if (body.Success) {
+                    console.log(body.Success);
+                    try {
+                        let warning = JSON.parse(body.Success);
+                        let diag = new vscode.Diagnostic(
+                            new vscode.Range(
+                                new vscode.Position(warning.spans[0].line_start-1, warning.spans[0].column_start-1),
+                                new vscode.Position(warning.spans[0].line_end-1, warning.spans[0].column_end-1)
+                            ),
+                            "[warning] " + (warning.spans[0].label ? warning.spans[0].label : warning.message),
+                            vscode.DiagnosticSeverity.Warning);
+
+                        if (document.uri.path.search(warning.spans[0].file_name) >= 0) {
+                            diagnosticCollection.set(document.uri, [diag]);
+                        }
+                    }
+                    catch (e) {
+                        //console.log("Cannot parse: " + body.Failure);
+                        vscode.window.setStatusBarMessage("Analysis: bad JSON response");
+                    }
                 }
+            }
+            else {
+                vscode.window.setStatusBarMessage("Analysis: RLS offline");
             }
         }));
         resolve(true);
@@ -128,8 +161,11 @@ class RustDocHoverProvider implements vscode.HoverProvider {
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
                 if (body) {
-                    let docs = body.docs;
+                    let docs: string = body.docs;
                     if (body.docs) {
+                        docs = (<string>body.docs).replace(/\* /g, "\\* ");
+                        let doc_lines = docs.split("\n");
+                        docs = doc_lines.map(Function.prototype.call, String.prototype.trim).join("\n");
                         resolve(new vscode.Hover(docs));
                     } else {
                         resolve(null);
@@ -146,7 +182,7 @@ class RustCompletionProvider implements vscode.CompletionItemProvider {
     public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position,
         token: vscode.CancellationToken): Promise<vscode.CompletionList> {
         return new Promise<vscode.CompletionList>((resolve, reject) => {
-            checkTimeout(document).then(() => request({
+            document.save().then(() => request({
                 url: rls_url + "complete",
                 method: "POST",
                 json: true,
@@ -157,7 +193,6 @@ class RustCompletionProvider implements vscode.CompletionItemProvider {
                     let item = new vscode.CompletionItem(body[o].name);
                     item.detail = body[o].context;
                     results.push(item);
-                    //console.log("complete: " + item)
                 }
                 resolve(new vscode.CompletionList(results, false));
             }));

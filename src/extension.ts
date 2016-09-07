@@ -99,12 +99,22 @@ class RustHoverProvider implements vscode.HoverProvider {
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
                 if (body) {
-                    let results = (<string>body).split(": ");
-                    if (results.length > 1) {
-                        resolve(new vscode.Hover({language: "rust", value: results[results.length-1]}));
+                    let ty = body.ty;
+                    let docs = body.docs;
+                    let result = "";
+                    if (ty) {
+                        result += ty;
                     }
-                    else {
-                        resolve(new vscode.Hover({language: "rust", value: results[0]}));
+                    if (ty && docs) {
+                        result += "\n***\n";
+                    }
+                    if (docs) {
+                        result += docs;
+                    }
+                    if (result) {
+                        resolve(new vscode.Hover(result));
+                    } else {
+                        resolve(null);
                     }
                 } else {
                     resolve(null);
@@ -148,7 +158,7 @@ class RustDefProvider implements vscode.DefinitionProvider {
                 json: true,
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
-                if (body.Err) {
+                if (!body || body.Err) {
                     console.log("Error resolving definition");
                     resolve(null);
                     return;
@@ -171,6 +181,7 @@ class RustRefProvider implements vscode.ReferenceProvider {
                              position: vscode.Position,
                              context: vscode.ReferenceContext,
                              token: vscode.CancellationToken): Promise<vscode.Location[]> {
+        // TODO we always provide the decl, we should only do this if the context requests it
         return new Promise<vscode.Definition>((resolve, reject) => {
             checkTimeout(document).then(() => request({
                 url: rls_url + "find_refs",
@@ -178,7 +189,11 @@ class RustRefProvider implements vscode.ReferenceProvider {
                 json: true,
                 body: build_input_pos(document, position)
             }, function(err, res, body) {
-                resolve(body.map(loc_from_span));
+                if (body) {
+                    resolve(body.map(loc_from_span));
+                } else {
+                    resolve(null);
+                }
             }));
         });
     }

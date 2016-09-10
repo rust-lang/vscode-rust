@@ -20,6 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerReferenceProvider('rust', new RustRefProvider);
     vscode.languages.registerRenameProvider('rust', new RustRenameProvider);
     vscode.languages.registerDocumentHighlightProvider('rust', new RustHighlightProvider);
+    vscode.languages.registerDocumentSymbolProvider('rust', new RustSymbolProvider);
 
     diagnosticCollection = vscode.languages.createDiagnosticCollection('rust');
     context.subscriptions.push(diagnosticCollection);
@@ -196,6 +197,14 @@ class RustCompletionProvider implements vscode.CompletionItemProvider {
                 }
                 resolve(new vscode.CompletionList(results, false));
             }));
+        });
+    }
+}
+
+class RustSymbolProvider implements vscode.DocumentSymbolProvider {
+    provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
+        return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
+            resolve([new vscode.SymbolInformation("foo", vscode.SymbolKind.Class, new vscode.Range(1, 1, 2, 2), document.uri)]);
         });
     }
 }

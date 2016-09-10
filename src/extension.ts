@@ -210,7 +210,11 @@ class RustSymbolProvider implements vscode.DocumentSymbolProvider {
                     json: true,
                     body: document.fileName
             }, function(err, res, body) {
-                resolve([new vscode.SymbolInformation("foo", vscode.SymbolKind.Class, new vscode.Range(1, 1, 2, 2), document.uri)]);
+                if (body) {
+                    resolve(body.map((s) => {
+                        return new vscode.SymbolInformation(s.name, s.kind, range_from_span(s.span), document.uri);
+                    }))
+                }
             }));
         });
     }

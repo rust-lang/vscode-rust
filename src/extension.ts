@@ -204,7 +204,14 @@ class RustCompletionProvider implements vscode.CompletionItemProvider {
 class RustSymbolProvider implements vscode.DocumentSymbolProvider {
     provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
         return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
-            resolve([new vscode.SymbolInformation("foo", vscode.SymbolKind.Class, new vscode.Range(1, 1, 2, 2), document.uri)]);
+            checkTimeout(document).then(() => request({
+                    url: rls_url + "symbols",
+                    method: "POST",
+                    json: true,
+                    body: document.fileName
+            }, function(err, res, body) {
+                resolve([new vscode.SymbolInformation("foo", vscode.SymbolKind.Class, new vscode.Range(1, 1, 2, 2), document.uri)]);
+            }));
         });
     }
 }

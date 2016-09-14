@@ -150,6 +150,7 @@ class RustTypeHoverProvider implements vscode.HoverProvider {
     }
 }
 
+// TODO should these be different providers? Means we make redundent calls and also don't control layout of tool tip.
 class RustDocHoverProvider implements vscode.HoverProvider {
     public provideHover(document: vscode.TextDocument,
                         position: vscode.Position,
@@ -164,11 +165,17 @@ class RustDocHoverProvider implements vscode.HoverProvider {
                 if (body) {
                     let docs: string = body.docs;
                     if (body.docs) {
+                        // TODO I don't think we need this, since we only provide opening para of docs.
                         docs = (<string>body.docs).replace(/\* /g, "\\* ");
                         let doc_lines = docs.split("\n");
                         docs = doc_lines.map(Function.prototype.call, String.prototype.trim).join("\n");
+
+                        if (body.doc_url) {
+                            docs += "\n[...](" + body.doc_url + ")";
+                        }
                         resolve(new vscode.Hover(docs));
                     } else {
+                        // It is possible we don't have doc string, but the doc_url is valid, we might display it somehow
                         resolve(null);
                     }
                 } else {

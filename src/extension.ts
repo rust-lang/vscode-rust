@@ -56,7 +56,7 @@ function save(document: vscode.TextDocument): Promise<boolean> {
             url: rls_url + "on_change",
             method: "POST",
             json: true,
-            body: ''
+            body: vscode.workspace.rootPath
         }, function(err, res, body) {
             if (body) {
                 console.log(body);

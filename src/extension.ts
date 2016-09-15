@@ -58,49 +58,58 @@ function save(document: vscode.TextDocument): Promise<boolean> {
             json: true,
             body: vscode.workspace.rootPath
         }, function(err, res, body) {
+            function underline_diagnostic(obj, severity) {
+                let diags = [];
+                let msg_matches_filename = false;
+                let prepend = "";
+                if (severity == vscode.DiagnosticSeverity.Warning) {
+                    prepend = "[warning] ";
+                }
+                else if (severity == vscode.DiagnosticSeverity.Error) {
+                    prepend = "[error] ";
+                }
+                for (let idx in obj) {
+                    let msg = JSON.parse(obj[idx]);
+                    if (msg.spans && msg.spans.length > 0) {
+                        let diag = new vscode.Diagnostic(
+                            new vscode.Range(
+                                new vscode.Position(msg.spans[0].line_start-1, msg.spans[0].column_start-1),
+                                new vscode.Position(msg.spans[0].line_end-1, msg.spans[0].column_end-1)
+                            ),
+                            prepend + (msg.spans[0].label ? msg.spans[0].label : msg.message),
+                            severity);
+                        if (document.uri.path.search(msg.spans[0].file_name)) {
+                            diags.push(diag);
+                            msg_matches_filename = true;
+                        }
+                    }
+                }
+                if (msg_matches_filename) {
+                    diagnosticCollection.set(document.uri, diags);
+                }
+            }
             if (body) {
                 console.log(body);
                 vscode.window.setStatusBarMessage("Analysis: done");
                 diagnosticCollection.clear();
                 if (body.Failure) {
                     try {
-                        let failure = JSON.parse(body.Failure);
-                        let diag = new vscode.Diagnostic(
-                            new vscode.Range(
-                                new vscode.Position(failure.spans[0].line_start-1, failure.spans[0].column_start-1),
-                                new vscode.Position(failure.spans[0].line_end-1, failure.spans[0].column_end-1)
-                            ),
-                            "[error] " + (failure.spans[0].label ? failure.spans[0].label : failure.message),
-                            vscode.DiagnosticSeverity.Error);
-
-                        if (document.uri.path.search(failure.spans[0].file_name) >= 0) {
-                            diagnosticCollection.set(document.uri, [diag]);
-                        }
+                        underline_diagnostic(body.Failure, vscode.DiagnosticSeverity.Error);
                     }
                     catch (e) {
-                        //console.log("Cannot parse: " + body.Failure);
                         vscode.window.setStatusBarMessage("Analysis: bad JSON response");
+                        console.log(e);
                     }
                 }
                 else if (body.Success) {
                     console.log(body.Success);
                     try {
-                        let warning = JSON.parse(body.Success);
-                        let diag = new vscode.Diagnostic(
-                            new vscode.Range(
-                                new vscode.Position(warning.spans[0].line_start-1, warning.spans[0].column_start-1),
-                                new vscode.Position(warning.spans[0].line_end-1, warning.spans[0].column_end-1)
-                            ),
-                            "[warning] " + (warning.spans[0].label ? warning.spans[0].label : warning.message),
-                            vscode.DiagnosticSeverity.Warning);
-
-                        if (document.uri.path.search(warning.spans[0].file_name) >= 0) {
-                            diagnosticCollection.set(document.uri, [diag]);
-                        }
+                        underline_diagnostic(body.Success, vscode.DiagnosticSeverity.Warning);
                     }
                     catch (e) {
                         //console.log("Cannot parse: " + body.Failure);
                         vscode.window.setStatusBarMessage("Analysis: bad JSON response");
+                        console.log(e);
                     }
                 }
             }

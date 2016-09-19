@@ -25,23 +25,11 @@ export function activate(context: vscode.ExtensionContext) {
     diagnosticCollection = vscode.languages.createDiagnosticCollection('rust');
     context.subscriptions.push(diagnosticCollection);
 
-    vscode.workspace.onDidSaveTextDocument(doc => onChange(doc));
-    vscode.workspace.onDidChangeTextDocument(e => onChange(e.document));
-    vscode.workspace.onDidOpenTextDocument(doc => onChange(doc));
-    vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor) => onChange(editor.document));
-}
-
-let changeTimeout = null;
-
-// TODO jntrnr: please sanity check these promises
-function checkTimeout(document: vscode.TextDocument): Promise<boolean> {
-    if (changeTimeout) {
-        clearTimeout(changeTimeout);
-        changeTimeout = null;
-        return save(document);
-    }
-    
-    return Promise.resolve(true);
+    vscode.workspace.onDidSaveTextDocument(onSave);
+    vscode.workspace.onDidChangeTextDocument(onChange);
+    // TODO post these to the RLS
+    //vscode.workspace.onDidOpenTextDocument(onChange);
+    //vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor) => onChange(editor.document));
 }
 
 function save(document: vscode.TextDocument): Promise<boolean> {
@@ -52,86 +40,88 @@ function save(document: vscode.TextDocument): Promise<boolean> {
         }
         console.log("building...");
         vscode.window.setStatusBarMessage("Analysis: in progress");
-        document.save().then(() => request({
-            url: rls_url + "on_change",
-            method: "POST",
-            json: true,
-            body: vscode.workspace.rootPath
-        }, function(err, res, body) {
-            function underline_diagnostic(obj, severity) {
-                let diags = [];
-                let msg_matches_filename = false;
-                let prepend = "";
-                if (severity == vscode.DiagnosticSeverity.Warning) {
-                    prepend = "[warning] ";
-                }
-                else if (severity == vscode.DiagnosticSeverity.Error) {
-                    prepend = "[error] ";
-                }
-                for (let idx in obj) {
-                    let msg = JSON.parse(obj[idx]);
-                    if (msg.spans && msg.spans.length > 0) {
-                        let diag = new vscode.Diagnostic(
-                            new vscode.Range(
-                                new vscode.Position(msg.spans[0].line_start-1, msg.spans[0].column_start-1),
-                                new vscode.Position(msg.spans[0].line_end-1, msg.spans[0].column_end-1)
-                            ),
-                            prepend + (msg.spans[0].label ? msg.spans[0].label : msg.message),
-                            severity);
-                        if (document.uri.path.search(msg.spans[0].file_name)) {
-                            diags.push(diag);
-                            msg_matches_filename = true;
-                        }
-                    }
-                }
-                if (msg_matches_filename) {
-                    diagnosticCollection.set(document.uri, diags);
-                }
-            }
-            if (body) {
-                console.log(body);
-                vscode.window.setStatusBarMessage("Analysis: done");
-                diagnosticCollection.clear();
-                if (body.Failure) {
-                    try {
-                        underline_diagnostic(body.Failure, vscode.DiagnosticSeverity.Error);
-                    }
-                    catch (e) {
-                        vscode.window.setStatusBarMessage("Analysis: bad JSON response");
-                        console.log(e);
-                    }
-                }
-                else if (body.Success) {
-                    console.log(body.Success);
-                    try {
-                        underline_diagnostic(body.Success, vscode.DiagnosticSeverity.Warning);
-                    }
-                    catch (e) {
-                        //console.log("Cannot parse: " + body.Failure);
-                        vscode.window.setStatusBarMessage("Analysis: bad JSON response");
-                        console.log(e);
-                    }
-                }
-            }
-            else {
-                vscode.window.setStatusBarMessage("Analysis: RLS offline");
-            }
-        }));
-        resolve(true);
+        document.save()
     });
 }
 
-function onChange(doc: vscode.TextDocument) {
-    if (changeTimeout) {
-        clearTimeout(changeTimeout);
-        changeTimeout = null;
-    }
+// TODO this is mostly responding to a build by the RLS
+function onSave(document: vscode.TextDocument) {
+    request({
+        url: rls_url + "on_save",
+        method: "POST",
+        json: true,
+        body: build_save_input(document)
+    }, function(err, res, body) {
+        function underline_diagnostic(obj, severity) {
+            let diags = [];
+            let msg_matches_filename = false;
+            let prepend = "";
+            if (severity == vscode.DiagnosticSeverity.Warning) {
+                prepend = "[warning] ";
+            }
+            else if (severity == vscode.DiagnosticSeverity.Error) {
+                prepend = "[error] ";
+            }
+            for (let idx in obj) {
+                let msg = JSON.parse(obj[idx]);
+                if (msg.spans && msg.spans.length > 0) {
+                    let diag = new vscode.Diagnostic(
+                        new vscode.Range(
+                            new vscode.Position(msg.spans[0].line_start-1, msg.spans[0].column_start-1),
+                            new vscode.Position(msg.spans[0].line_end-1, msg.spans[0].column_end-1)
+                        ),
+                        prepend + (msg.spans[0].label ? msg.spans[0].label : msg.message),
+                        severity);
+                    if (document.uri.path.search(msg.spans[0].file_name)) {
+                        diags.push(diag);
+                        msg_matches_filename = true;
+                    }
+                }
+            }
+            if (msg_matches_filename) {
+                diagnosticCollection.set(document.uri, diags);
+            }
+        }
+        if (body) {
+            console.log(body);
+            vscode.window.setStatusBarMessage("Analysis: done");
+            diagnosticCollection.clear();
+            if (body.Failure) {
+                try {
+                    underline_diagnostic(body.Failure, vscode.DiagnosticSeverity.Error);
+                }
+                catch (e) {
+                    vscode.window.setStatusBarMessage("Analysis: bad JSON response");
+                    console.log(e);
+                }
+            }
+            else if (body.Success) {
+                console.log(body.Success);
+                try {
+                    underline_diagnostic(body.Success, vscode.DiagnosticSeverity.Warning);
+                }
+                catch (e) {
+                    //console.log("Cannot parse: " + body.Failure);
+                    vscode.window.setStatusBarMessage("Analysis: bad JSON response");
+                    console.log(e);
+                }
+            }
+        }
+        else {
+            vscode.window.setStatusBarMessage("Analysis: RLS offline");
+        }
+    });
+}
 
-    changeTimeout = setTimeout(() => {
-        save(doc).then(() => {
-            changeTimeout = null;
-        });
-    }, 1000);
+function onChange(event: vscode.TextDocumentChangeEvent) {
+    request({
+        url: rls_url + "on_change",
+        method: "POST",
+        json: true,
+        body: build_change_input(event)
+    }, function(err, res, body) {
+        // Nothing to do here?
+    });
 }
 
 class RustTypeHoverProvider implements vscode.HoverProvider {
@@ -139,7 +129,7 @@ class RustTypeHoverProvider implements vscode.HoverProvider {
                         position: vscode.Position,
                         token: vscode.CancellationToken): Promise<vscode.Hover> {
         return new Promise<vscode.Hover>((resolve, reject) => {
-            checkTimeout(document).then(() => request({
+            request({
                 url: rls_url + "title",
                 method: "POST",
                 json: true,
@@ -154,7 +144,7 @@ class RustTypeHoverProvider implements vscode.HoverProvider {
                 } else {
                     resolve(null);
                 }
-            }));
+            });
         });
     }
 }
@@ -165,7 +155,7 @@ class RustDocHoverProvider implements vscode.HoverProvider {
                         position: vscode.Position,
                         token: vscode.CancellationToken): Promise<vscode.Hover> {
         return new Promise<vscode.Hover>((resolve, reject) => {
-            checkTimeout(document).then(() => request({
+            request({
                 url: rls_url + "title",
                 method: "POST",
                 json: true,
@@ -190,7 +180,7 @@ class RustDocHoverProvider implements vscode.HoverProvider {
                 } else {
                     resolve(null);
                 }
-            }));
+            });
         });
     }
 }
@@ -220,7 +210,7 @@ class RustCompletionProvider implements vscode.CompletionItemProvider {
 class RustSymbolProvider implements vscode.DocumentSymbolProvider {
     provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
         return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
-            checkTimeout(document).then(() => request({
+            request({
                     url: rls_url + "symbols",
                     method: "POST",
                     json: true,
@@ -231,7 +221,7 @@ class RustSymbolProvider implements vscode.DocumentSymbolProvider {
                         return new vscode.SymbolInformation(s.name, s.kind, range_from_span(s.span), document.uri);
                     }))
                 }
-            }));
+            });
         });
     }
 }
@@ -241,7 +231,7 @@ class RustDefProvider implements vscode.DefinitionProvider {
                              position: vscode.Position,
                              token: vscode.CancellationToken): Promise<vscode.Definition> {
         return new Promise<vscode.Definition>((resolve, reject) => {
-            checkTimeout(document).then(() => request({
+            request({
                 url: rls_url + "goto_def",
                 method: "POST",
                 json: true,
@@ -260,7 +250,7 @@ class RustDefProvider implements vscode.DefinitionProvider {
                 }
                 resolve(null);
                 return;
-            }));
+            });
         });
     }
 }
@@ -272,7 +262,7 @@ class RustRefProvider implements vscode.ReferenceProvider {
                              token: vscode.CancellationToken): Promise<vscode.Location[]> {
         // TODO we always provide the decl, we should only do this if the context requests it
         return new Promise<vscode.Definition>((resolve, reject) => {
-            checkTimeout(document).then(() => request({
+            request({
                 url: rls_url + "find_refs",
                 method: "POST",
                 json: true,
@@ -283,7 +273,7 @@ class RustRefProvider implements vscode.ReferenceProvider {
                 } else {
                     resolve(null);
                 }
-            }));
+            });
         });
     }
 }
@@ -294,7 +284,7 @@ class RustRenameProvider implements vscode.RenameProvider {
                               newName: String,
                               token: vscode.CancellationToken): Promise<vscode.WorkspaceEdit> {
         return new Promise<vscode.WorkspaceEdit>((resolve, reject) => {
-            checkTimeout(document).then(() => request({
+            request({
                 url: rls_url + "find_refs",
                 method: "POST",
                 json: true,
@@ -306,7 +296,7 @@ class RustRenameProvider implements vscode.RenameProvider {
                     edit.replace(uri_from_span(r), range_from_span(r), newString);
                 }
                 resolve(edit);
-            }));
+            });
         });
     }
 }
@@ -316,7 +306,7 @@ class RustHighlightProvider implements vscode.DocumentHighlightProvider {
                                      position: vscode.Position,
                                      token: vscode.CancellationToken): Promise<vscode.DocumentHighlight[]> {
         return new Promise<vscode.DocumentHighlight[]>((resolve, reject) => {
-            checkTimeout(document).then(() => request({
+            request({
                 url: rls_url + "find_refs",
                 method: "POST",
                 json: true,
@@ -327,7 +317,7 @@ class RustHighlightProvider implements vscode.DocumentHighlightProvider {
                 } else {
                     resolve(null);
                 }
-            }));
+            });
         });
     }
 }
@@ -384,6 +374,30 @@ function build_input_pos(document: vscode.TextDocument, position: vscode.Positio
                 column_end: position.character+1
             }});        
     }
+}
+function build_save_input(document: vscode.TextDocument): string {
+    return JSON.stringify({
+        project_path: vscode.workspace.rootPath,
+        saved_file: document.fileName 
+    });
+}
+
+function build_change_input(event: vscode.TextDocumentChangeEvent): string {
+    return JSON.stringify({
+        project_path: vscode.workspace.rootPath,
+        changes: event.contentChanges.map((cc) => {
+            return {
+                span: {
+                    file_name: event.document.fileName,
+                    line_start: cc.range.start.line,
+                    column_start: cc.range.start.character,
+                    line_end: cc.range.end.line,
+                    column_end: cc.range.end.character
+                },
+                text: cc.text
+            };
+        })
+    });
 }
 
 // this method is called when your extension is deactivated

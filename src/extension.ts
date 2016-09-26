@@ -16,112 +16,108 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerHoverProvider('rust', new RustTypeHoverProvider());
     vscode.languages.registerHoverProvider('rust', new RustDocHoverProvider());
     vscode.languages.registerCompletionItemProvider('rust', new RustCompletionProvider(), ".");
-    vscode.languages.registerDefinitionProvider('rust', new RustDefProvider);
-    vscode.languages.registerReferenceProvider('rust', new RustRefProvider);
-    vscode.languages.registerRenameProvider('rust', new RustRenameProvider);
-    vscode.languages.registerDocumentHighlightProvider('rust', new RustHighlightProvider);
-    vscode.languages.registerDocumentSymbolProvider('rust', new RustSymbolProvider);
+    vscode.languages.registerDefinitionProvider('rust', new RustDefProvider());
+    vscode.languages.registerReferenceProvider('rust', new RustRefProvider());
+    vscode.languages.registerRenameProvider('rust', new RustRenameProvider());
+    vscode.languages.registerDocumentHighlightProvider('rust', new RustHighlightProvider());
+    vscode.languages.registerDocumentSymbolProvider('rust', new RustSymbolProvider());
 
     diagnosticCollection = vscode.languages.createDiagnosticCollection('rust');
     context.subscriptions.push(diagnosticCollection);
 
     vscode.workspace.onDidSaveTextDocument(onSave);
     vscode.workspace.onDidChangeTextDocument(onChange);
-    // TODO post these to the RLS
-    //vscode.workspace.onDidOpenTextDocument(onChange);
-    //vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor) => onChange(editor.document));
+    vscode.workspace.onDidOpenTextDocument(onSave);
+    vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor) => onSave(editor.document));
+    // TODO when we open, we do a build get the diagnostics in their window, but don't underline stuff
 }
 
-function save(document: vscode.TextDocument): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
-        if (!document.isDirty) {
-            resolve(true);
-            return;
-        }
-        console.log("building...");
-        vscode.window.setStatusBarMessage("Analysis: in progress");
-        document.save()
-    });
-}
-
-// TODO this is mostly responding to a build by the RLS
 function onSave(document: vscode.TextDocument) {
+    console.log("building...");
+    vscode.window.setStatusBarMessage("Analysis: in progress");
     request({
         url: rls_url + "on_save",
         method: "POST",
         json: true,
         body: build_save_input(document)
     }, function(err, res, body) {
-        function underline_diagnostic(obj, severity) {
-            let diags = [];
-            let msg_matches_filename = false;
-            let prepend = "";
-            if (severity == vscode.DiagnosticSeverity.Warning) {
-                prepend = "[warning] ";
-            }
-            else if (severity == vscode.DiagnosticSeverity.Error) {
-                prepend = "[error] ";
-            }
-            for (let idx in obj) {
-                let msg = JSON.parse(obj[idx]);
-                if (msg.spans && msg.spans.length > 0) {
-                    let diag = new vscode.Diagnostic(
-                        new vscode.Range(
-                            new vscode.Position(msg.spans[0].line_start-1, msg.spans[0].column_start-1),
-                            new vscode.Position(msg.spans[0].line_end-1, msg.spans[0].column_end-1)
-                        ),
-                        prepend + (msg.spans[0].label ? msg.spans[0].label : msg.message),
-                        severity);
-                    if (document.uri.path.search(msg.spans[0].file_name)) {
-                        diags.push(diag);
-                        msg_matches_filename = true;
-                    }
-                }
-            }
-            if (msg_matches_filename) {
-                diagnosticCollection.set(document.uri, diags);
-            }
-        }
-        if (body) {
-            console.log(body);
-            vscode.window.setStatusBarMessage("Analysis: done");
-            diagnosticCollection.clear();
-            if (body.Failure) {
-                try {
-                    underline_diagnostic(body.Failure, vscode.DiagnosticSeverity.Error);
-                }
-                catch (e) {
-                    vscode.window.setStatusBarMessage("Analysis: bad JSON response");
-                    console.log(e);
-                }
-            }
-            else if (body.Success) {
-                console.log(body.Success);
-                try {
-                    underline_diagnostic(body.Success, vscode.DiagnosticSeverity.Warning);
-                }
-                catch (e) {
-                    //console.log("Cannot parse: " + body.Failure);
-                    vscode.window.setStatusBarMessage("Analysis: bad JSON response");
-                    console.log(e);
-                }
-            }
-        }
-        else {
-            vscode.window.setStatusBarMessage("Analysis: RLS offline");
-        }
+        receiveBuildStatus(body, document)
     });
 }
 
 function onChange(event: vscode.TextDocumentChangeEvent) {
+    console.log("building...");
+    vscode.window.setStatusBarMessage("Analysis: in progress");
     request({
         url: rls_url + "on_change",
         method: "POST",
         json: true,
         body: build_change_input(event)
     }, function(err, res, body) {
-        // Nothing to do here?
+        receiveBuildStatus(body, event.document)
     });
+}
+
+function receiveBuildStatus(body, document) {
+    function underline_diagnostic(obj, severity) {
+        let diags = [];
+        let msg_matches_filename = false;
+        let prepend = "";
+        if (severity == vscode.DiagnosticSeverity.Warning) {
+            prepend = "[warning] ";
+        }
+        else if (severity == vscode.DiagnosticSeverity.Error) {
+            prepend = "[error] ";
+        }
+        for (let idx in obj) {
+            let msg = JSON.parse(obj[idx]);
+            if (msg.spans && msg.spans.length > 0) {
+                let diag = new vscode.Diagnostic(
+                    new vscode.Range(
+                        new vscode.Position(msg.spans[0].line_start-1, msg.spans[0].column_start-1),
+                        new vscode.Position(msg.spans[0].line_end-1, msg.spans[0].column_end-1)
+                    ),
+                    prepend + (msg.spans[0].label ? msg.spans[0].label : msg.message),
+                    severity);
+                if (document.uri.path.search(msg.spans[0].file_name)) {
+                    diags.push(diag);
+                    msg_matches_filename = true;
+                }
+            }
+        }
+        if (msg_matches_filename) {
+            diagnosticCollection.set(document.uri, diags);
+        }
+    }
+
+    if (body) {
+        console.log(body);
+        if (body.Failure) {
+            vscode.window.setStatusBarMessage("Analysis: done");
+            diagnosticCollection.clear();
+            try {
+                underline_diagnostic(body.Failure, vscode.DiagnosticSeverity.Error);
+            }
+            catch (e) {
+                vscode.window.setStatusBarMessage("Analysis: bad JSON response");
+                console.log(e);
+            }
+        } else if (body.Success) {
+            vscode.window.setStatusBarMessage("Analysis: done");
+            diagnosticCollection.clear();
+            try {
+                underline_diagnostic(body.Success, vscode.DiagnosticSeverity.Warning);
+            }
+            catch (e) {
+                //console.log("Cannot parse: " + body.Failure);
+                vscode.window.setStatusBarMessage("Analysis: bad JSON response");
+                console.log(e);
+            }
+        }
+    }
+    else {
+        vscode.window.setStatusBarMessage("Analysis: RLS offline");
+    }
 }
 
 class RustTypeHoverProvider implements vscode.HoverProvider {

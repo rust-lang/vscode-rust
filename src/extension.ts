@@ -356,11 +356,11 @@ function uri_from_span(span): vscode.Uri {
 }
 
 function pos_from_pos(pos): vscode.Position {
-    return new vscode.Position(pos.line - 1, pos.col);
+    return new vscode.Position(pos.line, pos.col);
 }
 
 function range_from_span(span): vscode.Range {
-    return new vscode.Range(span.line_start - 1, span.column_start, span.line_end - 1, span.column_end);
+    return new vscode.Range(span.line_start, span.column_start, span.line_end, span.column_end);
 }
 
 function loc_from_span(span): vscode.Location {
@@ -368,35 +368,30 @@ function loc_from_span(span): vscode.Location {
 }
 function build_input_pos(document: vscode.TextDocument, position: vscode.Position): string {
     let range = document.getWordRangeAtPosition(position);
+    let pos = {
+        filepath: document.fileName,
+        line: position.line,
+        col: position.character
+    };
     if (range) {
-        // TODO doing some adjustment here and some in rustls, it should be in one place
         return JSON.stringify({
-            pos: {
-                filepath: document.fileName,
-                line: position.line + 1,
-                col: position.character
-            },
+            pos: pos,
             span: {
                 file_name: document.fileName,
-                line_start: range.start.line + 1,
+                line_start: range.start.line,
                 column_start: range.start.character,
-                line_end: range.end.line + 1,
+                line_end: range.end.line,
                 column_end: range.end.character
             }});
-    }
-    else {
+    } else {
         return JSON.stringify({
-            pos: {
-                filepath: document.fileName,
-                line: position.line+1,
-                col: position.character
-            },
+            pos: pos,
             span: {
                 file_name: document.fileName,
-                line_start: position.line+1,
+                line_start: position.line,
                 column_start: position.character,
-                line_end: position.line+1,
-                column_end: position.character+1
+                line_end: position.line,
+                column_end: position.character + 1
             }});        
     }
 }

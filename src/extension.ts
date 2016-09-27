@@ -21,6 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerRenameProvider('rust', new RustRenameProvider());
     vscode.languages.registerDocumentHighlightProvider('rust', new RustHighlightProvider());
     vscode.languages.registerDocumentSymbolProvider('rust', new RustSymbolProvider());
+    vscode.languages.registerDocumentFormattingEditProvider('rust', new RustFormattingProvider());
 
     diagnosticCollection = vscode.languages.createDiagnosticCollection('rust');
     context.subscriptions.push(diagnosticCollection);
@@ -117,6 +118,34 @@ function receiveBuildStatus(body, document) {
     }
     else {
         vscode.window.setStatusBarMessage("Analysis: RLS offline");
+    }
+}
+
+class RustFormattingProvider implements vscode.DocumentFormattingEditProvider {
+    public provideDocumentFormattingEdits(document: vscode.TextDocument,
+                                          options: vscode.FormattingOptions,
+                                          token: vscode.CancellationToken): Promise<vscode.TextEdit[]> {
+        return new Promise<vscode.TextEdit[]>((resolve, reject) => {
+            request({
+                url: rls_url + "fmt",
+                method: "POST",
+                json: true,
+                body: document.fileName
+            }, function(err, res, body) {
+                if (body) {
+                    if (body.NoChange) {
+                        resolve([]);
+                    } else if (body.Change) {
+                        let new_text = body.Change;
+                        resolve([vscode.TextEdit.replace(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(document.lineCount, 0)), new_text)]);
+                    } else {
+                        resolve(null);
+                    }
+                } else {
+                    resolve(null);
+                }
+            });
+        });
     }
 }
 

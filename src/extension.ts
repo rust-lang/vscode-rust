@@ -12,7 +12,7 @@ let diagnosticCollection: vscode.DiagnosticCollection;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    // TODO disposables?
+    // FIXME(https://github.com/jonathandturner/rustls/issues/5) disposables
     vscode.languages.registerHoverProvider('rust', new RustTypeHoverProvider());
     vscode.languages.registerHoverProvider('rust', new RustDocHoverProvider());
     vscode.languages.registerCompletionItemProvider('rust', new RustCompletionProvider(), ".");
@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument(onChange);
     vscode.workspace.onDidOpenTextDocument(onSave);
     vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor) => onSave(editor.document));
-    // TODO when we open, we do a build get the diagnostics in their window, but don't underline stuff
+    // FIXME(#2) when we open, we do a build get the diagnostics in their window, but don't underline stuff
 }
 
 function onSave(document: vscode.TextDocument) {
@@ -174,7 +174,7 @@ class RustTypeHoverProvider implements vscode.HoverProvider {
     }
 }
 
-// TODO should these be different providers? Means we make redundent calls and also don't control layout of tool tip.
+// FIXME(#4) should these be different providers? Means we make redundent calls and also don't control layout of tool tip.
 class RustDocHoverProvider implements vscode.HoverProvider {
     public provideHover(document: vscode.TextDocument,
                         position: vscode.Position,
@@ -189,8 +189,6 @@ class RustDocHoverProvider implements vscode.HoverProvider {
                 if (body) {
                     let docs: string = body.docs;
                     if (body.docs) {
-                        // TODO I don't think we need this, since we only provide opening para of docs.
-                        docs = (<string>body.docs).replace(/\* /g, "\\* ");
                         let doc_lines = docs.split("\n");
                         docs = doc_lines.map(Function.prototype.call, String.prototype.trim).join("\n");
 
@@ -199,7 +197,7 @@ class RustDocHoverProvider implements vscode.HoverProvider {
                         }
                         resolve(new vscode.Hover(docs));
                     } else {
-                        // It is possible we don't have doc string, but the doc_url is valid, we might display it somehow
+                        // It is possible we don't have doc string, but the doc_url is valid, we might display it somehow.
                         resolve(null);
                     }
                 } else {
@@ -285,7 +283,8 @@ class RustRefProvider implements vscode.ReferenceProvider {
                              position: vscode.Position,
                              context: vscode.ReferenceContext,
                              token: vscode.CancellationToken): Promise<vscode.Location[]> {
-        // TODO we always provide the decl, we should only do this if the context requests it
+        // FIXME(https://github.com/jonathandturner/rustls/issues/20)
+        // We always provide the decl, we should only do this if the context requests it.
         return new Promise<vscode.Definition>((resolve, reject) => {
             request({
                 url: rls_url + "find_refs",

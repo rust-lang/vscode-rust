@@ -7,8 +7,8 @@ import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, T
 
 export function activate(context: ExtensionContext) {
  	let serverOptions: ServerOptions = {
-		run: {command: "cargo", args: ["run"], options: {cwd: result_dir}},
-		debug: {command: "cargo", args: ["run"], options: {cwd: result_dir}}
+		run: {command: "cargo", args: ["run"]},
+		debug: {command: "cargo", args: ["run"]}
 	};
 	// Options to control the language client
 	let clientOptions: LanguageClientOptions = {

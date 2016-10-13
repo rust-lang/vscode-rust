@@ -6,12 +6,6 @@ import { workspace, Disposable, ExtensionContext, languages } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
 export function activate(context: ExtensionContext) {
-	let dir = __dirname.split(/(\\|\/)/g);
- 	dir.pop();
- 	dir.pop();
- 	dir.pop();
- 	let result_dir = dir.join("");
- 
  	let serverOptions: ServerOptions = {
 		run: {command: "cargo", args: ["run"], options: {cwd: result_dir}},
 		debug: {command: "cargo", args: ["run"], options: {cwd: result_dir}}

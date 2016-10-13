@@ -391,7 +391,7 @@ function build_input_pos(document: vscode.TextDocument, position: vscode.Positio
                 column_start: position.character,
                 line_end: position.line,
                 column_end: position.character + 1
-            }});        
+            }});
     }
 }
 function build_save_input(document: vscode.TextDocument): string {

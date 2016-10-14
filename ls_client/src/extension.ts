@@ -27,15 +27,6 @@ export function activate(context: ExtensionContext) {
 			configurationSection: 'languageServerExample',
 			// Notify the server about changes to files contained in the workspace
 			//fileEvents: workspace.createFileSystemWatcher('**/*.*')
-		},
-		errorHandler: {
-			closed: function(): any {
-
-			},
-
-			error(error: Error, message: any, count: number): any {
-
-			}
 		}
 	}
 	

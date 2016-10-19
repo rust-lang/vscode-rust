@@ -7,16 +7,27 @@ import * as child_process from 'child_process';
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
-export function activate(context: ExtensionContext) {
-    const serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
-        function spawnServer(...args: string[]): child_process.ChildProcess {
-			let childProcess = child_process.spawn("rls");
-			childProcess.stderr.on('data', data => {});
-			return childProcess; // Uses stdin/stdout for communication
-		}
+let DEV_MODE = false;
 
-		resolve(spawnServer())
-	});
+export function activate(context: ExtensionContext) {
+	let serverOptions: ServerOptions;
+
+	if (DEV_MODE) {
+		serverOptions = {
+			run: {command: "rls"},
+			debug: {command: "rls"}
+		};
+	} else {
+		serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
+			function spawnServer(...args: string[]): child_process.ChildProcess {
+				let childProcess = child_process.spawn("rls");
+				childProcess.stderr.on('data', data => {});
+				return childProcess; // Uses stdin/stdout for communication
+			}
+
+			resolve(spawnServer())
+		});
+	}
 
 	// Options to control the language client
 	let clientOptions: LanguageClientOptions = {

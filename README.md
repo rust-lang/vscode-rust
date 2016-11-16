@@ -1,8 +1,8 @@
 # VSCode reference client for the RLS
 
 This repo provides the RLS client for vscode built using the Language 
-Server protocol. You must setup the RLS to match the client. This 
-plugin will start the RLS for you, assuming it is in your path.
+Server protocol. This plugin will start the RLS for you, assuming it is in 
+your path.
 
 ## Instructions
 

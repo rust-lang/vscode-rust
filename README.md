@@ -11,6 +11,4 @@ the directory to download and install the required modules.
 
 Next, without installing the client as a regular VSCode extension, open the
 client folder in VSCode. Go to the debugger and run "Launch Extension". This
-opens a new instance of VSCode with the plugin installed. For the LS client,
-you must start VSCode in the *RLS* home directory.
-
+opens a new instance of VSCode with the plugin installed.

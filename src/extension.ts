@@ -7,15 +7,15 @@ import * as child_process from 'child_process';
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
-let DEV_MODE = false;
+let DEV_MODE = true;
 
 export function activate(context: ExtensionContext) {
 	let serverOptions: ServerOptions;
 
 	if (DEV_MODE) {
 		serverOptions = {
-			run: {command: "rls"},
-			debug: {command: "rls"}
+			run: {command: "cargo", args: ["run", "--manifest-path=/Users/jturner/Source/rls/Cargo.toml", "--release"]},
+			debug: {command: "cargo", args: ["run", "--manifest-path=/Users/jturner/Source/rls/Cargo.toml", "--release"]}
 		};
 	} else {
 		serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {

@@ -7,52 +7,52 @@ import * as child_process from 'child_process';
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
-let DEV_MODE = true;
+let DEV_MODE = false;
 
 export function activate(context: ExtensionContext) {
-	let serverOptions: ServerOptions;
+    let serverOptions: ServerOptions;
 
-	if (DEV_MODE) {
-		serverOptions = {
-			run: {command: "cargo", args: ["run", "--manifest-path=/Users/jturner/Source/rls/Cargo.toml", "--release"]},
-			debug: {command: "cargo", args: ["run", "--manifest-path=/Users/jturner/Source/rls/Cargo.toml", "--release"]}
-		};
-	} else {
-		serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
-			function spawnServer(...args: string[]): child_process.ChildProcess {
-				let childProcess = child_process.spawn("rls");
-				childProcess.stderr.on('data', data => {});
-				return childProcess; // Uses stdin/stdout for communication
-			}
+    if (DEV_MODE) {
+        serverOptions = {
+            run: {command: "rls"},
+            debug: {command: "rls"}
+        };
+    } else {
+        serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
+            function spawnServer(...args: string[]): child_process.ChildProcess {
+                let childProcess = child_process.spawn("rls");
+                childProcess.stderr.on('data', data => {});
+                return childProcess; // Uses stdin/stdout for communication
+            }
 
-			resolve(spawnServer())
-		});
-	}
+            resolve(spawnServer())
+        });
+    }
 
-	// Options to control the language client
-	let clientOptions: LanguageClientOptions = {
-		// Register the server for Rust files
-		documentSelector: ['rust'],
-		synchronize: {
-			// Synchronize the setting section 'languageServerExample' to the server
-			configurationSection: 'languageServerExample',
-			// Notify the server about changes to files contained in the workspace
-			//fileEvents: workspace.createFileSystemWatcher('**/*.*')
-		}
-	}
-	
-	// Create the language client and start the client.
-	let lc = new LanguageClient('Rust Language Service', serverOptions, clientOptions);
+    // Options to control the language client
+    let clientOptions: LanguageClientOptions = {
+        // Register the server for Rust files
+        documentSelector: ['rust'],
+        synchronize: {
+            // Synchronize the setting section 'languageServerExample' to the server
+            configurationSection: 'languageServerExample',
+            // Notify the server about changes to files contained in the workspace
+            //fileEvents: workspace.createFileSystemWatcher('**/*.*')
+        }
+    }
+    
+    // Create the language client and start the client.
+    let lc = new LanguageClient('Rust Language Service', serverOptions, clientOptions);
 
-	lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {
-		window.setStatusBarMessage("RLS analysis: started");
-	})
-	lc.onNotification({method: "rustDocument/diagnosticsEnd"}, function(f) {
-		window.setStatusBarMessage("RLS analysis: done");
-	})
-	let disposable = lc.start();
+    lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {
+        window.setStatusBarMessage("RLS analysis: started");
+    })
+    lc.onNotification({method: "rustDocument/diagnosticsEnd"}, function(f) {
+        window.setStatusBarMessage("RLS analysis: done");
+    })
+    let disposable = lc.start();
 
-	// Push the disposable to the context's subscriptions so that the 
-	// client can be deactivated on extension deactivation
-	context.subscriptions.push(disposable);
+    // Push the disposable to the context's subscriptions so that the 
+    // client can be deactivated on extension deactivation
+    context.subscriptions.push(disposable);
 }

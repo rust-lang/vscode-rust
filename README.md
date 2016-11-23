@@ -6,8 +6,8 @@ your path.
 
 ## Instructions
 
-Git clone or download the files, and for either client, use `npm install` in
-their respective directories to download and install the required modules. 
+Git clone or download the files and use `npm install` in
+the directory to download and install the required modules. 
 
 Next, without installing the client as a regular VSCode extension, open the
 client folder in VSCode. Go to the debugger and run "Launch Extension". This

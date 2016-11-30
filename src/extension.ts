@@ -12,21 +12,48 @@ let DEV_MODE = false;
 export function activate(context: ExtensionContext) {
     let serverOptions: ServerOptions;
 
-    if (DEV_MODE) {
-        serverOptions = {
-            run: {command: "rls"},
-            debug: {command: "rls"}
-        };
-    } else {
-        serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
-            function spawnServer(...args: string[]): child_process.ChildProcess {
-                let childProcess = child_process.spawn("rls");
-                childProcess.stderr.on('data', data => {});
-                return childProcess; // Uses stdin/stdout for communication
-            }
+    let rlsCargoPath = "";
+    if (process.env.RLS_ROOT) {
+        rlsCargoPath = path.join(process.env.RLS_ROOT, "Cargo.toml");
+    }
 
-            resolve(spawnServer())
-        });
+    if (DEV_MODE) {
+        if (rlsCargoPath) {
+            serverOptions = {
+                run: {command: "cargo", args: ["run", "--manifest-path=" + rlsCargoPath, "--release"]},
+                debug: {command: "cargo", args: ["run", "--manifest-path=" + rlsCargoPath, "--release"]}
+            };
+        }
+        else {
+            serverOptions = {
+                run: {command: "rls"},
+                debug: {command: "rls"}
+            };
+            
+        }
+    } else {
+        if (rlsCargoPath) {
+            serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
+                function spawnServer(...args: string[]): child_process.ChildProcess {
+                    let childProcess = child_process.spawn("cargo", ["run", "--manifest-path=" + rlsCargoPath, "--release"]);
+                    childProcess.stderr.on('data', data => {});
+                    return childProcess; // Uses stdin/stdout for communication
+                }
+
+                resolve(spawnServer())
+            });
+        }
+        else {
+            serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
+                function spawnServer(...args: string[]): child_process.ChildProcess {
+                    let childProcess = child_process.spawn("rls");
+                    childProcess.stderr.on('data', data => {});
+                    return childProcess; // Uses stdin/stdout for communication
+                }
+
+                resolve(spawnServer())
+            });
+        }
     }
 
     // Options to control the language client

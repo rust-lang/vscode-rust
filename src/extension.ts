@@ -9,6 +9,26 @@ import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, T
 
 let DEV_MODE = false;
 
+class Counter {
+    count: number;
+
+    constructor() {
+        this.count = 0;
+    }
+
+    increment() {
+        this.count += 1;
+    }
+
+    decrementAndGet() {
+        this.count -= 1;
+        if (this.count < 0) {
+            this.count = 0;
+        }
+        return this.count;
+    }
+}
+
 export function activate(context: ExtensionContext) {
     let serverOptions: ServerOptions;
 
@@ -71,11 +91,16 @@ export function activate(context: ExtensionContext) {
     // Create the language client and start the client.
     let lc = new LanguageClient('Rust Language Service', serverOptions, clientOptions);
 
+    let runningDiagnostics = new Counter();
     lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {
+        runningDiagnostics.increment();
         window.setStatusBarMessage("RLS analysis: started");
     })
     lc.onNotification({method: "rustDocument/diagnosticsEnd"}, function(f) {
-        window.setStatusBarMessage("RLS analysis: done");
+        let count = runningDiagnostics.decrementAndGet()
+        if (count == 0) {
+            window.setStatusBarMessage("RLS analysis: done");
+        }
     })
     let disposable = lc.start();
 

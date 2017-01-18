@@ -1,0 +1,12 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+
+[*.{ts,json,md}]
+indent_style = space
+indent_size = 4

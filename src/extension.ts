@@ -69,7 +69,7 @@ export function activate(context: ExtensionContext) {
     }
     
     // Create the language client and start the client.
-    let lc = new LanguageClient('Rust Language Service', serverOptions, clientOptions);
+    let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
 
     lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {
         window.setStatusBarMessage("RLS analysis: started");

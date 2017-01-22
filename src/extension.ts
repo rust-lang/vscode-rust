@@ -96,7 +96,7 @@ export function activate(context: ExtensionContext) {
         runningDiagnostics.increment();
         window.setStatusBarMessage("RLS analysis: started");
     })
-    lc.onNotification({method: "rustDocument/dataProcessingDone"}, function(f) {
+    lc.onNotification({method: "rustDocument/diagnosticsEnd"}, function(f) {
         let count = runningDiagnostics.decrementAndGet()
         if (count == 0) {
             window.setStatusBarMessage("RLS analysis: done");

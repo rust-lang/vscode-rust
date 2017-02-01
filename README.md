@@ -35,7 +35,7 @@ Restart VSCode in order to load the extension. More information available via [V
 
 ## Troubleshooting
 
-### something .. something ... `tsc -watch -p ./` or `ENOSPC`
+### Error messages containing `tsc -watch -p ./` or `ENOSPC`
 
 > npm ERR! Failed at the rls_vscode@0.0.1 compile script 'tsc -watch -p ./'.
 > npm ERR! Make sure you have the latest version of node.js and npm installed.

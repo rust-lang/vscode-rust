@@ -32,3 +32,26 @@ Mac/Linux: $HOME/.vscode/extensions
 ```
 For example, to setup a symlink on Mac/Linux: `ln -s /path/to/rls_vscode/ ~/.vscode/extensions/rls_vscode`
 Restart VSCode in order to load the extension. More information available via [VSCode docs](https://code.visualstudio.com/Docs/extensions/example-hello-world#_installing-your-extension-locally).
+
+## Troubleshooting
+
+### Error messages containing `tsc -watch -p ./` or `ENOSPC`
+
+> npm ERR! Failed at the rls_vscode@0.0.1 compile script 'tsc -watch -p ./'.
+> npm ERR! Make sure you have the latest version of node.js and npm installed.
+> npm ERR! If you do, this is most likely a problem with the rls_vscode package,
+> npm ERR! not with npm itself.
+
+simply run
+
+> npm dedupe
+
+see http://stackoverflow.com/a/31926452/1103681 for an explanation
+
+if that doesn't work, run
+
+> echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+
+### TypeError: Cannot read property 'dispose' of null
+
+change the `DEV_MODE` variable in `extension.ts` to `true` and try again to see the real error.

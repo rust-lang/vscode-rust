@@ -33,6 +33,7 @@ export function activate(context: ExtensionContext) {
     let serverOptions: ServerOptions;
 
     let rls_root = process.env.RLS_ROOT;
+    window.setStatusBarMessage("RLS analysis: starting up");
 
     if (DEV_MODE) {
         if (rls_root) {
@@ -75,7 +76,7 @@ export function activate(context: ExtensionContext) {
     let runningDiagnostics = new Counter();
     lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {
         runningDiagnostics.increment();
-        window.setStatusBarMessage("RLS analysis: started");
+        window.setStatusBarMessage("RLS analysis: working");
     })
     lc.onNotification({method: "rustDocument/diagnosticsEnd"}, function(f) {
         let count = runningDiagnostics.decrementAndGet()

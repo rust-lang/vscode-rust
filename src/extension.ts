@@ -7,7 +7,7 @@ import * as child_process from 'child_process';
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
-let DEV_MODE = true;
+let DEV_MODE = false;
 
 let spinnerTimers = [];
 let nextBuildTask = 0;

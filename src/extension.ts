@@ -7,7 +7,10 @@ import * as child_process from 'child_process';
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
-let DEV_MODE = false;
+let DEV_MODE = true;
+
+let spinnerTimers = [];
+let nextBuildTask = 0;
 
 class Counter {
     count: number;
@@ -69,16 +72,38 @@ export function activate(context: ExtensionContext) {
             //fileEvents: workspace.createFileSystemWatcher('**/*.*')
         }
     }
-    
+
     // Create the language client and start the client.
     let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
 
     let runningDiagnostics = new Counter();
     lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {
         runningDiagnostics.increment();
-        window.setStatusBarMessage("RLS analysis: working");
+        let state = 0;
+        spinnerTimers.push(setInterval(function() {
+            if (state == 0) {
+                window.setStatusBarMessage("RLS analysis: working |");
+                state = 1;
+            }
+            else if (state == 1) {
+                window.setStatusBarMessage("RLS analysis: working /");
+                state = 2;
+            }
+            else if (state == 2) {
+                window.setStatusBarMessage("RLS analysis: working -");
+                state = 3;
+            }
+            else if (state == 3) {
+                window.setStatusBarMessage("RLS analysis: working \\");
+                state = 0;
+            }
+        }, 100));
     })
     lc.onNotification({method: "rustDocument/diagnosticsEnd"}, function(f) {
+        while (spinnerTimers.length > 0) {
+            let spinnerTimer = spinnerTimers.pop();
+            clearInterval(spinnerTimer);
+        }
         let count = runningDiagnostics.decrementAndGet()
         if (count == 0) {
             window.setStatusBarMessage("RLS analysis: done");
@@ -86,7 +111,7 @@ export function activate(context: ExtensionContext) {
     })
     let disposable = lc.start();
 
-    // Push the disposable to the context's subscriptions so that the 
+    // Push the disposable to the context's subscriptions so that the
     // client can be deactivated on extension deactivation
     context.subscriptions.push(disposable);
 }

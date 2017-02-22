@@ -17,8 +17,9 @@ import { RLSConfiguration } from "./configuration";
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
-import { workspace, ExtensionContext, window, commands, OutputChannel } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, NotificationType, RevealOutputChannelOn } from 'vscode-languageclient';
+import { workspace, ExtensionContext, TextEditor, TextEditorEdit, window, commands, OutputChannel } from 'vscode';
+import { LanguageClient, LanguageClientOptions, Location, NotificationType, RevealOutputChannelOn,
+    ServerOptions } from 'vscode-languageclient';
 import * as is from 'vscode-languageclient/lib/utils/is';
 
 const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
@@ -158,12 +159,24 @@ function diagnosticCounter(lc: LanguageClient) {
 }
 
 function registerCommands(lc: LanguageClient, context: ExtensionContext) {
-    const cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
+    let cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
         lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
             .then((_result) => {},
                   (reason) => {
                 window.showWarningMessage('deglob command failed: ' + reason);
             });
+    });
+    context.subscriptions.push(cmdDisposable);
+
+    cmdDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
+        console.log('Trace find implementations');
+        let params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
+        let respone = lc.sendRequest("rustDocument/implementations", params);
+        respone.then((locations: Location[]) => {
+            commands.executeCommand("editor.action.showReferences", textEditor.document.uri, textEditor.selection.active, locations.map(lc.protocol2CodeConverter.asLocation));
+        }, (reason) => {
+            window.showWarningMessage('find implementations failed: ' + reason);
+        });
     });
     context.subscriptions.push(cmdDisposable);
 }

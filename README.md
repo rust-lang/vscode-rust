@@ -33,6 +33,28 @@ Mac/Linux: $HOME/.vscode/extensions
 For example, to setup a symlink on Mac/Linux: `ln -s /path/to/rls_vscode/ ~/.vscode/extensions/rls_vscode`
 Restart VSCode in order to load the extension. More information available via [VSCode docs](https://code.visualstudio.com/Docs/extensions/example-hello-world#_installing-your-extension-locally).
 
+## Adding a Build Command
+
+You can add a build command pretty easily with VSCode.  Commands are done through the [Tasks](https://code.visualstudio.com/docs/editor/tasks) system.
+
+To add a build command for Rust, first pull up the command palette (for macOS it's Command+Shift+P).  Search for "Tasks: Configure Task Runner".
+
+This will open the `tasks.json` file.  Change this file to, for example:
+
+```
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "0.1.0",
+    "command": "cargo",
+    "isShellCommand": true,
+    "args": ["build"],
+    "showOutput": "always"
+}
+```
+
+After this, you'll have a build command you can invoke.  On macOS, for example, this build command is invoked through Command+Shift+B.
+
 ## Troubleshooting
 
 ### Error messages containing `tsc -watch -p ./` or `ENOSPC`

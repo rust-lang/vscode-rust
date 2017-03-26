@@ -9,7 +9,8 @@ import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, T
 
 let DEV_MODE = false;
 
-let spinnerTimers = [];
+let spinnerTimer = null;
+let spinner = ['|', '/', '-', '\\'];
 let nextBuildTask = 0;
 
 class Counter {
@@ -79,33 +80,21 @@ export function activate(context: ExtensionContext) {
     let runningDiagnostics = new Counter();
     lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {
         runningDiagnostics.increment();
-        let state = 0;
-        spinnerTimers.push(setInterval(function() {
-            if (state == 0) {
-                window.setStatusBarMessage("RLS analysis: working |");
-                state = 1;
-            }
-            else if (state == 1) {
-                window.setStatusBarMessage("RLS analysis: working /");
-                state = 2;
-            }
-            else if (state == 2) {
-                window.setStatusBarMessage("RLS analysis: working -");
-                state = 3;
-            }
-            else if (state == 3) {
-                window.setStatusBarMessage("RLS analysis: working \\");
-                state = 0;
-            }
-        }, 100));
+
+        if (spinnerTimer == null) {
+            let state = 0;
+            spinnerTimer = setInterval(function() {
+                window.setStatusBarMessage("RLS analysis: working " + spinner[state]);
+                state = (state + 1) % spinner.length;
+            }, 100);
+        }
     })
     lc.onNotification({method: "rustDocument/diagnosticsEnd"}, function(f) {
-        while (spinnerTimers.length > 0) {
-            let spinnerTimer = spinnerTimers.pop();
-            clearInterval(spinnerTimer);
-        }
-        let count = runningDiagnostics.decrementAndGet()
+        let count = runningDiagnostics.decrementAndGet();
         if (count == 0) {
+            clearInterval(spinnerTimer);
+            spinnerTimer = null;
+
             window.setStatusBarMessage("RLS analysis: done");
         }
     })

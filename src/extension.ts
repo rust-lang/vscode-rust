@@ -8,8 +8,18 @@ import { workspace, Disposable, ExtensionContext, languages, window } from 'vsco
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 import { Trace } from 'vscode-jsonrpc';
 
+export enum RustLog {
+    Unspecified = null,
+    Error = <any>"error",
+    Warn = <any>"warn",
+    Info = <any>"info",
+    Debug = <any>"debug"
+}
+
 let DEV_MODE = false;
+// Settings below are applied for DEV_MODE = true
 let CLIENT_TRACE = Trace.Messages;
+let RUST_LOG = RustLog.Unspecified;
 
 let spinnerTimer = null;
 let spinner = ['|', '/', '-', '\\'];
@@ -42,10 +52,15 @@ export function activate(context: ExtensionContext) {
     window.setStatusBarMessage("RLS analysis: starting up");
 
     if (DEV_MODE) {
+        let env = process.env;
+        if (RUST_LOG != RustLog.Unspecified) {
+            env.RUST_LOG = RUST_LOG;
+        }
+
         if (rls_root) {
-            serverOptions = {command: "cargo", args: ["run", "--release"], options: { cwd: rls_root } };
+            serverOptions = {command: "cargo", args: ["run", "--release"], options: { env: env, cwd: rls_root } };
         } else {
-            serverOptions = {command: "rls"};
+            serverOptions = {command: "rls", options: { env: env } };
         }
     } else {
         serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {

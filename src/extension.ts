@@ -6,8 +6,10 @@ import * as child_process from 'child_process';
 
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { Trace } from 'vscode-jsonrpc';
 
 let DEV_MODE = false;
+let CLIENT_TRACE = Trace.Messages;
 
 let spinnerTimer = null;
 let spinner = ['|', '/', '-', '\\'];
@@ -76,6 +78,9 @@ export function activate(context: ExtensionContext) {
 
     // Create the language client and start the client.
     let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
+    // Set appropriate client trace verbosity level in dev mode.
+    // Trace.Verbose provides full protocol messages in the client output channel.
+    lc.trace = DEV_MODE ? CLIENT_TRACE : Trace.Off;
 
     let runningDiagnostics = new Counter();
     lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {

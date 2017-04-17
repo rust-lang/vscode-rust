@@ -1,6 +1,6 @@
 {
-    "name": "rls_vscode",
-    "displayName": "rls_vscode",
+    "name": "rls-vscode",
+    "displayName": "rls-vscode",
     "description": "",
     "version": "0.0.1",
     "publisher": "JonathanTurner",

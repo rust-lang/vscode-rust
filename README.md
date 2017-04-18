@@ -18,19 +18,20 @@ variable to the root of your rls checkout:
 
 ```
 export RLS_ROOT=/Source/rls
-```  
+```
 You can also add this export to your bash profile or equivalent.
 
 ## Manually add as regular VSCode extension
 
 If you'd like to test on multiple projects and already have the extension working properly, you can manually install the extension so that it's loaded into VSCode by default.
 
-After following the above instructions, and successfully building the extension once, symlink or copy the `rls_vscode` directory to either:
+After following the above instructions, and successfully building the extension once, build a .vsix archive by running the following:
 ```
-Windows: %USERPROFILE%\.vscode\extensions
-Mac/Linux: $HOME/.vscode/extensions
+npm install -g vsce
+vsce package
 ```
-For example, to setup a symlink on Mac/Linux: `ln -s /path/to/rls_vscode/ ~/.vscode/extensions/rls_vscode`
+Then, install it in VSCode from the Extensions tab menu, select "Install from VSIX..."
+
 Restart VSCode in order to load the extension. More information available via [VSCode docs](https://code.visualstudio.com/Docs/extensions/example-hello-world#_installing-your-extension-locally).
 
 ## Adding a Build Command

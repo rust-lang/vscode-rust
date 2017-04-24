@@ -6,8 +6,20 @@ import * as child_process from 'child_process';
 
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { Trace } from 'vscode-jsonrpc';
+
+export enum RustLog {
+    Unspecified = null,
+    Error = <any>"error",
+    Warn = <any>"warn",
+    Info = <any>"info",
+    Debug = <any>"debug"
+}
 
 let DEV_MODE = false;
+// Settings below are applied for DEV_MODE = true
+let CLIENT_TRACE = Trace.Messages;
+let RUST_LOG = RustLog.Unspecified;
 
 let spinnerTimer = null;
 let spinner = ['|', '/', '-', '\\'];
@@ -40,10 +52,15 @@ export function activate(context: ExtensionContext) {
     window.setStatusBarMessage("RLS analysis: starting up");
 
     if (DEV_MODE) {
+        let env = process.env;
+        if (RUST_LOG != RustLog.Unspecified) {
+            env.RUST_LOG = RUST_LOG;
+        }
+
         if (rls_root) {
-            serverOptions = {command: "cargo", args: ["run", "--release"], options: { cwd: rls_root } };
+            serverOptions = {command: "cargo", args: ["run", "--release"], options: { env: env, cwd: rls_root } };
         } else {
-            serverOptions = {command: "rls"};
+            serverOptions = {command: "rls", options: { env: env } };
         }
     } else {
         serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
@@ -86,6 +103,9 @@ export function activate(context: ExtensionContext) {
 
     // Create the language client and start the client.
     let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
+    // Set appropriate client trace verbosity level in dev mode.
+    // Trace.Verbose provides full protocol messages in the client output channel.
+    lc.trace = DEV_MODE ? CLIENT_TRACE : Trace.Off;
 
     let runningDiagnostics = new Counter();
     lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {

@@ -39,6 +39,9 @@ export function activate(context: ExtensionContext) {
     let rls_root = process.env.RLS_ROOT;
     window.setStatusBarMessage("RLS analysis: starting up");
 
+    let outChannel = window.createOutputChannel('RLS-Standard err/out');
+    
+
     if (DEV_MODE) {
         if (rls_root) {
             serverOptions = {command: "cargo", args: ["run", "--release"], options: { cwd: rls_root } };
@@ -54,7 +57,16 @@ export function activate(context: ExtensionContext) {
                 } else {
                     childProcess = child_process.spawn("rls");
                 }
-                childProcess.stderr.on('data', data => {});
+                childProcess.stderr.on('data', data => {
+                    outChannel.appendLine("Error");
+                    outChannel.appendLine(data.toString());
+                });
+
+                childProcess.stdout.on('data', data => {
+                    outChannel.appendLine("Output");
+                    outChannel.appendLine(data.toString());
+                });
+
                 return childProcess; // Uses stdin/stdout for communication
             }
 

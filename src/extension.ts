@@ -54,7 +54,17 @@ export function activate(context: ExtensionContext) {
                 } else {
                     childProcess = child_process.spawn("rls");
                 }
+
                 childProcess.stderr.on('data', data => {});
+                childProcess.on('error', err => {
+                    if (err.code == "ENOENT") {
+                        console.error("Could not spawn rls process:", err.message);
+                        window.setStatusBarMessage("RLS Error: Could not spawn process");
+                    } else {
+                        throw err;
+                    }
+                })
+
                 return childProcess; // Uses stdin/stdout for communication
             }
 

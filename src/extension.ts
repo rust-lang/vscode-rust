@@ -43,7 +43,7 @@ export function activate(context: ExtensionContext) {
         if (rls_root) {
             serverOptions = {command: "cargo", args: ["run", "--release"], options: { cwd: rls_root } };
         } else {
-            serverOptions = {command: "rls"};
+            serverOptions = {command: "rustup", args: ["run", "nightly", "rls"]};
         }
     } else {
         serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
@@ -52,7 +52,7 @@ export function activate(context: ExtensionContext) {
                 if (rls_root) {
                     childProcess = child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root });
                 } else {
-                    childProcess = child_process.spawn("rls");
+                    childProcess = child_process.spawn("rustup", ["run", "nightly", "rls"]);
                 }
 
                 childProcess.stderr.on('data', data => {});

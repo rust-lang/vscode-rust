@@ -88,26 +88,28 @@ export function activate(context: ExtensionContext) {
     let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
 
     let runningDiagnostics = new Counter();
-    lc.onNotification({method: "rustDocument/diagnosticsBegin"}, function(f) {
-        runningDiagnostics.increment();
+    lc.onReady().then(() => {
+        lc.onNotification('rustDocument/diagnosticsBegin', function(f) {
+            runningDiagnostics.increment();
 
-        if (spinnerTimer == null) {
-            let state = 0;
-            spinnerTimer = setInterval(function() {
-                window.setStatusBarMessage("RLS analysis: working " + spinner[state]);
-                state = (state + 1) % spinner.length;
-            }, 100);
-        }
-    })
-    lc.onNotification({method: "rustDocument/diagnosticsEnd"}, function(f) {
-        let count = runningDiagnostics.decrementAndGet();
-        if (count == 0) {
-            clearInterval(spinnerTimer);
-            spinnerTimer = null;
+            if (spinnerTimer == null) {
+                let state = 0;
+                spinnerTimer = setInterval(function() {
+                    window.setStatusBarMessage("RLS analysis: working " + spinner[state]);
+                    state = (state + 1) % spinner.length;
+                }, 100);
+            }
+        });
+        lc.onNotification('rustDocument/diagnosticsEnd', function(f) {
+            let count = runningDiagnostics.decrementAndGet();
+            if (count == 0) {
+                clearInterval(spinnerTimer);
+                spinnerTimer = null;
 
-            window.setStatusBarMessage("RLS analysis: done");
-        }
-    })
+                window.setStatusBarMessage("RLS analysis: done");
+            }
+        });
+    });
     let disposable = lc.start();
 
     // Push the disposable to the context's subscriptions so that the

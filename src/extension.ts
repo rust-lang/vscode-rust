@@ -11,7 +11,6 @@ let DEV_MODE = false;
 
 let spinnerTimer = null;
 let spinner = ['|', '/', '-', '\\'];
-let nextBuildTask = 0;
 
 class Counter {
     count: number;
@@ -34,43 +33,34 @@ class Counter {
 }
 
 export function activate(context: ExtensionContext) {
-    let serverOptions: ServerOptions;
+    window.setStatusBarMessage("RLS analysis: starting up"); 
 
-    let rls_root = process.env.RLS_ROOT;
-    window.setStatusBarMessage("RLS analysis: starting up");
+    let serverOptions: ServerOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
+        let rls_root = process.env.RLS_ROOT;
 
-    if (DEV_MODE) {
-        if (rls_root) {
-            serverOptions = {command: "cargo", args: ["run", "--release"], options: { cwd: rls_root } };
-        } else {
-            serverOptions = {command: "rustup", args: ["run", "nightly", "rls"]};
-        }
-    } else {
-        serverOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
-            function spawnServer(...args: string[]): child_process.ChildProcess {
-                let childProcess;
-                if (rls_root) {
-                    childProcess = child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root });
+        function spawnServer(...args: string[]): child_process.ChildProcess {
+            let childProcess = rls_root ? child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root })
+                                        : child_process.spawn("rustup", ["run", "nightly", "rls"]);
+
+            childProcess.on('error', err => {
+                if ((<any>err).code == "ENOENT") {
+                    console.error("Could not spawn rls process:", err.message);
+                    window.setStatusBarMessage("RLS Error: Could not spawn process");
                 } else {
-                    childProcess = child_process.spawn("rustup", ["run", "nightly", "rls"]);
+                    throw err;
                 }
+            });
 
+            // Show stderr messages only in DEV_MODE
+            if (!DEV_MODE) {
                 childProcess.stderr.on('data', data => {});
-                childProcess.on('error', err => {
-                    if (err.code == "ENOENT") {
-                        console.error("Could not spawn rls process:", err.message);
-                        window.setStatusBarMessage("RLS Error: Could not spawn process");
-                    } else {
-                        throw err;
-                    }
-                })
-
-                return childProcess; // Uses stdin/stdout for communication
             }
 
-            resolve(spawnServer())
-        });
-    }
+            return childProcess; // Uses stdin/stdout for communication
+        }
+
+        resolve(spawnServer())
+    });
 
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
@@ -82,7 +72,7 @@ export function activate(context: ExtensionContext) {
             // Notify the server about changes to files contained in the workspace
             //fileEvents: workspace.createFileSystemWatcher('**/*.*')
         }
-    }
+    };
 
     // Create the language client and start the client.
     let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);

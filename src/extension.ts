@@ -1,13 +1,13 @@
 'use strict';
 
-import * as path from 'path';
-
 import * as child_process from 'child_process';
+import * as fs from 'fs';
 
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
-let DEV_MODE = false;
+let HIDE_WINDOW_OUTPUT = true;
+let LOG_TO_FILE = false;
 
 let spinnerTimer = null;
 let spinner = ['|', '/', '-', '\\'];
@@ -33,7 +33,7 @@ class Counter {
 }
 
 export function activate(context: ExtensionContext) {
-    window.setStatusBarMessage("RLS analysis: starting up"); 
+    window.setStatusBarMessage("RLS analysis: starting up");
 
     let serverOptions: ServerOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
         let rls_root = process.env.RLS_ROOT;
@@ -51,8 +51,20 @@ export function activate(context: ExtensionContext) {
                 }
             });
 
-            // Show stderr messages only in DEV_MODE
-            if (!DEV_MODE) {
+            if (LOG_TO_FILE) {
+                var logPath = workspace.rootPath + '/rls.log';
+                var logStream = fs.createWriteStream(logPath, { flags: 'w+' });
+                logStream.on('open', function (f) {
+                    childProcess.stderr.addListener("data", function (chunk) {
+                        logStream.write(chunk.toString());
+                    });
+                }).on('error', function (err) {
+                    console.error("Couldn't write to " + logPath + " (" + err + ")");
+                    logStream.end();
+                });
+            }
+
+            if (HIDE_WINDOW_OUTPUT) {
                 childProcess.stderr.on('data', data => {});
             }
 

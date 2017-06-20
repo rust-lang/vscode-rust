@@ -36,11 +36,18 @@ export function activate(context: ExtensionContext) {
     window.setStatusBarMessage("RLS analysis: starting up");
 
     let serverOptions: ServerOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
+        let rls_path = process.env.RLS_PATH;
         let rls_root = process.env.RLS_ROOT;
 
         function spawnServer(...args: string[]): child_process.ChildProcess {
-            let childProcess = rls_root ? child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root })
-                                        : child_process.spawn("rustup", ["run", "nightly", "rls"]);
+            let childProcess;
+            if (rls_path) {
+                childProcess = child_process.spawn(rls_path);
+            } else if (rls_root) {
+                childProcess = child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root });
+            } else {
+                childProcess = child_process.spawn("rustup", ["run", "nightly", "rls"]);
+            }
 
             childProcess.on('error', err => {
                 if ((<any>err).code == "ENOENT") {

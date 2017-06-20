@@ -81,6 +81,3 @@ if that doesn't work, run
 
 > echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
-### TypeError: Cannot read property 'dispose' of null
-
-change the `DEV_MODE` variable in `extension.ts` to `true` and try again to see the real error.

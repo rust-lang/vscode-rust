@@ -13,7 +13,7 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
-import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
+import { workspace, ExtensionContext, window, commands } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType } from 'vscode-languageclient';
 
 let HIDE_WINDOW_OUTPUT = true;
@@ -69,7 +69,7 @@ export function activate(context: ExtensionContext) {
             });
 
             if (LOG_TO_FILE) {
-                var logPath = workspace.rootPath + '/rls.log';
+                var logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
                 var logStream = fs.createWriteStream(logPath, { flags: 'w+' });
                 logStream.on('open', function (f) {
                     childProcess.stderr.addListener("data", function (chunk) {
@@ -129,9 +129,16 @@ export function activate(context: ExtensionContext) {
             }
         });
     });
-    let disposable = lc.start();
 
-    // Push the disposable to the context's subscriptions so that the
-    // client can be deactivated on extension deactivation
+    let cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, edit) => {
+        lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
+            .then((result) => {},
+                  (reason) => {
+                window.showWarningMessage('deglob command failed: ' + reason);
+            });
+    });
+    context.subscriptions.push(cmdDisposable);
+
+    let disposable = lc.start();
     context.subscriptions.push(disposable);
 }

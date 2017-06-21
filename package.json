@@ -48,6 +48,10 @@
                 "language": "rust",
                 "path": "./snippets/rust.json"
             }
-        ]
+        ],
+        "commands": [{
+            "command": "rls.deglob",
+            "title": "Deglob imports"
+        }]
     }
 }

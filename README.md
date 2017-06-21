@@ -44,24 +44,31 @@ export RLS_PATH=/rls/target/release/rls
 Note that you must include the name of the executable, not just the path.
 
 
-## Installing in VSCode
+## Features
 
-If you'd like to test on multiple projects and already have the extension
-working properly, you can manually install the extension so that it's loaded
-into VSCode by default.
+### Commands
 
-After following the above instructions, and successfully building the extension
-once, build a .vsix archive by running the following:
+Commands can be found in the command palette (ctrl + shift + p). We provide the
+following commands:
 
-```
-npm install -g vsce
-vsce package
-```
+* `deglob` - replace a glob import with an explicit import. E.g., replace
+  `use foo::*;` with `use foo::{bar, baz};`. Select only the `*` when running
+  the command.
 
-Then, install it in VSCode from the Extensions tab menu, select "Install from VSIX..."
+### Snippets
 
-Restart VSCode in order to load the extension. More information available via
-[VSCode docs](https://code.visualstudio.com/Docs/extensions/example-hello-world#_installing-your-extension-locally).
+Snippets are code templates which expand into common boilerplate. Intellisense
+includes snippet names as options when you type; select one by pressing 'enter'.
+You can move to the next 'hole' in the template by pressing 'tab'. We provide
+the following snippets:
+
+* `for` - a for loop
+* `unimplemented`
+* `unreachable`
+* `println`
+* `macro_rules` - declare a macro
+* `if let Option` - an `if let` statement for executing code only in the `Some` case.
+* `spawn` - spawn a thread
 
 
 ## Adding a Build Command
@@ -88,6 +95,32 @@ This will open the `tasks.json` file. Change this file to, for example:
 
 After this, you'll have a build command you can invoke. On macOS, for example,
 this build command is invoked through Command+Shift+B.
+
+
+## Format on save
+
+To enable formatting on save, you need to set the `editor.formatOnSave` setting
+to `true`. Find it under `File > Preferences > Settings`.
+
+
+## Installing in VSCode
+
+If you'd like to test on multiple projects and already have the extension
+working properly, you can manually install the extension so that it's loaded
+into VSCode by default.
+
+After following the above instructions, and successfully building the extension
+once, build a .vsix archive by running the following:
+
+```
+npm install -g vsce
+vsce package
+```
+
+Then, install it in VSCode from the Extensions tab menu, select "Install from VSIX..."
+
+Restart VSCode in order to load the extension. More information available via
+[VSCode docs](https://code.visualstudio.com/Docs/extensions/example-hello-world#_installing-your-extension-locally).
 
 
 ## Troubleshooting

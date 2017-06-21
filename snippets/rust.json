@@ -1,0 +1,61 @@
+{
+    "for": {
+        "prefix": "for",
+        "body": [
+            "for $1 in $2 {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Insert for loop"
+    },
+    "unimplemented": {
+        "prefix": "unimplemented",
+        "body": [
+            "unimplemented!()"
+        ],
+        "description": "Insert unimplemented!"
+    },
+    "unreachable": {
+        "prefix": "unreachable",
+        "body": [
+            "unreachable!()"
+        ],
+        "description": "Insert unreachable!"
+    },
+    "println": {
+        "prefix": "println",
+        "body": [
+            "println!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert println!"
+    },
+    "macro_rules": {
+        "prefix": "macro_rules",
+        "body": [
+            "macro_rules! $1 {",
+            "\t($2) => {",
+            "\t\t$0",
+            "\t};",
+            "}"
+        ],
+        "description": "Insert macro_rules!"
+    },
+    "if let Option": {
+        "prefix": "if let",
+        "body": [
+            "if let Some(${1:foo}) = ${1:foo} {",
+            "\t${0:${1:foo}.}",
+            "}"
+        ],
+        "description": "Unwrap Option with if let"
+    },
+    "spawn": {
+        "prefix": "thread::spawn",
+        "body": [
+            "thread::spawn(move || {",
+            "\t$0",
+            "});"
+        ],
+        "description": "Wrap code in thread::spawn"
+    }
+}

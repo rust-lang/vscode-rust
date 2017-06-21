@@ -42,6 +42,12 @@
                 "extensions": [ ".rs" ],
                 "configuration": "./language-configuration.json"
             }
+        ],
+        "snippets": [
+            {
+                "language": "rust",
+                "path": "./snippets/rust.json"
+            }
         ]
     }
 }

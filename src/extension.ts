@@ -4,7 +4,7 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 
 import { workspace, Disposable, ExtensionContext, languages, window } from 'vscode';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType } from 'vscode-languageclient';
 
 let HIDE_WINDOW_OUTPUT = true;
 let LOG_TO_FILE = false;
@@ -98,7 +98,7 @@ export function activate(context: ExtensionContext) {
 
     let runningDiagnostics = new Counter();
     lc.onReady().then(() => {
-        lc.onNotification('rustDocument/diagnosticsBegin', function(f) {
+        lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(f) {
             runningDiagnostics.increment();
 
             if (spinnerTimer == null) {
@@ -109,7 +109,7 @@ export function activate(context: ExtensionContext) {
                 }, 100);
             }
         });
-        lc.onNotification('rustDocument/diagnosticsEnd', function(f) {
+        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(f) {
             let count = runningDiagnostics.decrementAndGet();
             if (count == 0) {
                 clearInterval(spinnerTimer);

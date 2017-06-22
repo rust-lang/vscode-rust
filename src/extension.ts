@@ -139,6 +139,34 @@ export function activate(context: ExtensionContext) {
     });
     context.subscriptions.push(cmdDisposable);
 
+    let config = workspace.getConfiguration();
+    if (!config['tasks']) {
+        const tasks = {
+            "version": "0.1.0",
+            "command": "cargo",
+            "isShellCommand": true,
+            "showOutput": "always",
+            "suppressTaskName": true,
+            "tasks": [
+                {
+                    "taskName": "cargo build",
+                    "args": ["build"],
+                    "isBuildCommand": true
+                },
+                {
+                    "taskName": "cargo run",
+                    "args": ["run"]
+                },
+                {
+                    "taskName": "cargo test",
+                    "args": ["test"],
+                    "isTestCommand": true
+                }
+            ],
+        };
+        config.update('tasks', tasks, false)
+    }
+
     let disposable = lc.start();
     context.subscriptions.push(disposable);
 }

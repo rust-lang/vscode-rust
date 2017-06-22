@@ -55,6 +55,7 @@ following commands:
   `use foo::*;` with `use foo::{bar, baz};`. Select only the `*` when running
   the command.
 
+
 ### Snippets
 
 Snippets are code templates which expand into common boilerplate. Intellisense
@@ -71,30 +72,15 @@ the following snippets:
 * `spawn` - spawn a thread
 
 
-## Adding a Build Command
+### Tasks
 
-You can add a build command pretty easily with VSCode. Commands are done through
-the [Tasks](https://code.visualstudio.com/docs/editor/tasks) system.
+The plugin provides tasks for building, running, and testing using the relevant
+cargo commands. You can build using `ctrl + shift + b`. Access other tasks via
+`Run tasks` in the command palette.
 
-To add a build command for Rust, first pull up the command palette (for macOS
-it's Command+Shift+P). Search for "Tasks: Configure Task Runner".
-
-This will open the `tasks.json` file. Change this file to, for example:
-
-```
-{
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "0.1.0",
-    "command": "cargo",
-    "isShellCommand": true,
-    "args": ["build"],
-    "showOutput": "always"
-}
-```
-
-After this, you'll have a build command you can invoke. On macOS, for example,
-this build command is invoked through Command+Shift+B.
+The plugin writes these into `tasks.json`. The plugin will not overwrite
+existing tasks, so you can customise these tasks. To refresh back to the
+defaults, delete `tasks.json` and restart VSCode.
 
 
 ## Format on save

@@ -13,8 +13,9 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
-import { workspace, ExtensionContext, window, commands } from 'vscode';
+import { workspace, ExtensionContext, window, commands, OutputChannel } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType } from 'vscode-languageclient';
+import * as is from 'vscode-languageclient/lib/utils/is';
 
 let HIDE_WINDOW_OUTPUT = true;
 let LOG_TO_FILE = false;
@@ -44,6 +45,9 @@ class Counter {
 
 export function activate(context: ExtensionContext) {
     window.setStatusBarMessage("RLS analysis: starting up");
+
+    // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
+    let lcOutputChannel: OutputChannel = null;
 
     let serverOptions: ServerOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
         let rls_path = process.env.RLS_PATH;
@@ -83,6 +87,11 @@ export function activate(context: ExtensionContext) {
 
             if (HIDE_WINDOW_OUTPUT) {
                 childProcess.stderr.on('data', data => {});
+            } else if (lcOutputChannel) {
+                childProcess.stderr.on('data', data => {
+                    lcOutputChannel.append(is.string(data) ? data : data.toString('utf8'));
+                    lcOutputChannel.show();
+                });
             }
 
             return childProcess; // Uses stdin/stdout for communication
@@ -108,6 +117,8 @@ export function activate(context: ExtensionContext) {
 
     let runningDiagnostics = new Counter();
     lc.onReady().then(() => {
+        lcOutputChannel = lc.outputChannel;
+
         lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(f) {
             runningDiagnostics.increment();
 

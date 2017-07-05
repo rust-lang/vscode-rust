@@ -1,21 +1,33 @@
 {
-    "name": "rls-vscode",
-    "displayName": "rls-vscode",
-    "description": "VSCode client for the Rust Language Server",
-    "version": "0.0.1",
-    "publisher": "TODO",
+    "name": "Rust",
+    "displayName": "Rust",
+    "description": "Rust support. A client for the Rust Language Server",
+    "version": "0.1.0",
+    "publisher": "rust-lang",
     "engines": {
         "vscode": "^1.8.0"
     },
+    "license": "(MIT OR Apache-2.0)",
     "repository": {
         "type": "git",
-        "url": "https://github.com/rust-lang-nursery/rls_vscode"
+        "url": "https://github.com/rust-lang-nursery/rls-vscode"
+    },
+    "bugs": {
+        "url": "https://github.com/rust-lang-nursery/rls-vscode/issues"
     },
     "categories": [
         "Languages",
         "Linters",
+        "Snippets",
+        "Formatters",
         "Other"
     ],
+    "keywords": [
+        "rust",
+        "rust-lang",
+        "rls"
+    ],
+    "preview": true,
     "activationEvents": [
         "onLanguage:rust"
     ],

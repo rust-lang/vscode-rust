@@ -112,8 +112,7 @@ export function activate(context: ExtensionContext) {
         // Register the server for Rust files
         documentSelector: ['rust'],
         synchronize: {
-            // Synchronize the setting section 'languageServerExample' to the server
-            configurationSection: 'languageServerExample',
+            configurationSection: 'rust',
             // Notify the server about changes to files contained in the workspace
             //fileEvents: workspace.createFileSystemWatcher('**/*.*')
         }

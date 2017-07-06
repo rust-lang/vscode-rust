@@ -49,6 +49,13 @@ export function activate(context: ExtensionContext) {
     // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
     let lcOutputChannel: OutputChannel = null;
 
+    let tomlPath = workspace.rootPath + '/rls.toml';
+    fs.access(tomlPath, fs.constants.F_OK, (err) => {
+        if (!err) {
+            window.showWarningMessage('Found deprecated rls.toml. Use VSCode user settings instead (File > Preferences > Settings)');
+        }
+    });
+
     let serverOptions: ServerOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
         let rls_path = process.env.RLS_PATH;
         let rls_root = process.env.RLS_ROOT;

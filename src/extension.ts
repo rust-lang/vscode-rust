@@ -112,11 +112,10 @@ export function activate(context: ExtensionContext) {
 
     // Create the language client and start the client.
     let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
+    lcOutputChannel = lc.outputChannel;
 
     let runningDiagnostics = new Counter();
     lc.onReady().then(() => {
-        lcOutputChannel = lc.outputChannel;
-
         lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(f) {
             runningDiagnostics.increment();
 

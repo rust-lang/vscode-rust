@@ -60,51 +60,45 @@ export function activate(context: ExtensionContext) {
         let rls_path = process.env.RLS_PATH;
         let rls_root = process.env.RLS_ROOT;
 
-        function spawnServer(...args: string[]): child_process.ChildProcess {
-            let childProcess;
-            if (rls_path) {
-                childProcess = child_process.spawn(rls_path);
-            } else if (rls_root) {
-                childProcess = child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root });
-            } else {
-                childProcess = child_process.spawn("rustup", ["run", "nightly", "rls"]);
-            }
-
-            childProcess.on('error', err => {
-                if ((<any>err).code == "ENOENT") {
-                    console.error("Could not spawn rls process:", err.message);
-                    window.setStatusBarMessage("RLS Error: Could not spawn process");
-                } else {
-                    throw err;
-                }
-            });
-
-            if (LOG_TO_FILE) {
-                var logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
-                var logStream = fs.createWriteStream(logPath, { flags: 'w+' });
-                logStream.on('open', function (f) {
-                    childProcess.stderr.addListener("data", function (chunk) {
-                        logStream.write(chunk.toString());
-                    });
-                }).on('error', function (err) {
-                    console.error("Couldn't write to " + logPath + " (" + err + ")");
-                    logStream.end();
-                });
-            }
-
-            if (HIDE_WINDOW_OUTPUT) {
-                childProcess.stderr.on('data', data => {});
-            } else if (lcOutputChannel) {
-                childProcess.stderr.on('data', data => {
-                    lcOutputChannel.append(is.string(data) ? data : data.toString('utf8'));
-                    lcOutputChannel.show();
-                });
-            }
-
-            return childProcess; // Uses stdin/stdout for communication
+        let childProcess;
+        if (rls_path) {
+            childProcess = child_process.spawn(rls_path);
+        } else if (rls_root) {
+            childProcess = child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root });
+        } else {
+            childProcess = child_process.spawn("rustup", ["run", "nightly", "rls"]);
         }
 
-        resolve(spawnServer())
+        childProcess.on('error', err => {
+            if ((<any>err).code == "ENOENT") {
+                console.error("Could not spawn rls process:", err.message);
+                window.setStatusBarMessage("RLS Error: Could not spawn process");
+            } else {
+                throw err;
+            }
+        });
+
+        if (LOG_TO_FILE) {
+            var logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
+            var logStream = fs.createWriteStream(logPath, { flags: 'w+' });
+            logStream.on('open', function (f) {
+                childProcess.stderr.addListener("data", function (chunk) {
+                    logStream.write(chunk.toString());
+                });
+            }).on('error', function (err) {
+                console.error("Couldn't write to " + logPath + " (" + err + ")");
+                logStream.end();
+            });
+        }
+
+        childProcess.stderr.on('data', data => {
+            if (!HIDE_WINDOW_OUTPUT && lcOutputChannel) {
+                lcOutputChannel.append(is.string(data) ? data : data.toString('utf8'));
+                lcOutputChannel.show();
+            }
+        });
+
+        resolve(childProcess);
     });
 
     // Options to control the language client
@@ -112,9 +106,7 @@ export function activate(context: ExtensionContext) {
         // Register the server for Rust files
         documentSelector: ['rust'],
         synchronize: {
-            configurationSection: 'rust',
-            // Notify the server about changes to files contained in the workspace
-            //fileEvents: workspace.createFileSystemWatcher('**/*.*')
+            configurationSection: 'rust'
         }
     };
 

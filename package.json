@@ -4,6 +4,7 @@
     "description": "Rust support. A client for the Rust Language Server",
     "version": "0.1.0",
     "publisher": "rust-lang",
+    "icon": "rust-icon.png",
     "engines": {
         "vscode": "^1.8.0"
     },

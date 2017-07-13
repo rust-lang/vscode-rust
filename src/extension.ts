@@ -10,6 +10,9 @@
 
 'use strict';
 
+import { runRlsViaRustup } from './rustup';
+import { startSpinner, stopSpinner } from './spinner';
+
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
@@ -17,70 +20,35 @@ import { workspace, ExtensionContext, window, commands, OutputChannel } from 'vs
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType } from 'vscode-languageclient';
 import * as is from 'vscode-languageclient/lib/utils/is';
 
-let HIDE_WINDOW_OUTPUT = true;
-let LOG_TO_FILE = false;
+const HIDE_WINDOW_OUTPUT = true;
+const LOG_TO_FILE = false;
 
-let spinnerTimer = null;
-let spinner = ['|', '/', '-', '\\'];
+function makeRlsProcess(lcOutputChannel: OutputChannel): Promise<child_process.ChildProcess> {
+    const rls_path = process.env.RLS_PATH;
+    const rls_root = process.env.RLS_ROOT;
 
-class Counter {
-    count: number;
-
-    constructor() {
-        this.count = 0;
+    let childProcessPromise;
+    if (rls_path) {
+        childProcessPromise = Promise.resolve(child_process.spawn(rls_path));
+    } else if (rls_root) {
+        childProcessPromise = Promise.resolve(child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root }));
+    } else {
+        childProcessPromise = runRlsViaRustup();
     }
 
-    increment() {
-        this.count += 1;
-    }
-
-    decrementAndGet() {
-        this.count -= 1;
-        if (this.count < 0) {
-            this.count = 0;
-        }
-        return this.count;
-    }
-}
-
-export function activate(context: ExtensionContext) {
-    window.setStatusBarMessage("RLS analysis: starting up");
-
-    // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
-    let lcOutputChannel: OutputChannel = null;
-
-    let tomlPath = workspace.rootPath + '/rls.toml';
-    fs.access(tomlPath, fs.constants.F_OK, (err) => {
-        if (!err) {
-            window.showWarningMessage('Found deprecated rls.toml. Use VSCode user settings instead (File > Preferences > Settings)');
-        }
-    });
-
-    let serverOptions: ServerOptions = () => new Promise<child_process.ChildProcess>((resolve, reject) => {
-        let rls_path = process.env.RLS_PATH;
-        let rls_root = process.env.RLS_ROOT;
-
-        let childProcess;
-        if (rls_path) {
-            childProcess = child_process.spawn(rls_path);
-        } else if (rls_root) {
-            childProcess = child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root });
-        } else {
-            childProcess = child_process.spawn("rustup", ["run", "nightly", "rls"]);
-        }
-
+    childProcessPromise.then((childProcess) => {
         childProcess.on('error', err => {
             if ((<any>err).code == "ENOENT") {
-                console.error("Could not spawn rls process:", err.message);
-                window.setStatusBarMessage("RLS Error: Could not spawn process");
+                console.error("Could not spawn RLS process: ", err.message);
+                window.showWarningMessage("Could not start RLS");
             } else {
                 throw err;
             }
         });
 
         if (LOG_TO_FILE) {
-            var logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
-            var logStream = fs.createWriteStream(logPath, { flags: 'w+' });
+            const logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
+            let logStream = fs.createWriteStream(logPath, { flags: 'w+' });
             logStream.on('open', function (f) {
                 childProcess.stderr.addListener("data", function (chunk) {
                     logStream.write(chunk.toString());
@@ -97,12 +65,30 @@ export function activate(context: ExtensionContext) {
                 lcOutputChannel.show();
             }
         });
-
-        resolve(childProcess);
     });
 
+    return childProcessPromise.catch(() => {
+        window.setStatusBarMessage("RLS could not be started");
+    });
+}
+
+export function activate(context: ExtensionContext) {
+    window.setStatusBarMessage("RLS analysis: starting up");
+
+    // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
+    let lcOutputChannel: OutputChannel = null;
+
+    const tomlPath = workspace.rootPath + '/rls.toml';
+    fs.access(tomlPath, fs.constants.F_OK, (err) => {
+        if (!err) {
+            window.showWarningMessage('Found deprecated rls.toml. Use VSCode user settings instead (File > Preferences > Settings)');
+        }
+    });
+
+    let serverOptions: ServerOptions = () => makeRlsProcess(lcOutputChannel);
+
     // Options to control the language client
-    let clientOptions: LanguageClientOptions = {
+    const clientOptions: LanguageClientOptions = {
         // Register the server for Rust files
         documentSelector: ['rust'],
         synchronize: {
@@ -114,26 +100,16 @@ export function activate(context: ExtensionContext) {
     let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
     lcOutputChannel = lc.outputChannel;
 
-    let runningDiagnostics = new Counter();
+    let runningDiagnostics = 0;    
     lc.onReady().then(() => {
         lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(f) {
-            runningDiagnostics.increment();
-
-            if (spinnerTimer == null) {
-                let state = 0;
-                spinnerTimer = setInterval(function() {
-                    window.setStatusBarMessage("RLS analysis: working " + spinner[state]);
-                    state = (state + 1) % spinner.length;
-                }, 100);
-            }
+            runningDiagnostics++;
+            startSpinner("RLS analysis: working");
         });
         lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(f) {
-            let count = runningDiagnostics.decrementAndGet();
-            if (count == 0) {
-                clearInterval(spinnerTimer);
-                spinnerTimer = null;
-
-                window.setStatusBarMessage("RLS analysis: done");
+            runningDiagnostics--;
+            if (runningDiagnostics <= 0) {
+                stopSpinner("RLS analysis: done");
             }
         });
     });

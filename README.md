@@ -6,6 +6,10 @@ your path.
 
 For details on building and running, etc., see [contributing.md](contributing.md).
 
+This extension uses the [RLS](https://github.com/rust-lang-nursery/rls). If you
+don't have it installed, the extension will install it for you. You must have
+[rustup](https://www.rustup.rs/) installed.
+
 ## Features
 
 ### Commands

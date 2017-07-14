@@ -19,7 +19,9 @@ opens a new instance of VSCode with the plugin installed.
 
 ### Via Rustup
 
-Before using this plugin, you can [install the RLS through rustup](https://github.com/rust-lang-nursery/rls#step-2-switch-to-nightly).
+This is the default, if you don't set any of the environment variables below,
+the extension will run (and install) the RLS via rustup. You can install rustup
+from https://www.rustup.rs/.
 
 
 ### Via Source

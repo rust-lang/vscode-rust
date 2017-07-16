@@ -12,16 +12,16 @@
 
 import { runRlsViaRustup } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
+import { RLSConfiguration } from "./configuration";
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
 import { workspace, ExtensionContext, window, commands, OutputChannel } from 'vscode';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType, RevealOutputChannelOn } from 'vscode-languageclient';
 import * as is from 'vscode-languageclient/lib/utils/is';
 
-const HIDE_WINDOW_OUTPUT = true;
-const LOG_TO_FILE = false;
+const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
 function makeRlsProcess(lcOutputChannel: OutputChannel): Promise<child_process.ChildProcess> {
     const rls_path = process.env.RLS_PATH;
@@ -46,7 +46,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel): Promise<child_process.C
             }
         });
 
-        if (LOG_TO_FILE) {
+        if (CONFIGURATION.logToFile) {
             const logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
             let logStream = fs.createWriteStream(logPath, { flags: 'w+' });
             logStream.on('open', function (f) {
@@ -59,12 +59,18 @@ function makeRlsProcess(lcOutputChannel: OutputChannel): Promise<child_process.C
             });
         }
 
-        childProcess.stderr.on('data', data => {
-            if (!HIDE_WINDOW_OUTPUT && lcOutputChannel) {
-                lcOutputChannel.append(is.string(data) ? data : data.toString('utf8'));
-                lcOutputChannel.show();
-            }
-        });
+        if (CONFIGURATION.showStderrInOutputChannel) {
+            childProcess.stderr.on('data', data => {
+                if (lcOutputChannel) {
+                    lcOutputChannel.append(is.string(data) ? data : data.toString('utf8'));
+                    // With regards to focusing the output channel, treat RLS stderr
+                    // as if it was of an RevealOutputChannelOn.Info severity
+                    if (CONFIGURATION.revealOutputChannelOn <= RevealOutputChannelOn.Info) {
+                        lcOutputChannel.show(true);
+                    }
+                }
+            });
+        }
     });
 
     return childProcessPromise.catch(() => {
@@ -93,14 +99,16 @@ export function activate(context: ExtensionContext) {
         documentSelector: ['rust'],
         synchronize: {
             configurationSection: 'rust'
-        }
+        },
+        // Controls when to focus the channel rather than when to reveal it in the drop-down list
+        revealOutputChannelOn: CONFIGURATION.revealOutputChannelOn
     };
 
     // Create the language client and start the client.
     let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
     lcOutputChannel = lc.outputChannel;
 
-    let runningDiagnostics = 0;    
+    let runningDiagnostics = 0;
     lc.onReady().then(() => {
         lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(f) {
             runningDiagnostics++;

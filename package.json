@@ -1,10 +1,14 @@
 {
     "name": "rust",
-    "displayName": "Rust",
-    "description": "Rust support. A client for the Rust Language Server",
+    "displayName": "Rust (rls)",
+    "description": "Rust language support - code completion, Intellisense, refactoring, reformatting, errors, snippets. A client for the Rust Language Server",
     "version": "0.1.0",
     "publisher": "rust-lang",
     "icon": "rust-icon.png",
+	"galleryBanner": {
+		"color": "#336356",
+		"theme": "dark"
+    },
     "engines": {
         "vscode": "^1.8.0"
     },
@@ -97,7 +101,7 @@
                 },
                 "rust.cfg_test": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "Build cfg(test) code."
                 },
                 "rust.unstable_features": {

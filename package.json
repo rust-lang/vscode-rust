@@ -68,7 +68,8 @@
         ],
         "commands": [{
             "command": "rls.deglob",
-            "title": "Deglob imports"
+            "title": "Deglob imports",
+            "category": "Rust"
         }],
         "configuration": {
             "type": "object",

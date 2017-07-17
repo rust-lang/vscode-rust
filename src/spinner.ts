@@ -30,4 +30,4 @@ export function stopSpinner(message: string) {
 }
 
 let spinnerTimer = null;
-const spinner = ['|', '/', '-', '\\'];
+const spinner = ['◐', '◓', '◑', '◒'];

@@ -89,6 +89,11 @@
                     "default": null,
                     "description": "Flags added to RUSTFLAGS."
                 },
+                "rust.clear_env_rust_log": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Clear RUST_LOG before calling cargo/rustc."
+                },
                 "rust.build_lib": {
                     "type": "boolean",
                     "default": false,

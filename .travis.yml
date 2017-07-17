@@ -1,0 +1,10 @@
+dist: trusty
+sudo: false
+
+notifications:
+  email: false
+
+language: node_js
+
+script:
+  - npm run compile

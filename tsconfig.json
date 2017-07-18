@@ -5,8 +5,16 @@
         "outDir": "out",
         "lib": ["es6"],
         "sourceMap": true,
-        "rootDir": "."
+        "rootDir": ".",
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true
     },
+    "include": [
+        "src/**/*"
+    ],
     "exclude": [
         "node_modules",
         ".vscode-test"

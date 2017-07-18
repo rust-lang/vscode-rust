@@ -23,11 +23,13 @@ export function startSpinner(message: string) {
 }
 
 export function stopSpinner(message: string) {
-    clearInterval(spinnerTimer);
+    if (spinnerTimer !== null) {
+        clearInterval(spinnerTimer);
+    }
     spinnerTimer = null;
 
     window.setStatusBarMessage(message);
 }
 
-let spinnerTimer = null;
+let spinnerTimer: NodeJS.Timer | null = null;
 const spinner = ['◐', '◓', '◑', '◒'];

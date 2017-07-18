@@ -23,11 +23,11 @@ import * as is from 'vscode-languageclient/lib/utils/is';
 
 const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
-function makeRlsProcess(lcOutputChannel: OutputChannel): Promise<child_process.ChildProcess> {
+function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_process.ChildProcess> {
     const rls_path = process.env.RLS_PATH;
     const rls_root = process.env.RLS_ROOT;
 
-    let childProcessPromise;
+    let childProcessPromise: Promise<child_process.ChildProcess>;
     if (rls_path) {
         childProcessPromise = Promise.resolve(child_process.spawn(rls_path));
     } else if (rls_root) {
@@ -53,7 +53,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel): Promise<child_process.C
                 childProcess.stderr.addListener("data", function (chunk) {
                     logStream.write(chunk.toString());
                 });
-            }).on('error', function (err) {
+            }).on('error', function (err: any) {
                 console.error("Couldn't write to " + logPath + " (" + err + ")");
                 logStream.end();
             });
@@ -75,6 +75,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel): Promise<child_process.C
 
     return childProcessPromise.catch(() => {
         window.setStatusBarMessage("RLS could not be started");
+        return Promise.reject(undefined);
     });
 }
 
@@ -82,7 +83,7 @@ export function activate(context: ExtensionContext) {
     window.setStatusBarMessage("RLS analysis: starting up");
 
     // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
-    let lcOutputChannel: OutputChannel = null;
+    let lcOutputChannel: OutputChannel | null = null;
 
     warnOnRlsToml();
 

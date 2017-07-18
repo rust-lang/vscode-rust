@@ -61,7 +61,7 @@ function checkForNightly(): Promise<{}> {
 }
 
 // Check for rls components.
-function checkForRls(): Promise<{}> {
+function checkForRls(): Promise<void> {
     return new Promise((resolve, reject) => {
         child_process.exec("rustup component list --toolchain nightly", (error, stdout, stderr) => {
             if (error) {
@@ -89,7 +89,7 @@ function checkForRls(): Promise<{}> {
     });
 }
 
-function installRls(resolve, reject): void {
+function installRls(resolve: () => void, reject: (reason?: any) => void): void {
     startSpinner('Installing RLS components');
     child_process.exec("rustup component add rust-analysis --toolchain nightly", (error, stdout, stderr) => {
         console.log(stdout);

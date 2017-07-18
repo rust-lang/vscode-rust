@@ -84,30 +84,39 @@ export function activate(context: ExtensionContext) {
     // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
     let lcOutputChannel: OutputChannel = null;
 
+    warnOnRlsToml();
+
+    const serverOptions: ServerOptions = () => makeRlsProcess(lcOutputChannel);
+    const clientOptions: LanguageClientOptions = {
+        // Register the server for Rust files
+        documentSelector: ['rust'],
+        synchronize: { configurationSection: 'rust' },
+        // Controls when to focus the channel rather than when to reveal it in the drop-down list
+        revealOutputChannelOn: CONFIGURATION.revealOutputChannelOn,
+    };
+
+    // Create the language client and start the client.
+    const lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
+    lcOutputChannel = lc.outputChannel;
+
+    diagnosticCounter(lc);
+    registerCommands(lc, context);
+    addBuildCommands();    
+
+    const disposable = lc.start();
+    context.subscriptions.push(disposable);
+}
+
+function warnOnRlsToml() {
     const tomlPath = workspace.rootPath + '/rls.toml';
     fs.access(tomlPath, fs.constants.F_OK, (err) => {
         if (!err) {
             window.showWarningMessage('Found deprecated rls.toml. Use VSCode user settings instead (File > Preferences > Settings)');
         }
     });
+}
 
-    let serverOptions: ServerOptions = () => makeRlsProcess(lcOutputChannel);
-
-    // Options to control the language client
-    const clientOptions: LanguageClientOptions = {
-        // Register the server for Rust files
-        documentSelector: ['rust'],
-        synchronize: {
-            configurationSection: 'rust'
-        },
-        // Controls when to focus the channel rather than when to reveal it in the drop-down list
-        revealOutputChannelOn: CONFIGURATION.revealOutputChannelOn
-    };
-
-    // Create the language client and start the client.
-    let lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
-    lcOutputChannel = lc.outputChannel;
-
+function diagnosticCounter(lc: LanguageClient) {
     let runningDiagnostics = 0;
     lc.onReady().then(() => {
         lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(f) {
@@ -121,8 +130,10 @@ export function activate(context: ExtensionContext) {
             }
         });
     });
+}
 
-    let cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, edit) => {
+function registerCommands(lc: LanguageClient, context: ExtensionContext) {
+    const cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, edit) => {
         lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
             .then((result) => {},
                   (reason) => {
@@ -130,8 +141,10 @@ export function activate(context: ExtensionContext) {
             });
     });
     context.subscriptions.push(cmdDisposable);
+}
 
-    let config = workspace.getConfiguration();
+function addBuildCommands() {
+    const config = workspace.getConfiguration();
     if (!config['tasks']) {
         const tasks = {
             "version": "0.1.0",
@@ -158,7 +171,4 @@ export function activate(context: ExtensionContext) {
         };
         config.update('tasks', tasks, false)
     }
-
-    let disposable = lc.start();
-    context.subscriptions.push(disposable);
 }

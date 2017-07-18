@@ -111,3 +111,18 @@ the Rust compiler (rustc) to get data about Rust programs. It uses Cargo to
 manage building. Both Cargo and rustc are run in-process by the RLS. Formatting
 and code completion are provided by rustfmt and Racer, again both of these are
 run in-process by the RLS.
+
+
+## Changelog
+
+### 0.1.1
+
+* Unicode (fixed with) spinner
+* Logging options in configuration
+* Deglob command is in the Rust category
+* Don't check tests by default (stll configurable)
+* Travis checking the repo
+
+### 0.1.0 - 2017-07-17
+
+* First release

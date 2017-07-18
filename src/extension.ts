@@ -18,7 +18,7 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 
 import { workspace, ExtensionContext, window, commands, OutputChannel } from 'vscode';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType, RevealOutputChannelOn } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, NotificationType, RevealOutputChannelOn } from 'vscode-languageclient';
 import * as is from 'vscode-languageclient/lib/utils/is';
 
 const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
@@ -49,7 +49,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
         if (CONFIGURATION.logToFile) {
             const logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
             let logStream = fs.createWriteStream(logPath, { flags: 'w+' });
-            logStream.on('open', function (f) {
+            logStream.on('open', function (_f) {
                 childProcess.stderr.addListener("data", function (chunk) {
                     logStream.write(chunk.toString());
                 });
@@ -120,11 +120,11 @@ function warnOnRlsToml() {
 function diagnosticCounter(lc: LanguageClient) {
     let runningDiagnostics = 0;
     lc.onReady().then(() => {
-        lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(f) {
+        lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(_f) {
             runningDiagnostics++;
             startSpinner("RLS analysis: working");
         });
-        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(f) {
+        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f) {
             runningDiagnostics--;
             if (runningDiagnostics <= 0) {
                 stopSpinner("RLS analysis: done");
@@ -134,9 +134,9 @@ function diagnosticCounter(lc: LanguageClient) {
 }
 
 function registerCommands(lc: LanguageClient, context: ExtensionContext) {
-    const cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, edit) => {
+    const cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
         lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
-            .then((result) => {},
+            .then((_result) => {},
                   (reason) => {
                 window.showWarningMessage('deglob command failed: ' + reason);
             });

@@ -6,7 +6,11 @@
         "lib": ["es6"],
         "sourceMap": true,
         "rootDir": ".",
-        "strict": true
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true
     },
     "include": [
         "src/**/*"

@@ -10,7 +10,7 @@
 
 'use strict';
 
-import { workspace, OutputChannel, WorkspaceConfiguration } from 'vscode';
+import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
 
 export namespace RevealOutputChannelOnUtil {

@@ -129,7 +129,7 @@
                 },
                 "rust.cfg_test": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Build cfg(test) code."
                 },
                 "rust.unstable_features": {

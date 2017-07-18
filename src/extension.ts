@@ -101,7 +101,7 @@ export function activate(context: ExtensionContext) {
 
     diagnosticCounter(lc);
     registerCommands(lc, context);
-    addBuildCommands();    
+    addBuildCommands();
 
     const disposable = lc.start();
     context.subscriptions.push(disposable);

@@ -1,5 +1,7 @@
 # Rust support for Visual Studio Code
 
+[![Build Status](https://travis-ci.org/rust-lang-nursery/rls-vscode.svg?branch=master)](https://travis-ci.org/rust-lang-nursery/rls-vscode)
+
 Adds language support for Rust to Visual Studio Code. Supports:
 
 * code completion

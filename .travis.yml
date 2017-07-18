@@ -1,0 +1,13 @@
+dist: trusty
+sudo: false
+
+notifications:
+  email: false
+
+language: node_js
+
+node_js:
+  - 7.4 # Sort with the version bundled in supported vscode.
+
+script:
+  - npm run compile

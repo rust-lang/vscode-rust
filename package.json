@@ -5,9 +5,9 @@
     "version": "0.1.0",
     "publisher": "rust-lang",
     "icon": "rust-icon.png",
-	"galleryBanner": {
-		"color": "#336356",
-		"theme": "dark"
+    "galleryBanner": {
+        "color": "#336356",
+        "theme": "dark"
     },
     "engines": {
         "vscode": "^1.8.0"
@@ -75,6 +75,27 @@
             "type": "object",
             "title": "Rust configuration",
             "properties": {
+                "rust-client.showStdErr": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Specifies whether RLS stderr will be shown in the output channel along with protocol logs. Requires reloading extension after change."
+                },
+                "rust-client.logToFile": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When set to true, RLS stderr is logged to a file at workspace root level. Requires reloading extension after change."
+                },
+                "rust-client.revealOutputChannelOn": {
+                    "type": "string",
+                    "enum": [
+                        "info",
+                        "warn",
+                        "error",
+                        "never"
+                    ],
+                    "default": "never",
+                    "description": "Specifies message severity on which the output channel will be revealed. Requires reloading extension after change."
+                },
                 "rust.sysroot": {
                     "type": ["string", "null"],
                     "default": null,

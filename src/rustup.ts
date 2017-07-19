@@ -12,6 +12,8 @@
 
 import * as child_process from 'child_process';
 import { window } from 'vscode';
+
+import { execChildProcess } from './utils/child_process';
 import { startSpinner, stopSpinner } from './spinner';
 
 // This module handles running the RLS via rustup, including checking that rustup
@@ -22,108 +24,130 @@ export function runRlsViaRustup(): Promise<child_process.ChildProcess> {
 }
 
 // Check for the nightly toolchain (and that rustup exists)
-function checkForNightly(): Promise<{}> {
-    return new Promise((resolve, reject) => {
-        child_process.exec("rustup toolchain list", (error, stdout, _stderr) => {
-            if (error) {
-                console.log(error);
-                // rustup not present
-                window.showErrorMessage('Rustup not available. Install from https://www.rustup.rs/');
-                reject();
-                return;
-            }
-            if (stdout.indexOf("nightly") == -1) {
-                // No nightly channel
-                window.showInformationMessage("Nightly toolchain not installed. Install?", "Yes").then((clicked) => {
-                    if (clicked == "Yes") {
-                        startSpinner("Installing nightly toolchain...");
-                        child_process.exec("rustup toolchain install nightly", (error, stdout, stderr) => {
-                            console.log(stdout);
-                            console.log(stderr);
-                            if (error) {
-                                window.showErrorMessage('Could not install nightly toolchain');
-                                stopSpinner('Could not install nightly toolchain');
-                                reject();
-                            } else {
-                                stopSpinner('Nightly toolchain installed successfully');
-                                resolve();
-                            }
-                        });
-                    } else {
-                        reject();
-                    }
-                });
-            } else {
-                resolve();
-            }
-        });
-    });
+async function checkForNightly(): Promise<void> {
+    const hasNightly = await hasNightlyToolchain();
+    if (hasNightly) {
+        return;
+    }
+
+    const clicked = await Promise.resolve(window.showInformationMessage('Nightly toolchain not installed. Install?', 'Yes'));
+    if (clicked === 'Yes') {
+        await tryToInstallNightlyToolchain();
+    }
+    else {
+        throw new Error();
+    }
+}
+
+async function hasNightlyToolchain(): Promise<boolean> {
+    try {
+        const { stdout } = await execChildProcess('rustup toolchain list');
+        const hasNightly = stdout.indexOf('nightly') > -1;
+        return hasNightly;
+    }
+    catch (e) {
+        console.log(e);
+        // rustup not present
+        window.showErrorMessage('Rustup not available. Install from https://www.rustup.rs/');
+        throw e;
+    }
+}
+
+async function tryToInstallNightlyToolchain(): Promise<void> {
+    startSpinner("Installing nightly toolchain...");
+    try {
+        const { stdout, stderr } = await execChildProcess('rustup toolchain install nightly');
+        console.log(stdout);
+        console.log(stderr);
+        stopSpinner('Nightly toolchain installed successfully'); 
+    }
+    catch (e) {
+        console.log(e);
+        window.showErrorMessage('Could not install nightly toolchain');
+        stopSpinner('Could not install nightly toolchain');
+        throw e;
+    }
 }
 
 // Check for rls components.
-function checkForRls(): Promise<void> {
-    return new Promise((resolve, reject) => {
-        child_process.exec("rustup component list --toolchain nightly", (error, stdout, _stderr) => {
-            if (error) {
-                console.log(error);
-                // rustup error?
-                window.showErrorMessage('Unexpected error initialising RLS - error running rustup');
-                reject();
-                return;
-            }
-            if (stdout.search(/^rls.* \((default|installed)\)$/m) == -1 ||
-                stdout.search(/^rust-analysis.* \((default|installed)\)$/m) == -1 ||
-                stdout.search(/^rust-src.* \((default|installed)\)$/m) == -1) {
-                // missing component
-                window.showInformationMessage("RLS not installed. Install?", "Yes").then((clicked) => {
-                    if (clicked == "Yes") {
-                        installRls(resolve, reject);
-                    } else {
-                        reject();
-                    }
-                });
-            } else {
-                resolve();
-            }
-        });
-    });
+async function checkForRls(): Promise<void> {
+    const hasRls = await hasRlsComponents();
+    if (hasRls) {
+        return;
+    }
+
+    // missing component
+    const clicked = await Promise.resolve(window.showInformationMessage('RLS not installed. Install?', 'Yes'));
+    if (clicked === 'Yes') {
+        await installRls();
+    }
+    else {
+        throw new Error();
+    }
 }
 
-function installRls(resolve: () => void, reject: (reason?: any) => void): void {
-    startSpinner('Installing RLS components');
-    child_process.exec("rustup component add rust-analysis --toolchain nightly", (error, stdout, stderr) => {
-        console.log(stdout);
-        console.log(stderr);
-        if (error) {
-            window.showErrorMessage('Could not install RLS component (rust-analysis)');
-            stopSpinner('Could not install RLS');
-            reject("installing rust-analysis failed");
-            return;
-        } else {
-            child_process.exec("rustup component add rust-src --toolchain nightly", (error, stdout, stderr) => {
-                console.log(stdout);
-                console.log(stderr);
-                if (error) {
-                    window.showErrorMessage('Could not install RLS component (rust-src)');
-                    stopSpinner('Could not install RLS');
-                    reject("installing rust-src failed");
-                    return;
-                } else {
-                    console.log("install rls");
-                    child_process.exec("rustup component add rls --toolchain nightly", (error, stdout, stderr) => {
-                        console.log(stdout);
-                        console.log(stderr);
-                        if (error) {
-                            window.showErrorMessage('Could not install RLS component (rls)');
-                            stopSpinner('Could not install RLS');
-                            reject("installing rls failed");
-                        } else {
-                            stopSpinner('RLS components installed successfully');
-                            resolve();
-                        }
-                    });
-                }
-            });
+async function hasRlsComponents(): Promise<boolean> {
+    try {
+        const { stdout } = await execChildProcess('rustup component list --toolchain nightly');
+        if (stdout.search(/^rls.* \((default|installed)\)$/m) === -1 ||
+            stdout.search(/^rust-analysis.* \((default|installed)\)$/m) === -1 ||
+            stdout.search(/^rust-src.* \((default|installed)\)$/m) === -1) {
+            return false;
         }
-    });
+        else {
+            return true;
+        }
+    }
+    catch (e) {
+        console.log(e);
+        // rustup error?
+        window.showErrorMessage('Unexpected error initialising RLS - error running rustup');
+        throw e;
+    }
+}
+
+async function installRls(): Promise<void> {
+    startSpinner('Installing RLS components');
+
+    const tryFn: (component: string) => Promise<(Error | null)> = async (component: string) => {
+        try {
+            const { stdout, stderr, } = await execChildProcess(`rustup component add ${component} --toolchain nightly`);
+            console.log(stdout);
+            console.log(stderr);
+            return null;
+        }
+        catch (_e) {
+            window.showErrorMessage(`Could not install RLS component (${component})`);
+            const err = new Error(`installing ${component} failed`);
+            return err;
+        }
+    };
+
+    {
+        const e = await tryFn('rust-analysys');
+        if (e !== null) {
+            stopSpinner('Could not install RLS');
+            throw e;
+        }
+    }
+
+    {
+        const e = await tryFn('rust-src');
+        if (e !== null) {
+            stopSpinner('Could not install RLS');
+            throw e;
+        }
+    }
+
+    console.log('install rls');
+
+    {
+        const e = await tryFn('rls');
+        if (e !== null) {
+            stopSpinner('Could not install RLS');
+            throw e;
+        }
+    }
+
+    stopSpinner('RLS components installed successfully');
 }

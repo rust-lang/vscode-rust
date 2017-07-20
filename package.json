@@ -147,6 +147,11 @@
                     "default": true,
                     "description": "Show warnings."
                 },
+                "rust.goto_def_racer_fallback": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use racer as a fallback for goto def."
+                },
                 "rust.workspace_mode": {
                     "type": "boolean",
                     "default": false,

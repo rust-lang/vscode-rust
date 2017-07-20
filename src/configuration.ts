@@ -13,19 +13,17 @@
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
 
-export namespace RevealOutputChannelOnUtil {
-    export function fromString(value: string): RevealOutputChannelOn {
-        switch (value && value.toLowerCase()) {
-            case 'info':
-                return RevealOutputChannelOn.Info;
-            case 'warn':
-                return RevealOutputChannelOn.Warn;
-            case 'error':
-                return RevealOutputChannelOn.Error;
-            case 'never':
-            default:
-                return RevealOutputChannelOn.Never;
-        }
+function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn {
+    switch (value && value.toLowerCase()) {
+        case 'info':
+            return RevealOutputChannelOn.Info;
+        case 'warn':
+            return RevealOutputChannelOn.Warn;
+        case 'error':
+            return RevealOutputChannelOn.Error;
+        case 'never':
+        default:
+            return RevealOutputChannelOn.Never;
     }
 }
 
@@ -47,6 +45,6 @@ export class RLSConfiguration {
     }
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {
         const setting = configuration.get<string>('rust-client.revealOutputChannelOn', 'never');
-		return RevealOutputChannelOnUtil.fromString(setting);
+		return fromStringToRevealOutputChannelOn(setting);
     }
 }

@@ -13,11 +13,13 @@ Adds language support for Rust to Visual Studio Code. Supports:
 * snippets
 * build tasks
 
-This extension is powered by the [Rust Language Server](https://github.com/rust-lang-nursery/rls)
-(RLS) and is the reference client implementation. If you don't have it installed,
-the extension will install the RLS for you.
+Rust support is powered by the [Rust Language Server](https://github.com/rust-lang-nursery/rls)
+(RLS). If you don't have it installed, the extension will install the RLS for you.
 
-This extension is maintained by the [Rust Developer Tools team](https://www.rust-lang.org/en-US/team.html#Dev-tools-team).
+This extension is built and maintained by the RLS team, part of the
+[Rust Developer Tools team](https://www.rust-lang.org/en-US/team.html#Dev-tools-team).
+It is the reference client implementation for the RLS.
+
 For support, please file an [issue on the repo](https://github.com/rust-lang-nursery/rls-vscode/issues/new)
 or talk to us in #rust-dev-tools on IRC ([Mozilla servers](https://wiki.mozilla.org/IRC)).
 
@@ -29,8 +31,10 @@ more details on building and debugging, etc., see [contributing.md](contributing
 
 * Install this extension from the marketplace.
 * Install [rustup](https://www.rustup.rs/) (Rust toolchain manager).
+* Open a Rust project (`File > Open Folder...`). Open the folder for the whole
+  project (i.e., the folder containing 'Cargo.toml'), not the 'src' folder.
 * The extension will start when you open a Rust file. You'll be prompted to
-  install the RLS. Once installed, the RLS should start building you project.
+  install the RLS. Once installed, the RLS should start building your project.
   The first build can take a while.
 
 
@@ -54,8 +58,10 @@ Some highlights:
 ## Requirements
 
 * [Rustup](https://www.rustup.rs/),
-* A nightly Rust toolchain (the extension will configure this for you, with permission),
-* RLS, rust-src, and rust-analysis components (the extension will install these for you, with permission).
+* A nightly Rust toolchain (the extension will configure this for you, with
+  permission),
+* RLS, rust-src, and rust-analysis components (the extension will install these
+  for you, with permission).
 
 
 ## Features
@@ -65,7 +71,7 @@ Some highlights:
 Commands can be found in the command palette (ctrl + shift + p). We provide the
 following commands:
 
-* `deglob` - replace a glob import with an explicit import. E.g., replace
+* `deglob` - replace a glob (`*`) import with an explicit import. E.g., replace
   `use foo::*;` with `use foo::{bar, baz};`. Select only the `*` when running
   the command.
 
@@ -82,7 +88,8 @@ the following snippets:
 * `unreachable`
 * `println`
 * `macro_rules` - declare a macro
-* `if let Option` - an `if let` statement for executing code only in the `Some` case.
+* `if let Option` - an `if let` statement for executing code only in the `Some`
+  case.
 * `spawn` - spawn a thread
 
 
@@ -121,7 +128,8 @@ run in-process by the RLS.
 * Logging options in configuration
 * Deglob command is in the Rust category
 * Don't check tests by default (stll configurable)
-* Travis checking the repo
+* Travis CI for the repo
+* Performance and robustness improvements in the RLS
 
 ### 0.1.0 - 2017-07-17
 

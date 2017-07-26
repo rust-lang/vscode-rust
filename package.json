@@ -57,7 +57,9 @@
         "languages": [
             {
                 "id": "rust",
-                "extensions": [ ".rs" ],
+                "extensions": [
+                    ".rs"
+                ],
                 "configuration": "./language-configuration.json"
             }
         ],
@@ -67,11 +69,13 @@
                 "path": "./snippets/rust.json"
             }
         ],
-        "commands": [{
-            "command": "rls.deglob",
-            "title": "Deglob imports",
-            "category": "Rust"
-        }],
+        "commands": [
+            {
+                "command": "rls.deglob",
+                "title": "Deglob imports",
+                "category": "Rust"
+            }
+        ],
         "configuration": {
             "type": "object",
             "title": "Rust configuration",
@@ -98,17 +102,26 @@
                     "description": "Specifies message severity on which the output channel will be revealed. Requires reloading extension after change."
                 },
                 "rust.sysroot": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "default": null,
                     "description": "--sysroot"
                 },
                 "rust.target": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "default": null,
                     "description": "--target"
                 },
                 "rust.rustflags": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "default": null,
                     "description": "Flags added to RUSTFLAGS."
                 },
@@ -123,7 +136,10 @@
                     "description": "cargo check --lib"
                 },
                 "rust.build_bin": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "default": null,
                     "description": "cargo check --bin <name>"
                 },
@@ -158,7 +174,10 @@
                     "description": "EXPERIMENTAL: Enable workspace support and analyze every package in it."
                 },
                 "rust.analyze_package": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "default": null,
                     "description": "if `rust.workspace_mode` is enabled, only the specified package in the workspace will be analyzed."
                 }

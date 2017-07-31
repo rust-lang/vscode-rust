@@ -24,8 +24,10 @@ import * as is from 'vscode-languageclient/lib/utils/is';
 const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
 function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_process.ChildProcess> {
-    const rls_path = process.env.RLS_PATH;
-    const rls_root = process.env.RLS_ROOT;
+    // Allow to override how RLS is started up. Env vars take precedence over hidden
+    // "rls.path" or "rls.root" user settings.
+    const rls_path = process.env.RLS_PATH || CONFIGURATION.rlsPath;
+    const rls_root = process.env.RLS_ROOT || CONFIGURATION.rlsRoot;
 
     let childProcessPromise: Promise<child_process.ChildProcess>;
     if (rls_path) {

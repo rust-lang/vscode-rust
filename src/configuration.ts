@@ -31,6 +31,17 @@ export class RLSConfiguration {
     public readonly showStderrInOutputChannel: boolean;
     public readonly logToFile: boolean;
     public readonly revealOutputChannelOn: RevealOutputChannelOn = RevealOutputChannelOn.Never;
+    /**
+     * Hidden option that can be specified via `"rls.path"` key (e.g. to `/usr/bin/rls`). If
+     * specified, RLS will be spawned by executing a file at the given path.
+     */
+    public readonly rlsPath: string | null;
+    /**
+     * Hidden option that can be specified via `"rls.root"` key (e.g. to `/home/<user>/rls/repo`).
+     * If specified, RLS will be spawned by executing `cargo run --release` under a given working
+     * directory.
+     */
+    public readonly rlsRoot: string | null;
 
     public static loadFromWorkspace(): RLSConfiguration {
         const configuration = workspace.getConfiguration();
@@ -42,6 +53,9 @@ export class RLSConfiguration {
         this.showStderrInOutputChannel = configuration.get<boolean>('rust-client.showStdErr', false);
         this.logToFile = configuration.get<boolean>('rust-client.logToFile', false);
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
+        // Hidden options that are not exposed to the user
+        this.rlsPath = configuration.get('rls.path', null);
+        this.rlsRoot = configuration.get('rls.root', null);
     }
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {
         const setting = configuration.get<string>('rust-client.revealOutputChannelOn', 'never');

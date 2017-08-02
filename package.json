@@ -128,7 +128,7 @@
                 "rust.clear_env_rust_log": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Clear RUST_LOG before calling cargo/rustc."
+                    "description": "Clear the RUST_LOG environment variable before running rustc or cargo."
                 },
                 "rust.build_lib": {
                     "type": "boolean",
@@ -167,6 +167,16 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Use racer as a fallback for goto def."
+                },
+                "rust.use_crate_blacklist": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Don't index crates on the crate blacklist."
+                },
+                "rust.build_on_save": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Only index the project when a file is saved and not on change."
                 },
                 "rust.workspace_mode": {
                     "type": "boolean",

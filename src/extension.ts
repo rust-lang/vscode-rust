@@ -96,6 +96,7 @@ export function activate(context: ExtensionContext) {
         synchronize: { configurationSection: 'rust' },
         // Controls when to focus the channel rather than when to reveal it in the drop-down list
         revealOutputChannelOn: CONFIGURATION.revealOutputChannelOn,
+        initializationOptions: { omitInitBuild: true },
     };
 
     // Create the language client and start the client.

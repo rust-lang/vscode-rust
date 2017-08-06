@@ -23,6 +23,27 @@ import * as is from 'vscode-languageclient/lib/utils/is';
 
 const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
+// Make an evironment to run the RLS.
+// Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
+function makeRlsEnv(): any {
+    let env = process.env;
+    if (process.env.RUST_SRC_PATH) {
+        return env;
+    } else {
+        // rustc --print sysroot + lib/rustlib/src/rust/src
+        const result = child_process.spawnSync('rustc', ['--print', 'sysroot']);
+        if (result.status > 0) {
+            console.log('error running rustc for sysroot');
+            return env;
+        }
+        let sysroot = result.stdout.toString();
+        sysroot = sysroot.replace('\n', '').replace('\r', '');
+        env.RUST_SRC_PATH = sysroot + '/lib/rustlib/src/rust/src';
+        env.RUST_LOG = 'racer=debug';
+        return env;
+    }
+}
+
 function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_process.ChildProcess> {
     // Allow to override how RLS is started up. Env vars take precedence over hidden
     // "rls.path" or "rls.root" user settings.
@@ -30,12 +51,13 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     const rls_root = process.env.RLS_ROOT || CONFIGURATION.rlsRoot;
 
     let childProcessPromise: Promise<child_process.ChildProcess>;
+    const env = makeRlsEnv();
     if (rls_path) {
-        childProcessPromise = Promise.resolve(child_process.spawn(rls_path));
+        childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
     } else if (rls_root) {
-        childProcessPromise = Promise.resolve(child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root }));
+        childProcessPromise = Promise.resolve(child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root, env }));
     } else {
-        childProcessPromise = runRlsViaRustup();
+        childProcessPromise = runRlsViaRustup(env);
     }
 
     childProcessPromise.then((childProcess) => {

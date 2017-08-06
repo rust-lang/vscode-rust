@@ -19,8 +19,8 @@ import { startSpinner, stopSpinner } from './spinner';
 // This module handles running the RLS via rustup, including checking that rustup
 // is installed and installing any required components/toolchains.
 
-export function runRlsViaRustup(): Promise<child_process.ChildProcess> {
-    return checkForNightly().then(checkForRls).then(() => child_process.spawn("rustup", ["run", "nightly", "rls"]));
+export function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
+    return checkForNightly().then(checkForRls).then(() => child_process.spawn("rustup", ["run", "nightly", "rls"], { env }));
 }
 
 // Check for the nightly toolchain (and that rustup exists)

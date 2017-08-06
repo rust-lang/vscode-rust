@@ -39,7 +39,6 @@ function makeRlsEnv(): any {
         let sysroot = result.stdout.toString();
         sysroot = sysroot.replace('\n', '').replace('\r', '');
         env.RUST_SRC_PATH = sysroot + '/lib/rustlib/src/rust/src';
-        env.RUST_LOG = 'racer=debug';
         return env;
     }
 }

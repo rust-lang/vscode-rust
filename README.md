@@ -125,7 +125,7 @@ run in-process by the RLS.
 
 ## Changelog
 
-### 0.1.1 - 2017-08-07
+### 0.2.0 - 2017-08-07
 
 * Unicode (fixed width) spinner
 * Logging and debugging options in configuration

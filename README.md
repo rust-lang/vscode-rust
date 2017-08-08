@@ -6,7 +6,7 @@ Adds language support for Rust to Visual Studio Code. Supports:
 
 * code completion
 * jump to definition, peek definition, find all references, symbol search
-* types and docs on hover
+* types and documentation on hover
 * code formatting
 * refactoring (rename, deglob)
 * error squiggles and apply suggestions from errors
@@ -18,24 +18,26 @@ Rust support is powered by the [Rust Language Server](https://github.com/rust-la
 
 This extension is built and maintained by the RLS team, part of the
 [Rust Developer Tools team](https://www.rust-lang.org/en-US/team.html#Dev-tools-team).
-It is the reference client implementation for the RLS.
+It is the reference client implementation for the RLS. Our focus is on providing
+a stable, high quality extension that makes best use of the RLS. We aim to
+support as many features as possible, but our priority is supporting the
+essential features as well as possible.
 
 For support, please file an [issue on the repo](https://github.com/rust-lang-nursery/rls-vscode/issues/new)
 or talk to us in #rust-dev-tools on IRC ([Mozilla servers](https://wiki.mozilla.org/IRC)).
 
-Contributing code, tests, documentation, and bug reports is very welcome! For
+Contributing code, tests, documentation, and bug reports is appreciated! For
 more details on building and debugging, etc., see [contributing.md](contributing.md).
 
 
 ## Quick start
 
-* Install this extension from the marketplace.
 * Install [rustup](https://www.rustup.rs/) (Rust toolchain manager).
+* Install this extension from the marketplace.
 * Open a Rust project (`File > Open Folder...`). Open the folder for the whole
   project (i.e., the folder containing 'Cargo.toml'), not the 'src' folder.
 * The extension will start when you open a Rust file. You'll be prompted to
   install the RLS. Once installed, the RLS should start building your project.
-  The first build can take a while.
 
 
 ## Configuration
@@ -52,16 +54,8 @@ Some highlights:
 * `rust.build_bin` - if you have multiple binaries, you can specify which to build
   using this option.
 * `rust.workspace_mode` - experimental cargo workspace support. Note that using
-  this feature will slow down builds significantly.
-
-
-## Requirements
-
-* [Rustup](https://www.rustup.rs/),
-* A nightly Rust toolchain (the extension will configure this for you, with
-  permission),
-* RLS, rust-src, and rust-analysis components (the extension will install these
-  for you, with permission).
+  this feature will slow down builds significantly and may be broken in
+  surprising and undocumented ways.
 
 
 ## Features
@@ -108,6 +102,15 @@ defaults, delete `tasks.json` and restart VSCode.
 
 To enable formatting on save, you need to set the `editor.formatOnSave` setting
 to `true`. Find it under `File > Preferences > Settings`.
+
+
+## Requirements
+
+* [Rustup](https://www.rustup.rs/),
+* A nightly Rust toolchain (the extension will configure this for you, with
+  permission),
+* RLS, rust-src, and rust-analysis components (the extension will install these
+  for you, with permission).
 
 
 ## Implementation

@@ -33,7 +33,8 @@ more details on building and debugging, etc., see [contributing.md](contributing
 ## Quick start
 
 * Install [rustup](https://www.rustup.rs/) (Rust toolchain manager).
-* Install this extension from the marketplace.
+* Install this extension from [the VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
+  (or by entering `ext install rust` at the command palette).
 * Open a Rust project (`File > Open Folder...`). Open the folder for the whole
   project (i.e., the folder containing 'Cargo.toml'), not the 'src' folder.
 * The extension will start when you open a Rust file. You'll be prompted to

@@ -55,6 +55,7 @@ Some highlights:
   true to build the library.
 * `rust.build_bin` - if you have multiple binaries, you can specify which to build
   using this option.
+* `rust.cfg_test` - build and index test code (i.e., code with `#[cfg(test)]`/`#[test]`)
 * `rust.workspace_mode` - experimental cargo workspace support. Note that using
   this feature will slow down builds significantly and may be broken in
   surprising and undocumented ways.

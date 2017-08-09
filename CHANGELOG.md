@@ -1,3 +1,7 @@
+### 0.2.1 - 2017-08-09
+
+* Fix bug installing the rls
+
 ### 0.2.0 - 2017-08-07
 
 * Unicode (fixed width) spinner

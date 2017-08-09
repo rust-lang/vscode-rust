@@ -124,7 +124,7 @@ async function installRls(): Promise<void> {
     };
 
     {
-        const e = await tryFn('rust-analysys');
+        const e = await tryFn('rust-analysis');
         if (e !== null) {
             stopSpinner('Could not install RLS');
             throw e;

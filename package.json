@@ -131,9 +131,12 @@
                     "description": "Clear the RUST_LOG environment variable before running rustc or cargo."
                 },
                 "rust.build_lib": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "cargo check --lib"
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "Specify to run analysis as if running `cargo check --lib`. Use `null` to auto-detect."
                 },
                 "rust.build_bin": {
                     "type": [
@@ -141,7 +144,7 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "cargo check --bin <name>"
+                    "description": "Specify to run analysis as if running `cargo check --bin <name>`. Use `null` to auto-detect."
                 },
                 "rust.cfg_test": {
                     "type": "boolean",

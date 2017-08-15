@@ -223,6 +223,10 @@ function addBuildCommands() {
                     "args": ["test"],
                     "group": "test",
                     "problemMatcher": defaultProblemMatcher
+                },
+                {
+                    "taskName": "cargo clean",
+                    "args": ["clean"]
                 }
             ]
         };

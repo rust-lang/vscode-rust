@@ -74,8 +74,23 @@
                 "command": "rls.deglob",
                 "title": "Deglob imports",
                 "category": "Rust"
+            },
+            {
+                "command": "rls.findImpls",
+                "title": "Find Implementations",
+                "description": "Show impl blocks for trait, struct, or enum",
+                "category": "Rust"
             }
         ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "rls.findImpls",
+                    "when": "editorLangId == rust && editorHasReferenceProvider",
+                    "group": "navigation@4"
+                }
+            ]
+        },
         "configuration": {
             "type": "object",
             "title": "Rust configuration",

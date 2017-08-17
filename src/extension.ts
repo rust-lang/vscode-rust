@@ -17,8 +17,9 @@ import { RLSConfiguration } from "./configuration";
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
-import { workspace, ExtensionContext, window, commands, OutputChannel } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, NotificationType, RevealOutputChannelOn } from 'vscode-languageclient';
+import { workspace, ExtensionContext, TextEditor, TextEditorEdit, window, commands, OutputChannel } from 'vscode';
+import { LanguageClient, LanguageClientOptions, Location, NotificationType, RevealOutputChannelOn,
+    ServerOptions } from 'vscode-languageclient';
 import * as is from 'vscode-languageclient/lib/utils/is';
 
 const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
@@ -166,6 +167,17 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
             });
     });
     context.subscriptions.push(cmdDisposable);
+
+    const cmdDisposable2 = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
+        let params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
+        let response = lc.sendRequest("rustDocument/implementations", params);
+        response.then((locations: Location[]) => {
+            commands.executeCommand("editor.action.showReferences", textEditor.document.uri, textEditor.selection.active, locations.map(lc.protocol2CodeConverter.asLocation));
+        }, (reason) => {
+            window.showWarningMessage('find implementations failed: ' + reason);
+        });
+    });
+    context.subscriptions.push(cmdDisposable2);
 }
 
 var defaultProblemMatcher = {

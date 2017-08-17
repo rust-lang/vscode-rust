@@ -159,7 +159,7 @@ function diagnosticCounter(lc: LanguageClient) {
 }
 
 function registerCommands(lc: LanguageClient, context: ExtensionContext) {
-    let cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
+    const cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
         lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
             .then((_result) => {},
                   (reason) => {
@@ -168,17 +168,16 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
     });
     context.subscriptions.push(cmdDisposable);
 
-    cmdDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
-        console.log('Trace find implementations');
+    const cmdDisposable2 = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
         let params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
-        let respone = lc.sendRequest("rustDocument/implementations", params);
-        respone.then((locations: Location[]) => {
+        let response = lc.sendRequest("rustDocument/implementations", params);
+        response.then((locations: Location[]) => {
             commands.executeCommand("editor.action.showReferences", textEditor.document.uri, textEditor.selection.active, locations.map(lc.protocol2CodeConverter.asLocation));
         }, (reason) => {
             window.showWarningMessage('find implementations failed: ' + reason);
         });
     });
-    context.subscriptions.push(cmdDisposable);
+    context.subscriptions.push(cmdDisposable2);
 }
 
 var defaultProblemMatcher = {

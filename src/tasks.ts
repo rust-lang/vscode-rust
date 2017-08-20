@@ -55,30 +55,35 @@ function createDefaultTaskConfig(): object {
     const tasks = {
         //Using the post VSC 1.14 task schema.
         "version": "2.0.0",
-        "command": "cargo",
-        "type": "shell",
         "presentation" : { "reveal": "always", "panel":"new" },
-        "suppressTaskName": true,
         "tasks": [
             {
                 "taskName": "cargo build",
+                "type": "shell",
+                "command": "cargo",
                 "args": ["build"],
                 "group": "build",
                 "problemMatcher": "$rustc"
             },
             {
                 "taskName": "cargo run",
+                "type": "shell",
+                "command": "cargo",
                 "args": ["run"],
                 "problemMatcher": "$rustc"
             },
             {
                 "taskName": "cargo test",
+                "type": "shell",
+                "command": "cargo",
                 "args": ["test"],
                 "group": "test",
                 "problemMatcher": "$rustc"
             },
             {
                 "taskName": "cargo clean",
+                "type": "shell",
+                "command": "cargo",
                 "args": ["clean"]
             }
         ]

@@ -45,10 +45,14 @@ function makeRlsEnv(): any {
 }
 
 function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_process.ChildProcess> {
-    // Allow to override how RLS is started up. Env vars take precedence over hidden
-    // "rls.path" or "rls.root" user settings.
-    const rls_path = process.env.RLS_PATH || CONFIGURATION.rlsPath;
-    const rls_root = process.env.RLS_ROOT || CONFIGURATION.rlsRoot;
+    // Check for deprecated env vars.
+    if (process.env.RLS_PATH || process.env.RLS_ROOT) {
+        window.showWarningMessage('Found deprecated environment variables (RLS_PATH or RLS_ROOT). Use `rls.path` or `rls.root` settings.');
+    }
+
+    // Allow to override how RLS is started up.
+    const rls_path = CONFIGURATION.rlsPath;
+    const rls_root = CONFIGURATION.rlsRoot;
 
     let childProcessPromise: Promise<child_process.ChildProcess>;
     const env = makeRlsEnv();

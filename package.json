@@ -80,6 +80,12 @@
                 "title": "Find Implementations",
                 "description": "Show impl blocks for trait, struct, or enum",
                 "category": "Rust"
+            },
+            {
+                "command": "rls.configureDefaultTasks",
+                "title": "Configure Default Tasks",
+                "description": "Add default tasks to tasks.json",
+                "category": "Rust"
             }
         ],
         "menus": {

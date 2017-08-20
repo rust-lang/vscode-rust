@@ -127,7 +127,6 @@ export function activate(context: ExtensionContext) {
 
     diagnosticCounter(lc);
     registerCommands(lc, context);
-    addBuildCommands();
 
     const disposable = lc.start();
     context.subscriptions.push(disposable);
@@ -178,14 +177,30 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
         });
     });
     context.subscriptions.push(cmdDisposable2);
+
+    const cmdDisposable3 = commands.registerCommand('rls.configureDefaultTasks', () => {
+        addBuildCommands().catch(console.error);
+    });
+    context.subscriptions.push(cmdDisposable3);   
 }
 
-function addBuildCommands() {
+async function addBuildCommands(): Promise<string | undefined> {
     const config = workspace.getConfiguration();
-    if (!config['tasks']) {
-        const tasks = createDefaultTaskConfig();
-        config.update('tasks', tasks, false)
+
+    if (!!config['tasks']) {
+        return Promise.resolve(window.showInformationMessage('tasks.json has other tasks. Any tasks are not added.'));
     }
+
+    try {
+        const tasks = createDefaultTaskConfig();
+        await Promise.resolve(config.update('tasks', tasks, false));
+    }
+    catch (e) {
+        console.error(e);
+        return Promise.resolve(window.showInformationMessage('Could not update tasks.json. Any tasks are not added.'));
+    }
+
+    return Promise.resolve(window.showInformationMessage('Added default build tasks for Rust'));    
 }
 
 function createDefaultTaskConfig(): object {

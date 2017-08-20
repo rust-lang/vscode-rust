@@ -13,7 +13,7 @@
 import { runRlsViaRustup } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from "./configuration";
-import { addBuildCommands } from './tasks';
+import { addBuildCommandsOnOpeningProject, addBuildCommandsByUser } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -128,6 +128,9 @@ export function activate(context: ExtensionContext) {
 
     diagnosticCounter(lc);
     registerCommands(lc, context);
+    if (CONFIGURATION.setupBuildTasksAutomatically) {
+        addBuildCommandsOnOpeningProject();
+    }
 
     const disposable = lc.start();
     context.subscriptions.push(disposable);
@@ -180,7 +183,7 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
     context.subscriptions.push(cmdDisposable2);
 
     const cmdDisposable3 = commands.registerCommand('rls.configureDefaultTasks', () => {
-        addBuildCommands().catch(console.error);
+        addBuildCommandsByUser().catch(console.error);
     });
     context.subscriptions.push(cmdDisposable3);   
 }

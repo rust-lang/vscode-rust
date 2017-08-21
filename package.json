@@ -80,6 +80,12 @@
                 "title": "Find Implementations",
                 "description": "Show impl blocks for trait, struct, or enum",
                 "category": "Rust"
+            },
+            {
+                "command": "rls.configureDefaultTasks",
+                "title": "Configure Default Tasks",
+                "description": "Add default tasks to tasks.json",
+                "category": "Rust"
             }
         ],
         "menus": {
@@ -208,6 +214,11 @@
                     ],
                     "default": null,
                     "description": "if `rust.workspace_mode` is enabled, only the specified package in the workspace will be analyzed."
+                },
+                "rust.setup_build_tasks_automatically": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Configure default build tasks automatically on opening a project."
                 }
             }
         }

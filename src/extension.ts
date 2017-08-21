@@ -13,6 +13,7 @@
 import { runRlsViaRustup } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from "./configuration";
+import { addBuildCommandsOnOpeningProject, addBuildCommandsByUser } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -131,7 +132,9 @@ export function activate(context: ExtensionContext) {
 
     diagnosticCounter(lc);
     registerCommands(lc, context);
-    addBuildCommands();
+    if (CONFIGURATION.setupBuildTasksAutomatically) {
+        addBuildCommandsOnOpeningProject();
+    }
 
     const disposable = lc.start();
     context.subscriptions.push(disposable);
@@ -182,70 +185,9 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
         });
     });
     context.subscriptions.push(cmdDisposable2);
-}
 
-var defaultProblemMatcher = {
-    "fileLocation": ["relative", "${workspaceRoot}"],
-    "pattern": [{
-            "regexp": "^(warning|warn|error)(\\[(.*)\\])?: (.*)$",
-            "severity": 1,
-            "message": 4,
-            //The error code of the error, if available.
-            //Not all errors will have a code reported.
-            "code": 3
-        },
-        {
-            "regexp": "^([\\s->=]*(.*):(\\d*):(\\d*)|.*)$",
-            "file": 2,
-            "line": 3,
-            "column": 4
-        },
-        {
-            "regexp": "^.*$"
-        },
-        {
-            "regexp": "^([\\s->=]*(.*):(\\d*):(\\d*)|.*)$",
-            "file": 2,
-            "line": 3,
-            "column": 4
-        }
-    ]
-};
-
-function addBuildCommands() {
-    const config = workspace.getConfiguration();
-    if (!config['tasks']) {
-        const tasks = {
-            //Using the post VSC 1.14 task schema.
-            "version": "2.0.0",
-            "command": "cargo",
-            "type": "shell",
-            "presentation" : { "reveal": "always", "panel":"new" },
-            "suppressTaskName": true,
-            "tasks": [
-                {
-                    "taskName": "cargo build",
-                    "args": ["build"],
-                    "group": "build",
-                    "problemMatcher": defaultProblemMatcher
-                },
-                {
-                    "taskName": "cargo run",
-                    "args": ["run"],
-                    "problemMatcher": defaultProblemMatcher
-                },
-                {
-                    "taskName": "cargo test",
-                    "args": ["test"],
-                    "group": "test",
-                    "problemMatcher": defaultProblemMatcher
-                },
-                {
-                    "taskName": "cargo clean",
-                    "args": ["clean"]
-                }
-            ]
-        };
-        config.update('tasks', tasks, false)
-    }
+    const cmdDisposable3 = commands.registerCommand('rls.configureDefaultTasks', () => {
+        addBuildCommandsByUser().catch(console.error);
+    });
+    context.subscriptions.push(cmdDisposable3);   
 }

@@ -26,6 +26,7 @@ essential features as well as possible.
 
 For support, please file an [issue on the repo](https://github.com/rust-lang-nursery/rls-vscode/issues/new)
 or talk to us in #rust-dev-tools on IRC ([Mozilla servers](https://wiki.mozilla.org/IRC)).
+There is also some [troubleshooting and debugging](https://github.com/rust-lang-nursery/rls/blob/master/debugging.md) advice.
 
 Contributing code, tests, documentation, and bug reports is appreciated! For
 more details on building and debugging, etc., see [contributing.md](contributing.md).

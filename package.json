@@ -158,6 +158,16 @@
                     "default": "never",
                     "description": "Specifies message severity on which the output channel will be revealed. Requires reloading extension after change."
                 },
+                "rust-client.updateOnStartup": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Update the RLS whenever the extension starts up."
+                },
+                "rust-client.setup_build_tasks_automatically": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Configure default build tasks automatically on opening a project."
+                },
                 "rust.sysroot": {
                     "type": [
                         "string",
@@ -250,11 +260,6 @@
                     ],
                     "default": null,
                     "description": "if `rust.workspace_mode` is enabled, only the specified package in the workspace will be analyzed."
-                },
-                "rust.setup_build_tasks_automatically": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Configure default build tasks automatically on opening a project."
                 }
             }
         }

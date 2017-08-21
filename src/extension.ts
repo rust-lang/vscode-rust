@@ -46,11 +46,6 @@ function makeRlsEnv(): any {
 }
 
 function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_process.ChildProcess> {
-    // Check for deprecated env vars.
-    if (process.env.RLS_PATH || process.env.RLS_ROOT) {
-        window.showWarningMessage('Found deprecated environment variables (RLS_PATH or RLS_ROOT). Use `rls.path` or `rls.root` settings.');
-    }
-
     // Allow to override how RLS is started up.
     const rls_path = CONFIGURATION.rlsPath;
     const rls_root = CONFIGURATION.rlsRoot;
@@ -115,8 +110,12 @@ export function activate(context: ExtensionContext) {
     let lcOutputChannel: OutputChannel | null = null;
 
     warnOnRlsToml();
+    // Check for deprecated env vars.
+    if (process.env.RLS_PATH || process.env.RLS_ROOT) {
+        window.showWarningMessage('Found deprecated environment variables (RLS_PATH or RLS_ROOT). Use `rls.path` or `rls.root` settings.');
+    }
 
-    const serverOptions: ServerOptions = () => makeRlsProcess(lcOutputChannel);
+    const serverOptions: ServerOptions = () => autoUpdate().then(() => makeRlsProcess(lcOutputChannel));
     const clientOptions: LanguageClientOptions = {
         // Register the server for Rust files
         documentSelector: ['rust'],
@@ -147,6 +146,12 @@ function warnOnRlsToml() {
             window.showWarningMessage('Found deprecated rls.toml. Use VSCode user settings instead (File > Preferences > Settings)');
         }
     });
+}
+
+async function autoUpdate() {
+    if (CONFIGURATION.updateOnStartup) {
+        await rustupUpdate();
+    }
 }
 
 function diagnosticCounter(lc: LanguageClient) {

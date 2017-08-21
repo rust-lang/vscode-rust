@@ -23,6 +23,25 @@ export function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
     return checkForNightly().then(checkForRls).then(() => child_process.spawn("rustup", ["run", "nightly", "rls"], { env }));
 }
 
+export async function rustupUpdate() {
+    startSpinner('Updating RLS...');
+
+    try {
+        const { stdout } = await execChildProcess('rustup update');
+        // This test is imperfect because if the user has multiple toolchains installed, they
+        // might have one updated and one unchanged. But I don't want to go too far down the
+        // rabbit hole of parsing rustup's output.
+        if (stdout.indexOf('unchanged') > -1) {
+            stopSpinner('Up to date.');
+        } else {
+            stopSpinner('Up to date. Restart extension for changes to take effect.');
+        }
+    } catch (e) {
+        console.log(e);
+        stopSpinner('An error occurred whilst trying to update.');
+    }
+}
+
 // Check for the nightly toolchain (and that rustup exists)
 async function checkForNightly(): Promise<void> {
     const hasNightly = await hasNightlyToolchain();

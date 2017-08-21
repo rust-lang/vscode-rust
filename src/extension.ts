@@ -10,7 +10,7 @@
 
 'use strict';
 
-import { runRlsViaRustup } from './rustup';
+import { runRlsViaRustup, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from "./configuration";
 import { addBuildCommandsOnOpeningProject, addBuildCommandsByUser } from './tasks';
@@ -166,16 +166,16 @@ function diagnosticCounter(lc: LanguageClient) {
 }
 
 function registerCommands(lc: LanguageClient, context: ExtensionContext) {
-    const cmdDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
+    const deglobDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
         lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
             .then((_result) => {},
                   (reason) => {
                 window.showWarningMessage('deglob command failed: ' + reason);
             });
     });
-    context.subscriptions.push(cmdDisposable);
+    context.subscriptions.push(deglobDisposable);
 
-    const cmdDisposable2 = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
+    const findImplsDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
         let params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
         let response = lc.sendRequest("rustDocument/implementations", params);
         response.then((locations: Location[]) => {
@@ -184,10 +184,15 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
             window.showWarningMessage('find implementations failed: ' + reason);
         });
     });
-    context.subscriptions.push(cmdDisposable2);
+    context.subscriptions.push(findImplsDisposable);
 
-    const cmdDisposable3 = commands.registerCommand('rls.configureDefaultTasks', () => {
+    const configureTasksDisposable = commands.registerCommand('rls.configureDefaultTasks', () => {
         addBuildCommandsByUser().catch(console.error);
     });
-    context.subscriptions.push(cmdDisposable3);   
+    context.subscriptions.push(configureTasksDisposable);
+
+    const rustupUpdateDisposable = commands.registerCommand('rls.update', () => {
+        rustupUpdate();
+    });
+    context.subscriptions.push(rustupUpdateDisposable);
 }

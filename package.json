@@ -86,6 +86,12 @@
                 "title": "Configure Default Tasks",
                 "description": "Add default tasks to tasks.json",
                 "category": "Rust"
+            },
+            {
+                "command": "rls.update",
+                "title": "Update the RLS",
+                "description": "Use Rustup to update Rust, the RLS, and required data",
+                "category": "Rust"
             }
         ],
         "menus": {

@@ -52,61 +52,38 @@ async function addBuildCommands(config: WorkspaceConfiguration): Promise<string 
 }
 
 function createDefaultTaskConfig(): object {
-    const defaultProblemMatcher = {
-        "fileLocation": ["relative", "${workspaceRoot}"],
-        "pattern": [{
-                "regexp": "^(warning|warn|error)(\\[(.*)\\])?: (.*)$",
-                "severity": 1,
-                "message": 4,
-                //The error code of the error, if available.
-                //Not all errors will have a code reported.
-                "code": 3
-            },
-            {
-                "regexp": "^([\\s->=]*(.*):(\\d*):(\\d*)|.*)$",
-                "file": 2,
-                "line": 3,
-                "column": 4
-            },
-            {
-                "regexp": "^.*$"
-            },
-            {
-                "regexp": "^([\\s->=]*(.*):(\\d*):(\\d*)|.*)$",
-                "file": 2,
-                "line": 3,
-                "column": 4
-            }
-        ]
-    };
-
     const tasks = {
         //Using the post VSC 1.14 task schema.
         "version": "2.0.0",
-        "command": "cargo",
-        "type": "shell",
         "presentation" : { "reveal": "always", "panel":"new" },
-        "suppressTaskName": true,
         "tasks": [
             {
                 "taskName": "cargo build",
+                "type": "shell",
+                "command": "cargo",
                 "args": ["build"],
                 "group": "build",
-                "problemMatcher": defaultProblemMatcher
+                "problemMatcher": "$rustc"
             },
             {
                 "taskName": "cargo run",
+                "type": "shell",
+                "command": "cargo",
                 "args": ["run"],
-                "problemMatcher": defaultProblemMatcher
+                "problemMatcher": "$rustc"
             },
             {
                 "taskName": "cargo test",
+                "type": "shell",
+                "command": "cargo",
                 "args": ["test"],
                 "group": "test",
-                "problemMatcher": defaultProblemMatcher
+                "problemMatcher": "$rustc"
             },
             {
                 "taskName": "cargo clean",
+                "type": "shell",
+                "command": "cargo",
                 "args": ["clean"]
             }
         ]

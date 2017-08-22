@@ -19,60 +19,8 @@ import {
     TaskRevealKind,
     ShellExecution,
     ShellExecutionOptions,
-    window,
     workspace,
-    WorkspaceConfiguration,
 } from 'vscode';
-
-function getConfiguration(): { config: WorkspaceConfiguration; hasOtherTasks: boolean } {
-    const config = workspace.getConfiguration();
-    const hasOtherTasks: boolean = !!config['tasks'];
-
-    return {
-        config,
-        hasOtherTasks,
-    };
-}
-
-export async function addBuildCommandsByUser(): Promise<string | undefined> {
-    const { config, hasOtherTasks } = getConfiguration();
-    if (hasOtherTasks) {
-        return Promise.resolve(window.showInformationMessage('tasks.json has other tasks. Any tasks are not added.'));
-    }
-
-    return addBuildCommands(config);
-}
-
-async function addBuildCommands(config: WorkspaceConfiguration): Promise<string | undefined> {
-    try {
-        const tasks = createDefaultTaskConfig();
-        await Promise.resolve(config.update('tasks', tasks, false));
-    }
-    catch (e) {
-        console.error(e);
-        return Promise.resolve(window.showInformationMessage('Could not update tasks.json. Any tasks are not added.'));
-    }
-
-    return Promise.resolve(window.showInformationMessage('Added default build tasks for Rust'));
-}
-
-function createDefaultTaskConfig(): object {
-    const tasks = createTaskConfigItem().map((config) => {
-        const def = config.definition as any; // XXX: cast to any to create an arbitary object.
-        def.problemMatcher = config.problemMatcher;
-        // FIXME: set `presentation` option which is created from config.presentationOptions
-        return def;
-    });
-
-    const r = {
-        //Using the post VSC 1.14 task schema.
-        "version": "2.0.0",
-        "presentation": { "reveal": "always", "panel": "new" },
-        "tasks": tasks,
-    };
-
-    return r;
-}
 
 let taskProvider: Disposable | null = null;
 

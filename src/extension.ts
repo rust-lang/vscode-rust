@@ -13,7 +13,7 @@
 import { runRlsViaRustup, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from "./configuration";
-import { addBuildCommandsByUser, activateTaskProvider, deactivateTaskProvider } from './tasks';
+import { activateTaskProvider, deactivateTaskProvider } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -194,11 +194,6 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
         });
     });
     context.subscriptions.push(findImplsDisposable);
-
-    const configureTasksDisposable = commands.registerCommand('rls.configureDefaultTasks', () => {
-        addBuildCommandsByUser().catch(console.error);
-    });
-    context.subscriptions.push(configureTasksDisposable);
 
     const rustupUpdateDisposable = commands.registerCommand('rls.update', () => {
         rustupUpdate();

@@ -62,48 +62,25 @@ async function addBuildCommands(config: WorkspaceConfiguration): Promise<string 
         return Promise.resolve(window.showInformationMessage('Could not update tasks.json. Any tasks are not added.'));
     }
 
-    return Promise.resolve(window.showInformationMessage('Added default build tasks for Rust'));    
+    return Promise.resolve(window.showInformationMessage('Added default build tasks for Rust'));
 }
 
 function createDefaultTaskConfig(): object {
-    const tasks = {
+    const tasks = createTaskConfigItem().map((config) => {
+        const def = config.definition as any; // XXX: cast to any to create an arbitary object.
+        def.problemMatcher = config.problemMatcher;
+        // FIXME: set `presentation` option which is created from config.presentationOptions
+        return def;
+    });
+
+    const r = {
         //Using the post VSC 1.14 task schema.
         "version": "2.0.0",
-        "presentation" : { "reveal": "always", "panel":"new" },
-        "tasks": [
-            {
-                "taskName": "cargo build",
-                "type": "shell",
-                "command": "cargo",
-                "args": ["build"],
-                "group": "build",
-                "problemMatcher": "$rustc"
-            },
-            {
-                "taskName": "cargo run",
-                "type": "shell",
-                "command": "cargo",
-                "args": ["run"],
-                "problemMatcher": "$rustc"
-            },
-            {
-                "taskName": "cargo test",
-                "type": "shell",
-                "command": "cargo",
-                "args": ["test"],
-                "group": "test",
-                "problemMatcher": "$rustc"
-            },
-            {
-                "taskName": "cargo clean",
-                "type": "shell",
-                "command": "cargo",
-                "args": ["clean"]
-            }
-        ]
+        "presentation": { "reveal": "always", "panel": "new" },
+        "tasks": tasks,
     };
 
-    return tasks;
+    return r;
 }
 
 let taskProvider: Disposable | null = null;
@@ -115,7 +92,7 @@ export function activateTaskProvider(): void {
     }
 
     const provider: TaskProvider = {
-        provideTasks: function ()  {
+        provideTasks: function () {
             // npm or others parse their task definitions. So they need to provide 'autoDetect' feature.
             //  e,g, https://github.com/Microsoft/vscode/blob/de7e216e9ebcad74f918a025fc5fe7bdbe0d75b2/extensions/npm/src/main.ts
             // However, cargo.toml does not support to define a new task like them.
@@ -152,6 +129,45 @@ interface TaskConfigItem {
 }
 
 function getCargoTasks(): Array<Task> {
+    const taskList = createTaskConfigItem();
+
+    const rootPath = workspace.rootPath;
+    if (rootPath === undefined) {
+        console.error('`workspace.rootPath` is `undefined`');
+        return [];
+    }
+
+    const list = taskList.map((def) => {
+        const t = createTask(rootPath, def);
+        return t;
+    });
+
+    return list;
+}
+
+function createTask(rootPath: string, { definition, group, presentationOptions, problemMatcher }: TaskConfigItem): Task {
+    const TASK_SOURCE = 'Rust';
+
+    const execCmd = `${definition.command} ${definition.args.join(' ')}`;
+    const execOption: ShellExecutionOptions = {
+        cwd: rootPath,
+    };
+    const exec = new ShellExecution(execCmd, execOption);
+
+    const t = new Task(definition, definition.taskName, TASK_SOURCE, exec, problemMatcher);
+
+    if (group !== undefined) {
+        t.group = group;
+    }
+
+    if (presentationOptions !== undefined) {
+        t.presentationOptions = presentationOptions;
+    }
+
+    return t;
+}
+
+function createTaskConfigItem(): Array<TaskConfigItem> {
     const problemMatcher = ['$rustc'];
 
     const presentationOptions: TaskPresentationOptions = {
@@ -213,38 +229,5 @@ function getCargoTasks(): Array<Task> {
         },
     ];
 
-    const rootPath = workspace.rootPath;
-    if (rootPath === undefined) {
-        console.error('`workspace.rootPath` is `undefined`');
-        return [];
-    }
-
-    const list = taskList.map((def) => {
-        const t = createTask(rootPath, def);
-        return t;
-    });
-
-    return list;
-}
-
-function createTask(rootPath: string, { definition, group, presentationOptions, problemMatcher }: TaskConfigItem): Task {
-    const TASK_SOURCE = 'Rust';
-
-    const execCmd = `${definition.command} ${definition.args.join(' ')}`;
-    const execOption: ShellExecutionOptions = {
-        cwd: rootPath,
-    };
-    const exec = new ShellExecution(execCmd, execOption);
-
-    const t = new Task(definition, definition.taskName, TASK_SOURCE, exec, problemMatcher);
-
-    if (group !== undefined) {
-        t.group = group;
-    }
-
-    if (presentationOptions !== undefined) {
-        t.presentationOptions = presentationOptions;
-    }
-
-    return t;
+    return taskList;
 }

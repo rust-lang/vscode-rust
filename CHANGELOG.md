@@ -6,9 +6,10 @@
 * Auto-detect `--lib` or `--bin`
 * Adds an opt-out option for creating tasks.json
 * Add a command to update the RLS and an option to do so on startup
+* Deprecate `RLS_PATH` and `RLS_ROOT` env vars
 * Changes to the RLS:
   - Easier to use deglob refactoring
-  - Debugging and troublshooting [instructions](https://github.com/rust-lang-nursery/rls/blob/master/debugging.md)
+  - Debugging and troubleshooting [instructions](https://github.com/rust-lang-nursery/rls/blob/master/debugging.md)
 
 ### 0.2.1 - 2017-08-09
 

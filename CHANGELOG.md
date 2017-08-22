@@ -1,3 +1,15 @@
+### 0.2.2 - 2017-09-21
+
+* Highlights errors from build tasks
+* Find all impls
+* Adds cargo clean task
+* Auto-detect `--lib` or `--bin`
+* Adds an opt-out option for creating tasks.json
+* Add a command to update the RLS and an option to do so on startup
+* Changes to the RLS:
+  - Easier to use deglob refactoring
+  - Debugging and troublshooting [instructions](https://github.com/rust-lang-nursery/rls/blob/master/debugging.md)
+
 ### 0.2.1 - 2017-08-09
 
 * Fix bug installing the rls

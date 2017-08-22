@@ -2,7 +2,7 @@
     "name": "rust",
     "displayName": "Rust (rls)",
     "description": "Rust language support - code completion, Intellisense, refactoring, reformatting, errors, snippets. A client for the Rust Language Server, built by the RLS team.",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "publisher": "rust-lang",
     "icon": "rust-icon.png",
     "galleryBanner": {
@@ -107,7 +107,10 @@
             {
                 "name": "rustc",
                 "owner": "rust",
-                "fileLocation": ["relative", "${workspaceRoot}"],
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
                 "pattern": [
                     {
                         "regexp": "^(warning|warn|error)(\\[(.*)\\])?: (.*)$",

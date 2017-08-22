@@ -13,7 +13,7 @@
 import { runRlsViaRustup, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from "./configuration";
-import { addBuildCommandsOnOpeningProject, addBuildCommandsByUser } from './tasks';
+import { addBuildCommandsOnOpeningProject, addBuildCommandsByUser, activateTaskProvider, deactivateTaskProvider } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -135,8 +135,16 @@ export function activate(context: ExtensionContext) {
         addBuildCommandsOnOpeningProject();
     }
 
+    activateTaskProvider();
+
     const disposable = lc.start();
     context.subscriptions.push(disposable);
+}
+
+export function deactivate(): Promise<void> {
+    deactivateTaskProvider();
+
+    return Promise.resolve();
 }
 
 function warnOnRlsToml() {

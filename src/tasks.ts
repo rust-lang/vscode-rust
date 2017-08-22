@@ -34,15 +34,6 @@ function getConfiguration(): { config: WorkspaceConfiguration; hasOtherTasks: bo
     };
 }
 
-export async function addBuildCommandsOnOpeningProject(): Promise<string | undefined> {
-    const { config, hasOtherTasks } = getConfiguration();
-    if (hasOtherTasks) {
-        return;
-    }
-
-    return addBuildCommands(config);
-}
-
 export async function addBuildCommandsByUser(): Promise<string | undefined> {
     const { config, hasOtherTasks } = getConfiguration();
     if (hasOtherTasks) {

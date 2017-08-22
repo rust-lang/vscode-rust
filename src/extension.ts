@@ -13,7 +13,7 @@
 import { runRlsViaRustup, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from "./configuration";
-import { addBuildCommandsOnOpeningProject, addBuildCommandsByUser, activateTaskProvider, deactivateTaskProvider } from './tasks';
+import { addBuildCommandsByUser, activateTaskProvider, deactivateTaskProvider } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -131,10 +131,6 @@ export function activate(context: ExtensionContext) {
 
     diagnosticCounter(lc);
     registerCommands(lc, context);
-    if (CONFIGURATION.setupBuildTasksAutomatically) {
-        addBuildCommandsOnOpeningProject();
-    }
-
     activateTaskProvider();
 
     const disposable = lc.start();

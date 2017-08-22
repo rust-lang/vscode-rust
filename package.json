@@ -166,11 +166,6 @@
                     "default": false,
                     "description": "Update the RLS whenever the extension starts up."
                 },
-                "rust-client.setup_build_tasks_automatically": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Configure default build tasks automatically on opening a project."
-                },
                 "rust.sysroot": {
                     "type": [
                         "string",

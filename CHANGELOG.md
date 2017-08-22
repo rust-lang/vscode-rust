@@ -1,4 +1,4 @@
-### 0.2.2 - 2017-09-21
+### 0.2.2 - 2017-08-21
 
 * Highlights errors from build tasks
 * Find all impls

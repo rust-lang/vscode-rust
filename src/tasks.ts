@@ -138,7 +138,6 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
                 ],
             },
             problemMatcher,
-            group: TaskGroup.Build,
             presentationOptions,
         },
         {

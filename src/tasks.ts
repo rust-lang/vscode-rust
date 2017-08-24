@@ -62,7 +62,7 @@ interface CargoTaskDefinition extends TaskDefinition {
 
 interface TaskConfigItem {
     definition: CargoTaskDefinition;
-    problemMatcher?: Array<string>;
+    problemMatcher: Array<string>;
     group?: TaskGroup;
     presentationOptions?: TaskPresentationOptions;
 }
@@ -162,6 +162,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
                     'clean'
                 ],
             },
+            problemMatcher: [],
             presentationOptions,
         },
     ];

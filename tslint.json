@@ -1,6 +1,7 @@
 {
     "defaultSeverity": "warning",
     "rules": {
+        "semicolon": [true, "always"]
     }
 }
   

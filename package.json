@@ -41,6 +41,7 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
+        "lint": "tslint --config ./tslint.json './src/**/*.ts'",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
@@ -50,6 +51,7 @@
         "@types/mocha": "^2.2.32",
         "@types/node": "^6.0.40",
         "mocha": "^2.3.3",
+        "tslint": "^5.6.0",
         "typescript": "^2.4.1",
         "vscode": "^1.1.0"
     },

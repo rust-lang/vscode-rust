@@ -1,6 +1,7 @@
 {
     "defaultSeverity": "warning",
     "rules": {
+        "curly": true,
         "indent": [true, "spaces", 4],
         "no-non-null-assertion": true,
         "prefer-const": true,

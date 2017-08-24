@@ -3,6 +3,7 @@
     "rules": {
         "curly": true,
         "indent": [true, "spaces", 4],
+        "no-invalid-this": true,
         "no-non-null-assertion": true,
         "prefer-const": true,
         "quotemark": [true, "single", "avoid-escape"],

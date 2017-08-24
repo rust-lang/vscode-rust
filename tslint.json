@@ -2,6 +2,7 @@
     "defaultSeverity": "warning",
     "rules": {
         "indent": [true, "spaces", 4],
+        "prefer-const": true,
         "semicolon": [true, "always"]
     }
 }

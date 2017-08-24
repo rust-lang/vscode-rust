@@ -28,7 +28,7 @@ const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 // Make an evironment to run the RLS.
 // Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
 function makeRlsEnv(): any {
-    let env = process.env;
+    const env = process.env;
     if (process.env.RUST_SRC_PATH) {
         return env;
     } else {
@@ -72,7 +72,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
 
         if (CONFIGURATION.logToFile) {
             const logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
-            let logStream = fs.createWriteStream(logPath, { flags: 'w+' });
+            const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
             logStream.on('open', function (_f) {
                 childProcess.stderr.addListener("data", function (chunk) {
                     logStream.write(chunk.toString());
@@ -185,8 +185,8 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
     context.subscriptions.push(deglobDisposable);
 
     const findImplsDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
-        let params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
-        let response = lc.sendRequest("rustDocument/implementations", params);
+        const params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
+        const response = lc.sendRequest("rustDocument/implementations", params);
         response.then((locations: Location[]) => {
             commands.executeCommand("editor.action.showReferences", textEditor.document.uri, textEditor.selection.active, locations.map(lc.protocol2CodeConverter.asLocation));
         }, (reason) => {

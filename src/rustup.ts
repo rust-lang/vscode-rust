@@ -20,7 +20,7 @@ import { startSpinner, stopSpinner } from './spinner';
 // is installed and installing any required components/toolchains.
 
 export function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
-    return checkForNightly().then(checkForRls).then(() => child_process.spawn("rustup", ["run", "nightly", "rls"], { env }));
+    return checkForNightly().then(checkForRls).then(() => child_process.spawn('rustup', ['run', 'nightly', 'rls'], { env }));
 }
 
 export async function rustupUpdate() {
@@ -73,7 +73,7 @@ async function hasNightlyToolchain(): Promise<boolean> {
 }
 
 async function tryToInstallNightlyToolchain(): Promise<void> {
-    startSpinner("Installing nightly toolchain...");
+    startSpinner('Installing nightly toolchain...');
     try {
         const { stdout, stderr } = await execChildProcess('rustup toolchain install nightly');
         console.log(stdout);

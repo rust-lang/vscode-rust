@@ -3,6 +3,7 @@
     "rules": {
         "indent": [true, "spaces", 4],
         "prefer-const": true,
+        "quotemark": [true, "single", "avoid-escape"],
         "semicolon": [true, "always"]
     }
 }

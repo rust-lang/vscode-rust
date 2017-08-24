@@ -2,6 +2,7 @@
     "defaultSeverity": "warning",
     "rules": {
         "indent": [true, "spaces", 4],
+        "no-non-null-assertion": true,
         "prefer-const": true,
         "quotemark": [true, "single", "avoid-escape"],
         "semicolon": [true, "always"]

@@ -162,7 +162,6 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
                     'clean'
                 ],
             },
-            group: TaskGroup.Clean,
             presentationOptions,
         },
     ];

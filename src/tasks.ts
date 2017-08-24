@@ -142,6 +142,18 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         },
         {
             definition: {
+                taskName: 'cargo check',
+                type: 'shell',
+                command: 'cargo',
+                args: [
+                    'check'
+                ],
+            },
+            problemMatcher,
+            presentationOptions,
+        },
+        {
+            definition: {
                 taskName: 'cargo test',
                 type: 'shell',
                 command: 'cargo',

@@ -32,7 +32,6 @@ export class RLSConfiguration {
     public readonly logToFile: boolean;
     public readonly revealOutputChannelOn: RevealOutputChannelOn = RevealOutputChannelOn.Never;
     public readonly updateOnStartup: boolean;
-    public readonly setupBuildTasksAutomatically: boolean;
     /**
      * Hidden option that can be specified via `"rls.path"` key (e.g. to `/usr/bin/rls`). If
      * specified, RLS will be spawned by executing a file at the given path.
@@ -56,7 +55,6 @@ export class RLSConfiguration {
         this.logToFile = configuration.get<boolean>('rust-client.logToFile', false);
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
         this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);
-        this.setupBuildTasksAutomatically = configuration.get<boolean>('rust-client.setup_build_tasks_automatically', true);
         // Hidden options that are not exposed to the user
         this.rlsPath = configuration.get('rls.path', null);
         this.rlsRoot = configuration.get('rls.root', null);

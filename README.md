@@ -72,7 +72,6 @@ following commands:
 * `deglob` - replace a glob (`*`) import with an explicit import. E.g., replace
   `use foo::*;` with `use foo::{bar, baz};`. Select only the `*` when running
   the command.
-* `Configure default build tasks` - create `.vscode/tasks.json` with some build tasks.
 
 
 ### Snippets

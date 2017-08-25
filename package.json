@@ -82,12 +82,6 @@
                 "category": "Rust"
             },
             {
-                "command": "rls.configureDefaultTasks",
-                "title": "Configure Default Tasks",
-                "description": "Add default tasks to tasks.json",
-                "category": "Rust"
-            },
-            {
                 "command": "rls.update",
                 "title": "Update the RLS",
                 "description": "Use Rustup to update Rust, the RLS, and required data",
@@ -165,11 +159,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Update the RLS whenever the extension starts up."
-                },
-                "rust-client.setup_build_tasks_automatically": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Configure default build tasks automatically on opening a project."
                 },
                 "rust.sysroot": {
                     "type": [

@@ -61,6 +61,6 @@ export class RLSConfiguration {
     }
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {
         const setting = configuration.get<string>('rust-client.revealOutputChannelOn', 'never');
-		return fromStringToRevealOutputChannelOn(setting);
+        return fromStringToRevealOutputChannelOn(setting);
     }
 }

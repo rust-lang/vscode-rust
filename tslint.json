@@ -1,0 +1,14 @@
+{
+    "defaultSeverity": "error",
+    "rules": {
+        "curly": true,
+        "indent": [true, "spaces", 4],
+        "no-invalid-this": true,
+        "no-non-null-assertion": true,
+        "no-var-keyword": true,
+        "prefer-const": true,
+        "quotemark": [true, "single", "avoid-escape"],
+        "semicolon": [true, "always"]
+    }
+}
+  

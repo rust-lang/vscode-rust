@@ -12,7 +12,7 @@
 
 import { runRlsViaRustup, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
-import { RLSConfiguration } from "./configuration";
+import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, deactivateTaskProvider } from './tasks';
 
 import * as child_process from 'child_process';
@@ -28,7 +28,7 @@ const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 // Make an evironment to run the RLS.
 // Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
 function makeRlsEnv(): any {
-    let env = process.env;
+    const env = process.env;
     if (process.env.RUST_SRC_PATH) {
         return env;
     } else {
@@ -55,16 +55,16 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     if (rls_path) {
         childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
     } else if (rls_root) {
-        childProcessPromise = Promise.resolve(child_process.spawn("cargo", ["run", "--release"], { cwd: rls_root, env }));
+        childProcessPromise = Promise.resolve(child_process.spawn('cargo', ['run', '--release'], { cwd: rls_root, env }));
     } else {
         childProcessPromise = runRlsViaRustup(env);
     }
 
     childProcessPromise.then((childProcess) => {
         childProcess.on('error', err => {
-            if ((<any>err).code == "ENOENT") {
-                console.error("Could not spawn RLS process: ", err.message);
-                window.showWarningMessage("Could not start RLS");
+            if ((<any>err).code == 'ENOENT') {
+                console.error('Could not spawn RLS process: ', err.message);
+                window.showWarningMessage('Could not start RLS');
             } else {
                 throw err;
             }
@@ -72,13 +72,13 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
 
         if (CONFIGURATION.logToFile) {
             const logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
-            let logStream = fs.createWriteStream(logPath, { flags: 'w+' });
+            const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
             logStream.on('open', function (_f) {
-                childProcess.stderr.addListener("data", function (chunk) {
+                childProcess.stderr.addListener('data', function (chunk) {
                     logStream.write(chunk.toString());
                 });
             }).on('error', function (err: any) {
-                console.error("Couldn't write to " + logPath + " (" + err + ")");
+                console.error("Couldn't write to " + logPath + ' (' + err + ')');
                 logStream.end();
             });
         }
@@ -98,13 +98,13 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     });
 
     return childProcessPromise.catch(() => {
-        window.setStatusBarMessage("RLS could not be started");
+        window.setStatusBarMessage('RLS could not be started');
         return Promise.reject(undefined);
     });
 }
 
 export function activate(context: ExtensionContext) {
-    window.setStatusBarMessage("RLS analysis: starting up");
+    window.setStatusBarMessage('RLS analysis: starting up');
 
     // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
     let lcOutputChannel: OutputChannel | null = null;
@@ -163,12 +163,12 @@ function diagnosticCounter(lc: LanguageClient) {
     lc.onReady().then(() => {
         lc.onNotification(new NotificationType('rustDocument/diagnosticsBegin'), function(_f) {
             runningDiagnostics++;
-            startSpinner("RLS analysis: working");
+            startSpinner('RLS analysis: working');
         });
         lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f) {
             runningDiagnostics--;
             if (runningDiagnostics <= 0) {
-                stopSpinner("RLS analysis: done");
+                stopSpinner('RLS analysis: done');
             }
         });
     });
@@ -185,10 +185,10 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
     context.subscriptions.push(deglobDisposable);
 
     const findImplsDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
-        let params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
-        let response = lc.sendRequest("rustDocument/implementations", params);
+        const params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
+        const response = lc.sendRequest('rustDocument/implementations', params);
         response.then((locations: Location[]) => {
-            commands.executeCommand("editor.action.showReferences", textEditor.document.uri, textEditor.selection.active, locations.map(lc.protocol2CodeConverter.asLocation));
+            commands.executeCommand('editor.action.showReferences', textEditor.document.uri, textEditor.selection.active, locations.map(lc.protocol2CodeConverter.asLocation));
         }, (reason) => {
             window.showWarningMessage('find implementations failed: ' + reason);
         });

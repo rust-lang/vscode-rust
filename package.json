@@ -38,20 +38,22 @@
     ],
     "main": "./out/src/extension",
     "scripts": {
-        "vscode:prepublish": "npm run compile",
+        "vscode:prepublish": "npm run lint && npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
+        "lint": "tslint --config ./tslint.json './src/**/*.ts'",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
         "vscode-languageclient": "^3.3.0"
     },
     "devDependencies": {
-        "typescript": "^2.4.1",
-        "vscode": "^1.1.0",
-        "mocha": "^2.3.3",
         "@types/mocha": "^2.2.32",
-        "@types/node": "^6.0.40"
+        "@types/node": "^6.0.40",
+        "mocha": "^2.3.3",
+        "tslint": "^5.6.0",
+        "typescript": "^2.4.1",
+        "vscode": "^1.1.0"
     },
     "contributes": {
         "languages": [

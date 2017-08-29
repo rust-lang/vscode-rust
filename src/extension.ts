@@ -28,12 +28,15 @@ const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 // Make an evironment to run the RLS.
 // Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
 function makeRlsEnv(): any {
-    const env = process.env;
+    let env = process.env;
+    if (typeof env.HOME === 'string' && env.HOME.length) {
+        env.PATH = `${env.HOME}/.cargo/bin:${env.PATH || ""}`;
+    }
     if (process.env.RUST_SRC_PATH) {
         return env;
     } else {
         // rustc --print sysroot + lib/rustlib/src/rust/src
-        const result = child_process.spawnSync('rustc', ['--print', 'sysroot']);
+        const result = child_process.spawnSync('rustc', ['--print', 'sysroot'], { env });
         if (result.status > 0) {
             console.log('error running rustc for sysroot');
             return env;

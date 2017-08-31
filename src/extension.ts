@@ -26,7 +26,9 @@ import * as is from 'vscode-languageclient/lib/utils/is';
 const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
 function getSysroot(env: Object): string | Error {
-    const rustcSysroot = child_process.spawnSync('rustc', ['--print', 'sysroot'], { env });
+    const rustcSysroot = child_process.spawnSync(
+        'rustup', ['run', 'nightly', 'rustc', '--print', 'sysroot'], {env}
+    );
 
     if (rustcSysroot.error) {
         return new Error(`Error running \`rustc\`: ${rustcSysroot.error}`);
@@ -85,7 +87,10 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     if (rls_path) {
         childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
     } else if (rls_root) {
-        childProcessPromise = Promise.resolve(child_process.spawn('cargo', ['run', '--release'], { cwd: rls_root, env }));
+        childProcessPromise = Promise.resolve(child_process.spawn(
+          'rustup', ['run', 'nighty', 'cargo', 'run', '--release'],
+          {cwd: rls_root, env})
+        );
     } else {
         childProcessPromise = runRlsViaRustup(env);
     }

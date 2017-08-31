@@ -35,7 +35,7 @@ function getSysroot(env: Object): string | Error {
     if (rustcSysroot.status > 0) {
         return new Error(`Error getting sysroot from \`rustc\`: exited with \`${rustcSysroot.status}\``);
     }
-    
+
     if (!rustcSysroot.stdout || typeof rustcSysroot.stdout.toString !== 'function') {
         return new Error(`Couldn't get sysroot from \`rustc\`: Got no ouput`);
     }
@@ -63,7 +63,8 @@ function makeRlsEnv(): any {
         result = getSysroot(env);
 
         if (result instanceof Error) {
-            console.warn(result);
+            console.warn('Error reading sysroot (second try)', result);
+            window.showWarningMessage('RLS could not set RUST_SRC_PATH for Racer because it could not read the Rust sysroot.');
         }
     }
     if (typeof result === 'string') {

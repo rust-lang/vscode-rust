@@ -25,24 +25,56 @@ import * as is from 'vscode-languageclient/lib/utils/is';
 
 const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
+function getSysroot(env: Object): string | Error {
+    const rustcSysroot = child_process.spawnSync(
+        'rustup', ['run', 'nightly', 'rustc', '--print', 'sysroot'], {env}
+    );
+
+    if (rustcSysroot.error) {
+        return new Error(`Error running \`rustc\`: ${rustcSysroot.error}`);
+    }
+
+    if (rustcSysroot.status > 0) {
+        return new Error(`Error getting sysroot from \`rustc\`: exited with \`${rustcSysroot.status}\``);
+    }
+
+    if (!rustcSysroot.stdout || typeof rustcSysroot.stdout.toString !== 'function') {
+        return new Error(`Couldn't get sysroot from \`rustc\`: Got no ouput`);
+    }
+
+    const sysroot = rustcSysroot.stdout.toString()
+        .replace('\n', '').replace('\r', '');
+
+    return sysroot;
+}
+
 // Make an evironment to run the RLS.
 // Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
 function makeRlsEnv(): any {
     const env = process.env;
+
     if (process.env.RUST_SRC_PATH) {
         return env;
-    } else {
-        // rustc --print sysroot + lib/rustlib/src/rust/src
-        const result = child_process.spawnSync('rustc', ['--print', 'sysroot']);
-        if (result.status > 0) {
-            console.log('error running rustc for sysroot');
-            return env;
-        }
-        let sysroot = result.stdout.toString();
-        sysroot = sysroot.replace('\n', '').replace('\r', '');
-        env.RUST_SRC_PATH = sysroot + '/lib/rustlib/src/rust/src';
-        return env;
     }
+
+    let result = getSysroot(env);
+    if (result instanceof Error) {
+        console.info(result.message);
+        console.info(`Let's retry with extended $PATH`);
+        env.PATH = `${env.HOME || '~'}/.cargo/bin:${env.PATH || ''}`;
+        result = getSysroot(env);
+
+        if (result instanceof Error) {
+            console.warn('Error reading sysroot (second try)', result);
+            window.showWarningMessage('RLS could not set RUST_SRC_PATH for Racer because it could not read the Rust sysroot.');
+        }
+    }
+    if (typeof result === 'string') {
+        console.info(`Setting sysroot to`, result);
+        env.RUST_SRC_PATH = result + '/lib/rustlib/src/rust/src';
+    }
+
+    return env;
 }
 
 function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_process.ChildProcess> {
@@ -55,7 +87,10 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     if (rls_path) {
         childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
     } else if (rls_root) {
-        childProcessPromise = Promise.resolve(child_process.spawn('cargo', ['run', '--release'], { cwd: rls_root, env }));
+        childProcessPromise = Promise.resolve(child_process.spawn(
+          'rustup', ['run', 'nighty', 'cargo', 'run', '--release'],
+          {cwd: rls_root, env})
+        );
     } else {
         childProcessPromise = runRlsViaRustup(env);
     }

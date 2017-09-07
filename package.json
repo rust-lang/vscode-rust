@@ -162,6 +162,16 @@
                     "default": false,
                     "description": "Update the RLS whenever the extension starts up."
                 },
+                "rust-client.channel": {
+                    "type": "string",
+                    "default": "nightly",
+                    "description": "Rust channel to install RLS from."
+                },
+                "rust-client.rls-name": {
+                    "type": "string",
+                    "default": "rls",
+                    "description": "Name of the RLS rustup component."
+                },
                 "rust.sysroot": {
                     "type": [
                         "string",

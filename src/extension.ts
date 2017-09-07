@@ -23,7 +23,7 @@ import { LanguageClient, LanguageClientOptions, Location, NotificationType, Reve
     ServerOptions } from 'vscode-languageclient';
 import * as is from 'vscode-languageclient/lib/utils/is';
 
-const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
+export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
 function getSysroot(env: Object): string | Error {
     const rustcSysroot = child_process.spawnSync(

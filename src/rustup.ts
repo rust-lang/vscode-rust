@@ -74,7 +74,7 @@ async function hasToolchain(): Promise<boolean> {
 }
 
 async function tryToInstallToolchain(): Promise<void> {
-    startSpinner("Installing toolchain...");
+    startSpinner('Installing toolchain...');
     try {
         const { stdout, stderr } = await execChildProcess('rustup toolchain install ' + CONFIGURATION.channel);
         console.log(stdout);

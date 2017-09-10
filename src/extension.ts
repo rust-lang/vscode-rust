@@ -139,7 +139,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
 }
 
 export function activate(context: ExtensionContext) {
-    window.setStatusBarMessage("RLS: starting up");
+    window.setStatusBarMessage('RLS: starting up');
 
     // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
     let lcOutputChannel: OutputChannel | null = null;
@@ -198,12 +198,12 @@ function diagnosticCounter(lc: LanguageClient) {
     lc.onReady().then(() => {
         lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f) {
             runningDiagnostics++;
-            startSpinner("RLS: working");
+            startSpinner('RLS: working');
         });
         lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f) {
             runningDiagnostics--;
             if (runningDiagnostics <= 0) {
-                stopSpinner("RLS: done");
+                stopSpinner('RLS: done');
             }
         });
     });

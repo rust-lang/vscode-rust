@@ -57,14 +57,10 @@ export class RLSConfiguration {
         this.logToFile = configuration.get<boolean>('rust-client.logToFile', false);
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
         this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);
-<<<<<<< HEAD
-=======
-        this.setupBuildTasksAutomatically = configuration.get<boolean>('rust-client.setup_build_tasks_automatically', true);
 
         this.channel = configuration.get('rust-client.channel', 'nightly');
         this.componentName = configuration.get('rust-client.rls-name', 'rls');
 
->>>>>>> Take the RLS and channel names from the config
         // Hidden options that are not exposed to the user
         this.rlsPath = configuration.get('rls.path', null);
         this.rlsRoot = configuration.get('rls.root', null);

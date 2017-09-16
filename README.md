@@ -70,7 +70,7 @@ Commands can be found in the command palette (ctrl + shift + p). We provide the
 following commands:
 
 * `deglob` - replace a glob (`*`) import with an explicit import. E.g., replace
-  `use foo::*;` with `use foo::{bar, baz};`. Select only the `*` when running
+  `use foo::*;` with `use foo::{bar, baz};`. Select the `use` line when running
   the command.
 
 

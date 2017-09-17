@@ -88,7 +88,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
         childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
     } else if (rls_root) {
         childProcessPromise = Promise.resolve(child_process.spawn(
-          'rustup', ['run', 'nighty', 'cargo', 'run', '--release'],
+          'rustup', ['run', 'nightly', 'cargo', 'run', '--release'],
           {cwd: rls_root, env})
         );
     } else {

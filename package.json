@@ -10,7 +10,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.14.0"
+        "vscode": "^1.16.1"
     },
     "license": "(MIT OR Apache-2.0)",
     "repository": {
@@ -45,15 +45,15 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "vscode-languageclient": "^3.3.0"
+        "vscode-languageclient": "^3.4.2"
     },
     "devDependencies": {
-        "@types/mocha": "^2.2.32",
-        "@types/node": "^6.0.40",
-        "mocha": "^2.3.3",
-        "tslint": "^5.6.0",
-        "typescript": "^2.4.1",
-        "vscode": "^1.1.0"
+        "@types/mocha": "^2.2.43",
+        "@types/node": "^8.0.28",
+        "mocha": "^3.5.3",
+        "tslint": "^5.7.0",
+        "typescript": "^2.5.2",
+        "vscode": "^1.1.5"
     },
     "contributes": {
         "languages": [

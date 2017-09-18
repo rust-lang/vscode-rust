@@ -21,7 +21,7 @@ import { CONFIGURATION } from './extension';
 // is installed and installing any required components/toolchains.
 
 export function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
-    return ensureToolchain().then(checkForRls).then(() => child_process.spawn('rustup', ['run', CONFIGURATION.channel, CONFIGURATION.componentName], { env }));
+    return ensureToolchain().then(checkForRls).then(() => child_process.spawn('rustup', ['run', CONFIGURATION.channel, 'rls'], { env }));
 }
 
 export async function rustupUpdate() {

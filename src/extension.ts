@@ -137,7 +137,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     });
 }
 
-var lc : LanguageClient;
+let lc : LanguageClient;
 
 export function activate(context: ExtensionContext) {
     startLanguageClient(context);

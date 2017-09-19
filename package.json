@@ -88,6 +88,12 @@
                 "title": "Update the RLS",
                 "description": "Use Rustup to update Rust, the RLS, and required data",
                 "category": "Rust"
+            },
+            {
+                "command": "rls.restart",
+                "title": "Restart the RLS",
+                "description": "Sometimes, it's just best to try turning it off and on again",
+                "category": "Rust"
             }
         ],
         "menus": {

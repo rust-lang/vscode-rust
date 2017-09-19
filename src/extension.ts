@@ -19,8 +19,7 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 
 import { workspace, ExtensionContext, TextEditor, TextEditorEdit, window, commands, OutputChannel } from 'vscode';
-import { LanguageClient, LanguageClientOptions, Location, NotificationType, RevealOutputChannelOn,
-    ServerOptions } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, Location, NotificationType, RevealOutputChannelOn, ServerOptions } from 'vscode-languageclient';
 import * as is from 'vscode-languageclient/lib/utils/is';
 
 export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
@@ -29,22 +28,22 @@ function getSysroot(env: Object): string | Error {
     const rustcSysroot = child_process.spawnSync(
         'rustup', ['run', 'nightly', 'rustc', '--print', 'sysroot'], {env}
     );
-
+    
     if (rustcSysroot.error) {
         return new Error(`Error running \`rustc\`: ${rustcSysroot.error}`);
     }
-
+    
     if (rustcSysroot.status > 0) {
         return new Error(`Error getting sysroot from \`rustc\`: exited with \`${rustcSysroot.status}\``);
     }
-
+    
     if (!rustcSysroot.stdout || typeof rustcSysroot.stdout.toString !== 'function') {
         return new Error(`Couldn't get sysroot from \`rustc\`: Got no ouput`);
     }
-
+    
     const sysroot = rustcSysroot.stdout.toString()
-        .replace('\n', '').replace('\r', '');
-
+    .replace('\n', '').replace('\r', '');
+    
     return sysroot;
 }
 
@@ -52,18 +51,18 @@ function getSysroot(env: Object): string | Error {
 // Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
 function makeRlsEnv(): any {
     const env = process.env;
-
+    
     if (process.env.RUST_SRC_PATH) {
         return env;
     }
-
+    
     let result = getSysroot(env);
     if (result instanceof Error) {
         console.info(result.message);
         console.info(`Let's retry with extended $PATH`);
         env.PATH = `${env.HOME || '~'}/.cargo/bin:${env.PATH || ''}`;
         result = getSysroot(env);
-
+        
         if (result instanceof Error) {
             console.warn('Error reading sysroot (second try)', result);
             window.showWarningMessage('RLS could not set RUST_SRC_PATH for Racer because it could not read the Rust sysroot.');
@@ -73,7 +72,7 @@ function makeRlsEnv(): any {
         console.info(`Setting sysroot to`, result);
         env.RUST_SRC_PATH = result + '/lib/rustlib/src/rust/src';
     }
-
+    
     return env;
 }
 
@@ -81,20 +80,20 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     // Allow to override how RLS is started up.
     const rls_path = CONFIGURATION.rlsPath;
     const rls_root = CONFIGURATION.rlsRoot;
-
+    
     let childProcessPromise: Promise<child_process.ChildProcess>;
     const env = makeRlsEnv();
     if (rls_path) {
         childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
     } else if (rls_root) {
         childProcessPromise = Promise.resolve(child_process.spawn(
-          'rustup', ['run', 'nightly', 'cargo', 'run', '--release'],
-          {cwd: rls_root, env})
+            'rustup', ['run', 'nightly', 'cargo', 'run', '--release'],
+            {cwd: rls_root, env})
         );
     } else {
         childProcessPromise = runRlsViaRustup(env);
     }
-
+    
     childProcessPromise.then((childProcess) => {
         childProcess.on('error', err => {
             if ((<any>err).code == 'ENOENT') {
@@ -104,7 +103,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
                 throw err;
             }
         });
-
+        
         if (CONFIGURATION.logToFile) {
             const logPath = workspace.rootPath + '/rls' + Date.now() + '.log';
             const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
@@ -117,7 +116,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
                 logStream.end();
             });
         }
-
+        
         if (CONFIGURATION.showStderrInOutputChannel) {
             childProcess.stderr.on('data', data => {
                 if (lcOutputChannel) {
@@ -131,25 +130,34 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
             });
         }
     });
-
+    
     return childProcessPromise.catch(() => {
         window.setStatusBarMessage('RLS could not be started');
         return Promise.reject(undefined);
     });
 }
 
-export function activate(context: ExtensionContext) {
-    window.setStatusBarMessage('RLS: starting up');
+var lc : LanguageClient;
 
+export function activate(context: ExtensionContext) {
+    startLanguageClient(context);
+    registerCommands(context);
+    activateTaskProvider();
+}
+
+function startLanguageClient(context: ExtensionContext)
+{
+    window.setStatusBarMessage('RLS: starting up');
+    
     // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
     let lcOutputChannel: OutputChannel | null = null;
-
+    
     warnOnRlsToml();
     // Check for deprecated env vars.
     if (process.env.RLS_PATH || process.env.RLS_ROOT) {
         window.showWarningMessage('Found deprecated environment variables (RLS_PATH or RLS_ROOT). Use `rls.path` or `rls.root` settings.');
     }
-
+    
     const serverOptions: ServerOptions = () => autoUpdate().then(() => makeRlsProcess(lcOutputChannel));
     const clientOptions: LanguageClientOptions = {
         // Register the server for Rust files
@@ -159,22 +167,32 @@ export function activate(context: ExtensionContext) {
         revealOutputChannelOn: CONFIGURATION.revealOutputChannelOn,
         initializationOptions: { omitInitBuild: true },
     };
-
+    
     // Create the language client and start the client.
-    const lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
+    lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
     lcOutputChannel = lc.outputChannel;
-
-    diagnosticCounter(lc);
-    registerCommands(lc, context);
-    activateTaskProvider();
-
+    
+    let runningDiagnostics = 0;
+    lc.onReady().then(() => {
+        lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f) {
+            runningDiagnostics++;
+            startSpinner('RLS: working');
+        });
+        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f) {
+            runningDiagnostics--;
+            if (runningDiagnostics <= 0) {
+                stopSpinner('RLS: done');
+            }
+        });
+    });
+    
     const disposable = lc.start();
     context.subscriptions.push(disposable);
 }
 
 export function deactivate(): Promise<void> {
     deactivateTaskProvider();
-
+    
     return Promise.resolve();
 }
 
@@ -193,32 +211,16 @@ async function autoUpdate() {
     }
 }
 
-function diagnosticCounter(lc: LanguageClient) {
-    let runningDiagnostics = 0;
-    lc.onReady().then(() => {
-        lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f) {
-            runningDiagnostics++;
-            startSpinner('RLS: working');
-        });
-        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f) {
-            runningDiagnostics--;
-            if (runningDiagnostics <= 0) {
-                stopSpinner('RLS: done');
-            }
-        });
-    });
-}
-
-function registerCommands(lc: LanguageClient, context: ExtensionContext) {
+function registerCommands(context: ExtensionContext) {
     const deglobDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
         lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
-            .then((_result) => {},
-                  (reason) => {
-                window.showWarningMessage('deglob command failed: ' + reason);
-            });
+        .then((_result) => {},
+        (reason) => {
+            window.showWarningMessage('deglob command failed: ' + reason);
+        });
     });
     context.subscriptions.push(deglobDisposable);
-
+    
     const findImplsDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
         const params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
         const response = lc.sendRequest('rustDocument/implementations', params);
@@ -229,9 +231,14 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
         });
     });
     context.subscriptions.push(findImplsDisposable);
-
+    
     const rustupUpdateDisposable = commands.registerCommand('rls.update', () => {
         rustupUpdate();
     });
     context.subscriptions.push(rustupUpdateDisposable);
+    
+    const restartServer = commands.registerCommand('rls.restart', () => {
+        lc.stop().then(() => startLanguageClient(context));
+    });
+    context.subscriptions.push(restartServer);
 }

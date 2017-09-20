@@ -173,19 +173,7 @@ function startLanguageClient(context: ExtensionContext)
     lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
     lcOutputChannel = lc.outputChannel;
 
-    let runningDiagnostics = 0;
-    lc.onReady().then(() => {
-        lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f) {
-            runningDiagnostics++;
-            startSpinner('RLS: working');
-        });
-        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f) {
-            runningDiagnostics--;
-            if (runningDiagnostics <= 0) {
-                stopSpinner('RLS: done');
-            }
-        });
-    });
+    diagnosticCounter();
 
     const disposable = lc.start();
     context.subscriptions.push(disposable);
@@ -210,6 +198,22 @@ async function autoUpdate() {
     if (CONFIGURATION.updateOnStartup) {
         await rustupUpdate();
     }
+}
+
+function diagnosticCounter() {
+    let runningDiagnostics = 0;
+    lc.onReady().then(() => {
+        lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f) {
+            runningDiagnostics++;
+            startSpinner('RLS: working');
+        });
+        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f) {
+            runningDiagnostics--;
+            if (runningDiagnostics <= 0) {
+                stopSpinner('RLS: done');
+            }
+        });
+    });
 }
 
 function registerCommands(context: ExtensionContext) {

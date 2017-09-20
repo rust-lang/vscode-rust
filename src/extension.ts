@@ -138,7 +138,16 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     });
 }
 
+let lc : LanguageClient;
+
 export function activate(context: ExtensionContext) {
+    startLanguageClient(context);
+    registerCommands(context);
+    activateTaskProvider();
+}
+
+function startLanguageClient(context: ExtensionContext)
+{
     window.setStatusBarMessage('RLS: starting up');
 
     // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
@@ -161,12 +170,10 @@ export function activate(context: ExtensionContext) {
     };
 
     // Create the language client and start the client.
-    const lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
+    lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
     lcOutputChannel = lc.outputChannel;
 
-    diagnosticCounter(lc);
-    registerCommands(lc, context);
-    activateTaskProvider();
+    diagnosticCounter();
 
     const disposable = lc.start();
     context.subscriptions.push(disposable);
@@ -193,7 +200,7 @@ async function autoUpdate() {
     }
 }
 
-function diagnosticCounter(lc: LanguageClient) {
+function diagnosticCounter() {
     let runningDiagnostics = 0;
     lc.onReady().then(() => {
         lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f) {
@@ -209,7 +216,7 @@ function diagnosticCounter(lc: LanguageClient) {
     });
 }
 
-function registerCommands(lc: LanguageClient, context: ExtensionContext) {
+function registerCommands(context: ExtensionContext) {
     const deglobDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
         lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
             .then((_result) => {},
@@ -234,4 +241,9 @@ function registerCommands(lc: LanguageClient, context: ExtensionContext) {
         rustupUpdate();
     });
     context.subscriptions.push(rustupUpdateDisposable);
+
+    const restartServer = commands.registerCommand('rls.restart', () => {
+        lc.stop().then(() => startLanguageClient(context));
+    });
+    context.subscriptions.push(restartServer);
 }

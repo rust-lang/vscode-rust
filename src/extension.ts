@@ -53,10 +53,6 @@ function getSysroot(env: Object): string | Error {
 function makeRlsEnv(setLibPath = false): any {
     const env = process.env;
 
-    if (process.env.RUST_SRC_PATH) {
-        return env;
-    }
-
     let result = getSysroot(env);
     if (result instanceof Error) {
         console.info(result.message);
@@ -71,7 +67,9 @@ function makeRlsEnv(setLibPath = false): any {
     }
     if (typeof result === 'string') {
         console.info(`Setting sysroot to`, result);
-        env.RUST_SRC_PATH = result + '/lib/rustlib/src/rust/src';
+        if ( ! process.env.RUST_SRC_PATH) {
+            env.RUST_SRC_PATH = result + '/lib/rustlib/src/rust/src';
+        }
         if (setLibPath) {
             env.DYLD_LIBRARY_PATH = result + '/lib';
             env.LD_LIBRARY_PATH = result + '/lib';

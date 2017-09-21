@@ -18,11 +18,10 @@ import { activateTaskProvider, deactivateTaskProvider } from './tasks';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
-import { commands, ExtensionContext, IndentAction, languages, OutputChannel, TextEditor,
+import { commands, ExtensionContext, IndentAction, languages, TextEditor,
     TextEditorEdit, window, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, Location, NotificationType, RevealOutputChannelOn,
+import { LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions } from 'vscode-languageclient';
-import * as is from 'vscode-languageclient/lib/utils/is';
 
 export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
@@ -80,7 +79,7 @@ function makeRlsEnv(setLibPath = false): any {
     return env;
 }
 
-function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_process.ChildProcess> {
+function makeRlsProcess(): Promise<child_process.ChildProcess> {
     // Allow to override how RLS is started up.
     const rls_path = CONFIGURATION.rlsPath;
     const rls_root = CONFIGURATION.rlsRoot;
@@ -125,19 +124,6 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
                 logStream.end();
             });
         }
-
-        if (CONFIGURATION.showStderrInOutputChannel) {
-            childProcess.stderr.on('data', data => {
-                if (lcOutputChannel) {
-                    lcOutputChannel.append(is.string(data) ? data : data.toString('utf8'));
-                    // With regards to focusing the output channel, treat RLS stderr
-                    // as if it was of an RevealOutputChannelOn.Info severity
-                    if (CONFIGURATION.revealOutputChannelOn <= RevealOutputChannelOn.Info) {
-                        lcOutputChannel.show(true);
-                    }
-                }
-            });
-        }
     });
 
     return childProcessPromise.catch(() => {
@@ -161,16 +147,13 @@ function startLanguageClient(context: ExtensionContext)
 
     window.setStatusBarMessage('RLS: starting up');
 
-    // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
-    let lcOutputChannel: OutputChannel | null = null;
-
     warnOnRlsToml();
     // Check for deprecated env vars.
     if (process.env.RLS_PATH || process.env.RLS_ROOT) {
         window.showWarningMessage('Found deprecated environment variables (RLS_PATH or RLS_ROOT). Use `rls.path` or `rls.root` settings.');
     }
 
-    const serverOptions: ServerOptions = () => autoUpdate().then(() => makeRlsProcess(lcOutputChannel));
+    const serverOptions: ServerOptions = () => autoUpdate().then(() => makeRlsProcess());
     const clientOptions: LanguageClientOptions = {
         // Register the server for Rust files
         documentSelector: ['rust'],
@@ -182,7 +165,6 @@ function startLanguageClient(context: ExtensionContext)
 
     // Create the language client and start the client.
     lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
-    lcOutputChannel = lc.outputChannel;
 
     diagnosticCounter();
 

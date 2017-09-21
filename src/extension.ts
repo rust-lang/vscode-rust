@@ -87,18 +87,18 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
     let childProcessPromise: Promise<child_process.ChildProcess>;
     if (rls_path) {
         const env = makeRlsEnv(true);
-        console.info("running " + rls_path);
+        console.info('running ' + rls_path);
         childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
     } else if (rls_root) {
         const env = makeRlsEnv();
-        console.info("running `cargo run` in " + rls_root);
+        console.info('running `cargo run` in ' + rls_root);
         childProcessPromise = Promise.resolve(child_process.spawn(
           'rustup', ['run', 'nightly', 'cargo', 'run', '--release'],
           {cwd: rls_root, env})
         );
     } else {
         const env = makeRlsEnv();
-        console.info("running with rustup");
+        console.info('running with rustup');
         childProcessPromise = runRlsViaRustup(env);
     }
 

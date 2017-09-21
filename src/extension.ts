@@ -254,10 +254,16 @@ function configureLanguage(context: ExtensionContext) {
     const disposable = languages.setLanguageConfiguration('rust', {
         onEnterRules: [
             {
-                // Begins a triple-slash doc comment
-                // e.g. ///| or //!|
-                beforeText: /^\s*\/{2}(\/|\!).*$/,
+                // Doc single-line comment
+                // e.g. ///|
+                beforeText: /^\s*\/{3}.*$/,
                 action: { indentAction: IndentAction.None, appendText: '/// ' },
+            },
+            {
+                // Parent doc single-line comment
+                // e.g. //!|
+                beforeText: /^\s*\/{2}\!.*$/,
+                action: { indentAction: IndentAction.None, appendText: '//! ' },
             },
             {
                 // Begins an auto-closed multi-line comment (standard or parent doc)

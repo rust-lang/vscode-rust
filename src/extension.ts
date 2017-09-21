@@ -142,7 +142,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
 let lc : LanguageClient;
 
 export function activate(context: ExtensionContext) {
-    configureLanguage();
+    configureLanguage(context);
     startLanguageClient(context);
     registerCommands(context);
     activateTaskProvider();
@@ -250,8 +250,8 @@ function registerCommands(context: ExtensionContext) {
     context.subscriptions.push(restartServer);
 }
 
-function configureLanguage() {
-    languages.setLanguageConfiguration('rust', {
+function configureLanguage(context: ExtensionContext) {
+    const disposable = languages.setLanguageConfiguration('rust', {
         onEnterRules: [
             {
                 // Begins a triple-slash doc comment
@@ -286,4 +286,5 @@ function configureLanguage() {
               }
         ]
     });
+    context.subscriptions.push(disposable);
 }

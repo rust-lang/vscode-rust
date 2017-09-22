@@ -1,3 +1,14 @@
+### 0.2.3 - 2017-09-21
+
+* Warns if Config.toml is missing (likely due to opening a Rust file outside a
+  project, which previously crashed)
+* Automatically continue line comments
+* Automatically set LD_LIBRARY_PATH (only useful when not using Rustup)
+* Configure the toolchain and component name for the RLS
+* Command to restart the RLS
+* Better workflow around creating build tasks
+* A better logo - more colour!
+
 ### 0.2.2 - 2017-08-21
 
 * Highlights errors from build tasks

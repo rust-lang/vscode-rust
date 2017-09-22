@@ -18,7 +18,8 @@ import { activateTaskProvider, deactivateTaskProvider } from './tasks';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
-import { workspace, ExtensionContext, TextEditor, TextEditorEdit, window, commands, OutputChannel } from 'vscode';
+import { commands, ExtensionContext, IndentAction, languages, OutputChannel, TextEditor,
+    TextEditorEdit, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, Location, NotificationType, RevealOutputChannelOn,
     ServerOptions } from 'vscode-languageclient';
 import * as is from 'vscode-languageclient/lib/utils/is';
@@ -148,6 +149,7 @@ function makeRlsProcess(lcOutputChannel: OutputChannel | null): Promise<child_pr
 let lc : LanguageClient;
 
 export function activate(context: ExtensionContext) {
+    configureLanguage(context);
     startLanguageClient(context);
     registerCommands(context);
     activateTaskProvider();
@@ -253,4 +255,49 @@ function registerCommands(context: ExtensionContext) {
         lc.stop().then(() => startLanguageClient(context));
     });
     context.subscriptions.push(restartServer);
+}
+
+function configureLanguage(context: ExtensionContext) {
+    const disposable = languages.setLanguageConfiguration('rust', {
+        onEnterRules: [
+            {
+                // Doc single-line comment
+                // e.g. ///|
+                beforeText: /^\s*\/{3}.*$/,
+                action: { indentAction: IndentAction.None, appendText: '/// ' },
+            },
+            {
+                // Parent doc single-line comment
+                // e.g. //!|
+                beforeText: /^\s*\/{2}\!.*$/,
+                action: { indentAction: IndentAction.None, appendText: '//! ' },
+            },
+            {
+                // Begins an auto-closed multi-line comment (standard or parent doc)
+                // e.g. /** | */ or /*! | */
+                beforeText: /^\s*\/\*(\*|\!)(?!\/)([^\*]|\*(?!\/))*$/,
+                afterText: /^\s*\*\/$/,
+                action: { indentAction: IndentAction.IndentOutdent, appendText: ' * ' }
+              },
+              {
+                // Begins a multi-line comment (standard or parent doc)
+                // e.g. /** ...| or /*! ...|
+                beforeText: /^\s*\/\*(\*|\!)(?!\/)([^\*]|\*(?!\/))*$/,
+                action: { indentAction: IndentAction.None, appendText: ' * ' }
+              },
+              {
+                // Continues a multi-line comment
+                // e.g.  * ...|
+                beforeText: /^(\ \ )*\ \*(\ ([^\*]|\*(?!\/))*)?$/,
+                action: { indentAction: IndentAction.None, appendText: '* ' }
+              },
+              {
+                // Dedents after closing a multi-line comment
+                // e.g.  */|
+                beforeText: /^(\ \ )*\ \*\/\s*$/,
+                action: { indentAction: IndentAction.None, removeText: 1 }
+              }
+        ]
+    });
+    context.subscriptions.push(disposable);
 }

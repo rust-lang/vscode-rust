@@ -157,6 +157,8 @@ export function activate(context: ExtensionContext) {
 
 function startLanguageClient(context: ExtensionContext)
 {
+    warnOnMissingCargoToml();
+
     window.setStatusBarMessage('RLS: starting up');
 
     // FIXME(#66): Hack around stderr not being output to the window if ServerOptions is a function
@@ -192,6 +194,14 @@ export function deactivate(): Promise<void> {
     deactivateTaskProvider();
 
     return Promise.resolve();
+}
+
+function warnOnMissingCargoToml() {
+    workspace.findFiles('Cargo.toml').then(files => {
+        if (files.length < 1) {
+            window.showWarningMessage('Cargo.toml must be in the workspace in order to support all features');
+        }
+    });
 }
 
 function warnOnRlsToml() {

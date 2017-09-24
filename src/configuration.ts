@@ -28,7 +28,6 @@ function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn
 }
 
 export class RLSConfiguration {
-    public readonly showStderrInOutputChannel: boolean;
     public readonly logToFile: boolean;
     public readonly revealOutputChannelOn: RevealOutputChannelOn = RevealOutputChannelOn.Never;
     public readonly updateOnStartup: boolean;
@@ -53,7 +52,6 @@ export class RLSConfiguration {
     }
 
     private constructor(configuration: WorkspaceConfiguration) {
-        this.showStderrInOutputChannel = configuration.get<boolean>('rust-client.showStdErr', false);
         this.logToFile = configuration.get<boolean>('rust-client.logToFile', false);
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
         this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);

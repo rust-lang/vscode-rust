@@ -142,11 +142,6 @@
             "type": "object",
             "title": "Rust configuration",
             "properties": {
-                "rust-client.showStdErr": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Specifies whether RLS stderr will be shown in the output channel along with protocol logs. Requires reloading extension after change."
-                },
                 "rust-client.logToFile": {
                     "type": "boolean",
                     "default": false,

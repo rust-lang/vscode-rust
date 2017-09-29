@@ -1,3 +1,9 @@
+### 0.3.0 - 2017-09-29
+
+* Change the default for `rust-client.rls-name` to `rls-preview` to handle the
+  renaming of the RLS.
+* Remove `rust-client.showStdErr` property.
+
 ### 0.2.3 - 2017-09-21
 
 * Warns if Config.toml is missing (likely due to opening a Rust file outside a

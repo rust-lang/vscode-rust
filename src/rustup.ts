@@ -21,14 +21,14 @@ import { CONFIGURATION } from './extension';
 // is installed and installing any required components/toolchains.
 
 export function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
-    return ensureToolchain().then(checkForRls).then(() => child_process.spawn('rustup', ['run', CONFIGURATION.channel, 'rls'], { env }));
+    return ensureToolchain().then(checkForRls).then(() => child_process.spawn(CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rls'], { env }));
 }
 
 export async function rustupUpdate() {
     startSpinner('Updating RLS...');
 
     try {
-        const { stdout } = await execChildProcess('rustup update');
+        const { stdout } = await execChildProcess(CONFIGURATION.rustupPath + ' update');
         // This test is imperfect because if the user has multiple toolchains installed, they
         // might have one updated and one unchanged. But I don't want to go too far down the
         // rabbit hole of parsing rustup's output.
@@ -61,7 +61,7 @@ async function ensureToolchain(): Promise<void> {
 
 async function hasToolchain(): Promise<boolean> {
     try {
-        const { stdout } = await execChildProcess('rustup toolchain list');
+        const { stdout } = await execChildProcess(CONFIGURATION.rustupPath + ' toolchain list');
         const hasToolchain = stdout.indexOf(CONFIGURATION.channel) > -1;
         return hasToolchain;
     }
@@ -76,7 +76,7 @@ async function hasToolchain(): Promise<boolean> {
 async function tryToInstallToolchain(): Promise<void> {
     startSpinner('Installing toolchain...');
     try {
-        const { stdout, stderr } = await execChildProcess('rustup toolchain install ' + CONFIGURATION.channel);
+        const { stdout, stderr } = await execChildProcess(CONFIGURATION.rustupPath + ' toolchain install ' + CONFIGURATION.channel);
         console.log(stdout);
         console.log(stderr);
         stopSpinner(CONFIGURATION.channel + ' toolchain installed successfully');
@@ -108,7 +108,7 @@ async function checkForRls(): Promise<void> {
 
 async function hasRlsComponents(): Promise<boolean> {
     try {
-        const { stdout } = await execChildProcess('rustup component list --toolchain ' + CONFIGURATION.channel);
+        const { stdout } = await execChildProcess(CONFIGURATION.rustupPath + ' component list --toolchain ' + CONFIGURATION.channel);
         const componentName = new RegExp('^' + CONFIGURATION.componentName + '.* \\((default|installed)\\)$', 'm');
         if (
             stdout.search(componentName) === -1 ||
@@ -133,7 +133,7 @@ async function installRls(): Promise<void> {
 
     const tryFn: (component: string) => Promise<(Error | null)> = async (component: string) => {
         try {
-            const { stdout, stderr, } = await execChildProcess(`rustup component add ${component} --toolchain ` + CONFIGURATION.channel);
+            const { stdout, stderr, } = await execChildProcess(CONFIGURATION.rustupPath + ` component add ${component} --toolchain ` + CONFIGURATION.channel);
             console.log(stdout);
             console.log(stderr);
             return null;

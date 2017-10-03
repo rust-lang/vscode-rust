@@ -109,7 +109,9 @@ async function checkForRls(): Promise<void> {
 async function hasRlsComponents(): Promise<boolean> {
     try {
         const { stdout } = await execChildProcess('rustup component list --toolchain ' + CONFIGURATION.channel);
-        if (stdout.search(/^rls.* \((default|installed)\)$/m) === -1 ||
+        const componentName = new RegExp('^' + CONFIGURATION.componentName + '.* \\((default|installed)\\)$', 'm');
+        if (
+            stdout.search(componentName) === -1 ||
             stdout.search(/^rust-analysis.* \((default|installed)\)$/m) === -1 ||
             stdout.search(/^rust-src.* \((default|installed)\)$/m) === -1) {
             return false;

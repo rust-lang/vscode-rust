@@ -1,3 +1,7 @@
+### 0.3.1 - 2017-10-04
+
+* Bug fix in RLS detection.
+
 ### 0.3.0 - 2017-09-29
 
 * Change the default for `rust-client.rls-name` to `rls-preview` to handle the

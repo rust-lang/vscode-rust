@@ -147,6 +147,11 @@
                     "default": false,
                     "description": "When set to true, RLS stderr is logged to a file at workspace root level. Requires reloading extension after change."
                 },
+                "rust-client.rustupPath": {
+                    "type": "string",
+                    "default": "rustup",
+                    "description": "Path to rustup executable"
+                },
                 "rust-client.revealOutputChannelOn": {
                     "type": "string",
                     "enum": [

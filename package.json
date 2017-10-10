@@ -270,6 +270,21 @@
                     ],
                     "default": null,
                     "description": "if `rust.workspace_mode` is enabled, only the specified package in the workspace will be analyzed."
+                },
+                "rust.features": {
+                    "type": "array",
+                    "default": [],
+                    "description": "A list of Cargo features to enable."
+                },
+                "rust.all_features": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable all Cargo features."
+                },
+                "rust.no_default_features": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Do not enable default Cargo features."
                 }
             }
         }

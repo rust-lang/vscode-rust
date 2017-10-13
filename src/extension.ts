@@ -27,7 +27,7 @@ export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
 function getSysroot(env: Object): string | Error {
     const rustcSysroot = child_process.spawnSync(
-        CONFIGURATION.rustupPath, ['run', 'nightly', 'rustc', '--print', 'sysroot'], {env}
+        CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rustc', '--print', 'sysroot'], {env}
     );
 
     if (rustcSysroot.error) {
@@ -93,7 +93,7 @@ function makeRlsProcess(): Promise<child_process.ChildProcess> {
         const env = makeRlsEnv();
         console.info('running `cargo run` in ' + rls_root);
         childProcessPromise = Promise.resolve(child_process.spawn(
-            CONFIGURATION.rustupPath, ['run', 'nightly', 'cargo', 'run', '--release'],
+            CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'cargo', 'run', '--release'],
           {cwd: rls_root, env})
         );
     } else {

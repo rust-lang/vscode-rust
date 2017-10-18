@@ -113,9 +113,9 @@ to `true`. Find it under `File > Preferences > Settings`.
 ## Requirements
 
 * [Rustup](https://www.rustup.rs/),
-* A nightly Rust toolchain (the extension will configure this for you, with
+* A Rust toolchain (the extension will configure this for you, with
   permission),
-* RLS, rust-src, and rust-analysis components (the extension will install these
+* RLS (currently `rls-preview`), `rust-src`, and `rust-analysis` components (the extension will install these
   for you, with permission).
 
 

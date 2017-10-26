@@ -27,25 +27,15 @@ from https://www.rustup.rs/.
 ### Via Source
 
 Check out the RLS source code, following the [directions](https://github.com/rust-lang-nursery/rls/blob/master/contributing.md). 
-For the plugin to find the RLS, set the `RLS_ROOT` environment variable to the
-root of your rls checkout:
-
-```
-export RLS_ROOT=/Source/rls
-```
-
-You can also add this export to your bash profile or equivalent.
+For the plugin to find the RLS, set the `rls.root` setting to the
+root of your rls checkout (e.g., `/Source/rls`):
 
 
 ### Via an executable
 
-Similar to above, but use the `RLS_PATH` and point it at the RLS exectuble:
-
-```
-export RLS_PATH=/rls/target/release/rls
-```
-
-Note that you must include the name of the executable, not just the path.
+Similar to above, but use the `rls.path` and point it at the RLS exectuble
+(e.g., `/rls/target/release/rls`). Note that you must include the name of the
+executable, not just the path.
 
 
 ## Logging

@@ -62,7 +62,6 @@ interface CargoTaskDefinition extends TaskDefinition {
 
 interface TaskConfigItem {
     definition: CargoTaskDefinition;
-    problemMatcher: Array<string>;
     group?: TaskGroup;
     presentationOptions?: TaskPresentationOptions;
 }
@@ -84,7 +83,7 @@ function getCargoTasks(): Array<Task> {
     return list;
 }
 
-function createTask(rootPath: string, { definition, group, presentationOptions, problemMatcher }: TaskConfigItem): Task {
+function createTask(rootPath: string, { definition, group, presentationOptions }: TaskConfigItem): Task {
     const TASK_SOURCE = 'Rust';
 
     const execCmd = `${definition.command} ${definition.args.join(' ')}`;
@@ -93,7 +92,9 @@ function createTask(rootPath: string, { definition, group, presentationOptions, 
     };
     const exec = new ShellExecution(execCmd, execOption);
 
-    const t = new Task(definition, definition.taskName, TASK_SOURCE, exec, problemMatcher);
+    //Specify no problem matchers so VSC doesn't prompt
+    //the user for a problem format
+    const t = new Task(definition, definition.taskName, TASK_SOURCE, exec, []);
 
     if (group !== undefined) {
         t.group = group;
@@ -107,8 +108,6 @@ function createTask(rootPath: string, { definition, group, presentationOptions, 
 }
 
 function createTaskConfigItem(): Array<TaskConfigItem> {
-    const problemMatcher = ['$rustc'];
-
     const presentationOptions: TaskPresentationOptions = {
         reveal: TaskRevealKind.Always,
         panel: TaskPanelKind.New,
@@ -124,7 +123,6 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
                     'build'
                 ],
             },
-            problemMatcher,
             group: TaskGroup.Build,
             presentationOptions,
         },
@@ -137,7 +135,6 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
                     'run'
                 ],
             },
-            problemMatcher,
             presentationOptions,
         },
         {
@@ -149,7 +146,6 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
                     'test'
                 ],
             },
-            problemMatcher,
             group: TaskGroup.Test,
             presentationOptions,
         },
@@ -162,7 +158,6 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
                     'clean'
                 ],
             },
-            problemMatcher: [],
             presentationOptions,
         },
     ];

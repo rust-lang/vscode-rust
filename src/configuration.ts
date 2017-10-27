@@ -10,6 +10,8 @@
 
 'use strict';
 
+import { execSync } from 'child_process';
+
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
 
@@ -58,15 +60,37 @@ export class RLSConfiguration {
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
         this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);
 
-        this.channel = configuration.get('rust-client.channel', 'nightly');
-        this.componentName = configuration.get('rust-client.rls-name', 'rls');
+        this.channel = configuration.get('rust-client.channel', 'default');
+        if (this.channel === 'default') {
+            try {
+                this.channel = RLSConfiguration.defaultChannel(this.rustupPath);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        this.componentName = configuration.get('rust-client.rls-name', 'rls-preview');
 
         // Hidden options that are not exposed to the user
         this.rlsPath = configuration.get('rls.path', null);
         this.rlsRoot = configuration.get('rls.root', null);
     }
+
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {
         const setting = configuration.get<string>('rust-client.revealOutputChannelOn', 'never');
         return fromStringToRevealOutputChannelOn(setting);
+    }
+
+    private static defaultChannel(rustupPath: string): string {
+        const stdout = execSync(rustupPath + ' toolchain list').toString();
+        const matches = stdout.match(/^(.*) \(default\)$/m);
+
+        if (matches === null) {
+            throw new Error('Unable to determine default toolchain');
+        } else if (matches.length !== 2) {
+            throw new Error('Found unexpected number of default toolchains');
+        }
+
+        return matches[1];
     }
 }

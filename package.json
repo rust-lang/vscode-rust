@@ -170,7 +170,7 @@
                 },
                 "rust-client.channel": {
                     "type": "string",
-                    "default": "nightly",
+                    "default": "default",
                     "description": "Rust channel to install RLS from."
                 },
                 "rust-client.rls-name": {

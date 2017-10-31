@@ -33,7 +33,7 @@ root of your rls checkout (e.g., `/Source/rls`):
 
 ### Via an executable
 
-Similar to above, but use the `rls.path` and point it at the RLS exectuble
+Similar to above, but use the `rls.path` and point it at the RLS executable
 (e.g., `/rls/target/release/rls`). Note that you must include the name of the
 executable, not just the path.
 

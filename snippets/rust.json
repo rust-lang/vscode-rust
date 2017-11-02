@@ -340,8 +340,8 @@
     "extern-fn": {
         "prefix": "extern-fn",
         "body": [
-            "extern \"C\" fn ${1:name}(${2:arg}: ${3:Type}) -> ${4:RetType} {",
-            "    ${5:// add code here}",
+            "extern \"C\" fn ${1:name}(${2}) ${3}{",
+            "    ${4:// add code here}",
             "}"
         ],
         "description": "extern \"C\" fn …(…) { … }"

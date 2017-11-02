@@ -216,13 +216,6 @@
         ],
         "description": "thread_local!(static …: … = …);"
     },
-    "try": {
-        "prefix": "try",
-        "body": [
-            "try!(${1})"
-        ],
-        "description": "try!(…)"
-    },
     "unimplemented": {
         "prefix": "unimplemented",
         "body": [
@@ -425,7 +418,7 @@
             "}"
         ],
         "description": "inlined function"
-    },        
+    },
     "let": {
         "prefix": "let",
         "body": [

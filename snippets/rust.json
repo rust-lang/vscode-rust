@@ -341,7 +341,7 @@
         "prefix": "extern-fn",
         "body": [
             "extern \"C\" fn ${1:name}(${2}) ${3}{",
-            "    ${4:// add code here}",
+            "    ${4:unimplemented!()}",
             "}"
         ],
         "description": "extern \"C\" fn …(…) { … }"
@@ -359,7 +359,7 @@
         "prefix": "fn",
         "body": [
             "fn ${1:name}(${2}) ${3}{",
-            "    ${4:unimplemented!();}",
+            "    ${4:unimplemented!()}",
             "}"
         ],
         "description": "fn …(…) { … }"
@@ -377,7 +377,7 @@
         "prefix": "if-let",
         "body": [
             "if let ${1:Some(pat)} = ${2:expr} {",
-            "    ${2:unimplemented!();}",
+            "    ${2:unimplemented!()}",
             "}"
         ],
         "description": "if let … = … { … }"
@@ -413,8 +413,8 @@
         "prefix": "inline-fn",
         "body": [
             "#[inline]",
-            "pub fn ${1:name}() {",
-            "    ${2:unimplemented!();}",
+            "pub fn ${1:name}(${2}) ${3}{",
+            "    ${4:unimplemented!()}",
             "}"
         ],
         "description": "inlined function"

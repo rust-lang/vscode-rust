@@ -219,21 +219,25 @@ function diagnosticCounter() {
 
 function registerCommands(context: ExtensionContext) {
     const deglobDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
-        lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
-            .then((_result) => {},
-                  (reason) => {
-                window.showWarningMessage('deglob command failed: ' + reason);
-            });
+        lc.onReady().then(() => {
+            lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
+                .then((_result) => {},
+                    (reason) => {
+                    window.showWarningMessage('deglob command failed: ' + reason);
+                });
+        });
     });
     context.subscriptions.push(deglobDisposable);
 
     const findImplsDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
-        const params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
-        const response = lc.sendRequest('rustDocument/implementations', params);
-        response.then((locations: Location[]) => {
-            commands.executeCommand('editor.action.showReferences', textEditor.document.uri, textEditor.selection.active, locations.map(lc.protocol2CodeConverter.asLocation));
-        }, (reason) => {
-            window.showWarningMessage('find implementations failed: ' + reason);
+        lc.onReady().then(() => {
+            const params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
+            lc.sendRequest<Location[]>('rustDocument/implementations', params)
+                .then((locations: Location[]) => {
+                    commands.executeCommand('editor.action.showReferences', textEditor.document.uri, textEditor.selection.active, locations.map(lc.protocol2CodeConverter.asLocation));
+                }, (reason) => {
+                    window.showWarningMessage('find implementations failed: ' + reason);
+                });
         });
     });
     context.subscriptions.push(findImplsDisposable);

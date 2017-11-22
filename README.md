@@ -71,9 +71,9 @@ Some highlights:
 Commands can be found in the command palette (ctrl + shift + p). We provide the
 following commands:
 
-* `deglob` - replace a glob (`*`) import with an explicit import. E.g., replace
-  `use foo::*;` with `use foo::{bar, baz};`. Select the `use` line when running
-  the command.
+* `Find Implementations` - Find locations of `impl` blocks for traits, structs, and enums.
+  Usefull to find all structs implementing a specific trait or all traits implemented for a struct.
+  Select a type when running the command.
 
 
 ### Snippets

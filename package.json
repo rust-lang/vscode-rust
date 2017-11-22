@@ -73,11 +73,6 @@
         ],
         "commands": [
             {
-                "command": "rls.deglob",
-                "title": "Deglob imports",
-                "category": "Rust"
-            },
-            {
                 "command": "rls.findImpls",
                 "title": "Find Implementations",
                 "description": "Show impl blocks for trait, struct, or enum",

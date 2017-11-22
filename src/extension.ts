@@ -218,17 +218,6 @@ function diagnosticCounter() {
 }
 
 function registerCommands(context: ExtensionContext) {
-    const deglobDisposable = commands.registerTextEditorCommand('rls.deglob', (textEditor, _edit) => {
-        lc.onReady().then(() => {
-            lc.sendRequest('rustWorkspace/deglob', { uri: textEditor.document.uri.toString(), range: textEditor.selection })
-                .then((_result) => {},
-                    (reason) => {
-                    window.showWarningMessage('deglob command failed: ' + reason);
-                });
-        });
-    });
-    context.subscriptions.push(deglobDisposable);
-
     const findImplsDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
         lc.onReady().then(() => {
             const params = lc.code2ProtocolConverter.asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);

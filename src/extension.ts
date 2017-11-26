@@ -204,11 +204,11 @@ async function autoUpdate() {
 function diagnosticCounter() {
     let runningDiagnostics = 0;
     lc.onReady().then(() => {
-        lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f) {
+        lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f: any) {
             runningDiagnostics++;
             startSpinner('RLS: working');
         });
-        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f) {
+        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f: any) {
             runningDiagnostics--;
             if (runningDiagnostics <= 0) {
                 stopSpinner('RLS: done');

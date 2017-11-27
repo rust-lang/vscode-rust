@@ -40,9 +40,9 @@ executable, not just the path.
 
 ## Logging
 
-You can log to the output panel in VSCode by setting `HIDE_WINDOW_OUTPUT` to
-`false`. You can log to a file in the project directory by setting `LOG_TO_FILE`
-to `true`. Both are near the top of [extension.ts](src/extension.ts).
+You can log to the output panel in VSCode by setting `rust-client.revealOutputChannelOn` to
+`info`. You can log to a file in the project directory by setting `rust-client.logToFile`
+to `true`.
 
 
 ## Installing in VSCode

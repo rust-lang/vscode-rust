@@ -40,14 +40,14 @@
         ],
         "description": "Insert macro_rules!"
     },
-    "if let Option": {
+    "if let": {
         "prefix": "if let",
         "body": [
-            "if let Some(${1:foo}) = ${1:foo} {",
-            "\t${0:${1:foo}.}",
+            "if let ${1:Some(foo)} = ${2:bar} {",
+            "\t$0",
             "}"
         ],
-        "description": "Unwrap Option with if let"
+        "description": "Unwrap value with if let"
     },
     "spawn": {
         "prefix": "thread::spawn",

@@ -255,8 +255,8 @@
                 },
                 "rust.workspace_mode": {
                     "type": "boolean",
-                    "default": false,
-                    "description": "EXPERIMENTAL: Enable workspace support and analyze every package in it."
+                    "default": true,
+                    "description": "Enable workspace support and analyze every package in it."
                 },
                 "rust.analyze_package": {
                     "type": [

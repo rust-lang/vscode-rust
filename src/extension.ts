@@ -181,7 +181,7 @@ export function deactivate(): Promise<void> {
 function warnOnMissingCargoToml() {
     workspace.findFiles('Cargo.toml').then(files => {
         if (files.length < 1) {
-            window.showWarningMessage('Cargo.toml must be in the workspace in order to support all features');
+            window.showWarningMessage('A Cargo.toml file must be at the root of the workspace in order to support all features');
         }
     });
 }

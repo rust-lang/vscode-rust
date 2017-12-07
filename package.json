@@ -280,6 +280,14 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Do not enable default Cargo features."
+                },
+                "rust.jobs": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "Number of Cargo jobs to be run in parallel."
                 }
             }
         }

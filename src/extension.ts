@@ -143,6 +143,10 @@ export function activate(context: ExtensionContext) {
 
 function startLanguageClient(context: ExtensionContext)
 {
+    if (workspace.rootPath === undefined) {
+        window.showWarningMessage('Cannot start RLS because no folder was opened');
+        return;
+    }
     warnOnMissingCargoToml();
 
     window.setStatusBarMessage('RLS: starting up');

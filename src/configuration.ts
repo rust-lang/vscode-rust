@@ -58,7 +58,7 @@ export class RLSConfiguration {
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
         this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);
 
-        this.channel = configuration.get('rust-client.channel', 'nightly');
+        this.channel = configuration.get('rust-client.channel', 'stable');
         this.componentName = configuration.get('rust-client.rls-name', 'rls');
 
         // Hidden options that are not exposed to the user

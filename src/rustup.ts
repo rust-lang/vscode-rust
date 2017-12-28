@@ -43,7 +43,9 @@ export async function rustupUpdate() {
     }
 }
 
-// Check for the nightly toolchain (and that rustup exists)
+/**
+ * Check for the toolchain from congifuration (and that rustup exists)
+ */
 async function ensureToolchain(): Promise<void> {
     const toolchainInstalled = await hasToolchain();
     if (toolchainInstalled) {

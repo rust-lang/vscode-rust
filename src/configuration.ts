@@ -12,6 +12,9 @@
 
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
+import * as child_process from 'child_process';
+
+import { parseActiveToolchain } from './rustup';
 
 function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn {
     switch (value && value.toLowerCase()) {
@@ -58,15 +61,44 @@ export class RLSConfiguration {
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
         this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);
 
-        this.channel = configuration.get('rust-client.channel', 'nightly');
+        this.channel = RLSConfiguration.readChannel(this.rustupPath, configuration);
         this.componentName = configuration.get('rust-client.rls-name', 'rls');
 
         // Hidden options that are not exposed to the user
         this.rlsPath = configuration.get('rls.path', null);
         this.rlsRoot = configuration.get('rls.root', null);
     }
+
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {
         const setting = configuration.get<string>('rust-client.revealOutputChannelOn', 'never');
         return fromStringToRevealOutputChannelOn(setting);
+    }
+
+    /**
+     * Tries to fetch the `rust-client.channel` configuration value. If it's null,
+     * then it tries to query active channel using rustup given at `rustupPath`.
+     */
+    private static readChannel(rustupPath: string, configuration: WorkspaceConfiguration): string {
+        const channel = configuration.get<string | null>('rust-client.channel', null);
+        if (channel !== null) {
+            return channel;
+        } else {
+            try {
+                // rustup info might differ depending on where it's executed
+                // (e.g. when a toolchain is locally overriden), so executing it
+                // under our current workspace root should give us close enough result
+                const output = child_process.execSync(`${rustupPath} show`, {cwd: workspace.rootPath}).toString();
+
+                const activeChannel = parseActiveToolchain(output);
+                console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);
+                return activeChannel;
+            }
+            // rustup might not be installed at the time the configuration is
+            // initially loaded, so silently ignore the error and return a default value
+            catch (e) {
+                return 'nightly';
+            }
+
+        }
     }
 }

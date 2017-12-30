@@ -173,3 +173,27 @@ async function installRls(): Promise<void> {
 
     stopSpinner('RLS components installed successfully');
 }
+
+/**
+ * Parses given output of `rustup show` and retrieves the local active toolchain.
+ */
+export function parseActiveToolchain(rustupOutput: string): string {
+    // There may a default entry under 'installed toolchains' section, so search
+    // for currently active/overridden one only under 'active toolchain' section
+    const activeToolchainsIndex = rustupOutput.search('active toolchain');
+    if (activeToolchainsIndex === -1) {
+        throw new Error(`couldn't find active toolchains`);
+    }
+
+    rustupOutput = rustupOutput.substr(activeToolchainsIndex);
+
+    const matchActiveChannel = new RegExp(/^(\S*) \((?:default|overridden)/gm);
+    const match = matchActiveChannel.exec(rustupOutput);
+    if (match === null) {
+        throw new Error(`couldn't find active toolchain under 'active toolchains'`);
+    } else if (match.length > 2) {
+        throw new Error(`multiple active toolchains found under 'active toolchains'`);
+    }
+
+    return match[1];
+}

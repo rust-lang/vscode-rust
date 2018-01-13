@@ -129,7 +129,7 @@ function makeRlsProcess(): Promise<child_process.ChildProcess> {
     });
 
     return childProcessPromise.catch(() => {
-        window.setStatusBarMessage('RLS could not be started');
+        stopSpinner('RLS could not be started');
         return Promise.reject(undefined);
     });
 }
@@ -151,7 +151,7 @@ function startLanguageClient(context: ExtensionContext)
     }
     warnOnMissingCargoToml();
 
-    window.setStatusBarMessage('RLS: starting up');
+    startSpinner('RLS starting');
 
     warnOnRlsToml();
     // Check for deprecated env vars.
@@ -172,7 +172,7 @@ function startLanguageClient(context: ExtensionContext)
     // Create the language client and start the client.
     lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
 
-    diagnosticCounter();
+    progressCounter();
 
     const disposable = lc.start();
     context.subscriptions.push(disposable);
@@ -207,17 +207,40 @@ async function autoUpdate() {
     }
 }
 
-function diagnosticCounter() {
+function progressCounter() {
+    const runningProgress: { [index: string]: boolean } = {};
+    const asPercent = (fraction: number): string => `${Math.round(fraction * 100)}%`;
     let runningDiagnostics = 0;
     lc.onReady().then(() => {
-        lc.onNotification(new NotificationType('rustDocument/beginBuild'), function(_f: any) {
-            runningDiagnostics++;
-            startSpinner('RLS: working');
+
+        stopSpinner('RLS');
+
+        lc.onNotification(new NotificationType('window/progress'), function (progress: any) {
+            if (progress.done) {
+                delete runningProgress[progress.id];
+            } else {
+                runningProgress[progress.id] = true;
+            }
+            if (Object.keys(runningProgress).length) {
+                const msg =
+                    typeof progress.percentage === 'number' ? asPercent(progress.percentage) :
+                        progress.message ? progress.message : '';
+                startSpinner(`RLS ${msg}`);
+            } else {
+                stopSpinner('RLS');
+            }
         });
-        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function(_f: any) {
+
+        // FIXME these are legacy notifications used by RLS ca jan 2018.
+        // remove once we're certain we've progress on.
+        lc.onNotification(new NotificationType('rustDocument/beginBuild'), function (_f: any) {
+            runningDiagnostics++;
+            startSpinner('RLS', 'working');
+        });
+        lc.onNotification(new NotificationType('rustDocument/diagnosticsEnd'), function (_f: any) {
             runningDiagnostics--;
             if (runningDiagnostics <= 0) {
-                stopSpinner('RLS: done');
+                stopSpinner('RLS');
             }
         });
     });

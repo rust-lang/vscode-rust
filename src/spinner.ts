@@ -13,13 +13,14 @@
 import { window } from 'vscode';
 
 export function startSpinner(message: string) {
-    if (spinnerTimer == null) {
-        let state = 0;
-        spinnerTimer = setInterval(function() {
-            window.setStatusBarMessage(message + ' ' + spinner[state]);
-            state = (state + 1) % spinner.length;
-        }, 100);
+    if (spinnerTimer != null) {
+        clearInterval(spinnerTimer);
     }
+    let state = 0;
+    spinnerTimer = setInterval(function() {
+        window.setStatusBarMessage(message + ' ' + spinner[state]);
+        state = (state + 1) % spinner.length;
+    }, 100);
 }
 
 export function stopSpinner(message: string) {

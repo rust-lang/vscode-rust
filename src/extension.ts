@@ -23,6 +23,8 @@ import { commands, ExtensionContext, IndentAction, languages, TextEditor,
 import { LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions } from 'vscode-languageclient';
 
+// FIXME(#233): Don't only rely on lazily initializing it once on startup,
+// handle possible `rust-client.*` value changes while extension is running
 export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
 function getSysroot(env: Object): string | Error {

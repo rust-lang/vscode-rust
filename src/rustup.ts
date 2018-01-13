@@ -11,7 +11,7 @@
 'use strict';
 
 import * as child_process from 'child_process';
-import { window } from 'vscode';
+import { window, workspace } from 'vscode';
 
 import { execChildProcess } from './utils/child_process';
 import { startSpinner, stopSpinner } from './spinner';
@@ -196,4 +196,19 @@ export function parseActiveToolchain(rustupOutput: string): string {
     }
 
     return match[1];
+}
+
+/**
+ * Returns active (including local overrides) toolchain, as specified by rustup.
+ * May throw if rustup at specified path can't be executed.
+ */
+export function getActiveChannel(rustupPath: string, cwd = workspace.rootPath): string {
+    // rustup info might differ depending on where it's executed
+    // (e.g. when a toolchain is locally overriden), so executing it
+    // under our current workspace root should give us close enough result
+    const output = child_process.execSync(`${rustupPath} show`, {cwd: cwd}).toString();
+
+    const activeChannel = parseActiveToolchain(output);
+    console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);
+    return activeChannel;
 }

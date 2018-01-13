@@ -12,9 +12,8 @@
 
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
-import * as child_process from 'child_process';
 
-import { parseActiveToolchain } from './rustup';
+import { getActiveChannel } from './rustup';
 
 function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn {
     switch (value && value.toLowerCase()) {
@@ -75,8 +74,9 @@ export class RLSConfiguration {
     }
 
     /**
-     * Tries to fetch the `rust-client.channel` configuration value. If it's null,
-     * then it tries to query active channel using rustup given at `rustupPath`.
+     * Tries to fetch the `rust-client.channel` configuration value. If missing,
+     * falls back on active toolchain specified by rustup (at `rustupPath`),
+     * finally defaulting to `nightly` if all fails.
      */
     private static readChannel(rustupPath: string, configuration: WorkspaceConfiguration): string {
         const channel = configuration.get<string | null>('rust-client.channel', null);
@@ -84,14 +84,7 @@ export class RLSConfiguration {
             return channel;
         } else {
             try {
-                // rustup info might differ depending on where it's executed
-                // (e.g. when a toolchain is locally overriden), so executing it
-                // under our current workspace root should give us close enough result
-                const output = child_process.execSync(`${rustupPath} show`, {cwd: workspace.rootPath}).toString();
-
-                const activeChannel = parseActiveToolchain(output);
-                console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);
-                return activeChannel;
+                return getActiveChannel(rustupPath);
             }
             // rustup might not be installed at the time the configuration is
             // initially loaded, so silently ignore the error and return a default value

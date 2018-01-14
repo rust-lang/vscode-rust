@@ -306,6 +306,58 @@
         ],
         "description": "Add a test module"
     },
+    "fn": {
+        "prefix": "fn",
+        "body": [
+            "fn ${1:function}(${2:&self}) -> ${3:()} {",
+            "\t${4:unimplemented!()}",
+            "}"
+        ],
+        "description": "Add a function"
+    },
+    "default": {
+        "prefix": "default",
+        "body": [
+            "${1:Default}::default()"
+        ],
+        "description": "Instantiate a default value"
+    },
+    "new": {
+        "prefix": "new",
+        "body": [
+            "${1:Type}::new(${2})"
+        ],
+        "description": "Instantiate a new value"
+    },
+    "impl": {
+        "prefix": "impl",
+        "body": [
+            "impl ${1:Type} {",
+            "\t${2}",
+            "}"
+        ],
+        "description": "Implement type"
+    },
+    "impln": {
+        "prefix": "impln",
+        "body": [
+            "impl ${1:Type} {",
+            "\tpub fn new() -> Self {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement new for type"
+    },
+    "implf": {
+        "prefix": "implf",
+        "body": [
+            "impl ${1:Trait} for ${2:Type} {",
+            "\t${3}",
+            "}"
+        ],
+        "description": "Implement trait for type"
+    },
     "impl_borrow": {
         "prefix": "impl Borrow",
         "body": [

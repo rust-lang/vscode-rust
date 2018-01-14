@@ -151,7 +151,7 @@ function startLanguageClient(context: ExtensionContext)
     }
     warnOnMissingCargoToml();
 
-    startSpinner('RLS starting');
+    startSpinner('RLS', 'Starting');
 
     warnOnRlsToml();
     // Check for deprecated env vars.
@@ -222,10 +222,11 @@ function progressCounter() {
                 runningProgress[progress.id] = true;
             }
             if (Object.keys(runningProgress).length) {
-                const msg =
+                const status =
                     typeof progress.percentage === 'number' ? asPercent(progress.percentage) :
-                        progress.message ? progress.message : '';
-                startSpinner(`RLS ${msg}`);
+                    progress.message ? progress.message :
+                    progress.title ? `[${progress.title.toLowerCase()}]` : '';
+                startSpinner('RLS', status);
             } else {
                 stopSpinner('RLS');
             }

@@ -12,13 +12,13 @@
 
 import { window } from 'vscode';
 
-export function startSpinner(message: string) {
+export function startSpinner(prefix: string, postfix: string) {
     if (spinnerTimer != null) {
         clearInterval(spinnerTimer);
     }
     let state = 0;
     spinnerTimer = setInterval(function() {
-        window.setStatusBarMessage(message + ' ' + spinner[state]);
+        window.setStatusBarMessage(prefix + ' ' + spinner[state] + ' ' + postfix);
         state = (state + 1) % spinner.length;
     }, 100);
 }

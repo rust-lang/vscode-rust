@@ -25,7 +25,7 @@ export function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
 }
 
 export async function rustupUpdate() {
-    startSpinner('Updating RLS...');
+    startSpinner('RLS', 'Updating…');
 
     try {
         const { stdout } = await execChildProcess(CONFIGURATION.rustupPath + ' update');
@@ -74,7 +74,7 @@ async function hasToolchain(): Promise<boolean> {
 }
 
 async function tryToInstallToolchain(): Promise<void> {
-    startSpinner('Installing toolchain...');
+    startSpinner('RLS', 'Installing toolchain…');
     try {
         const { stdout, stderr } = await execChildProcess(CONFIGURATION.rustupPath + ' toolchain install ' + CONFIGURATION.channel);
         console.log(stdout);
@@ -129,7 +129,7 @@ async function hasRlsComponents(): Promise<boolean> {
 }
 
 async function installRls(): Promise<void> {
-    startSpinner('Installing RLS components');
+    startSpinner('RLS', 'Installing components');
 
     const tryFn: (component: string) => Promise<(Error | null)> = async (component: string) => {
         try {

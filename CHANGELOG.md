@@ -1,3 +1,19 @@
+### Unreleased
+
+* Added `rust.jobs` to allow limiting the number of parallel Cargo jobs.
+* Workspace mode is now enabled by default.
+* Improved startup experience when using workspaces.
+* Deglob is now a code action instead of a command.
+* Warns and no longer crashes RLS if a single file is opened instead of a
+  folder.
+* Warns if Cargo.toml is not in the root of a workspace.
+
+### 0.3.2 - 2017-11-07
+
+* Added `rust-client.rustupPath` to override rustup location.
+* Added properties to control enabling of Cargo features.
+* Fixed an issue where nightly was used instead of the configured channel.
+
 ### 0.3.1 - 2017-10-04
 
 * Bug fix in RLS detection.

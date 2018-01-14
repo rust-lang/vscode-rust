@@ -281,6 +281,31 @@
         ],
         "description": "Wrap code in thread::spawn"
     },
+    "test": {
+        "prefix": "test",
+        "body": [
+            "#[test]",
+            "fn test_${1}() {",
+            "\t${2:unimplemented!()}",
+            "}"
+        ],
+        "description": "Add a test function"
+    },
+    "mod tests": {
+        "prefix": "mod tests",
+        "body": [
+            "#[cfg(test)]",
+            "mod tests {",
+            "\t${1:use super::*};",
+            "",
+            "\t#[test]",
+            "\tfn test_${2}() {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Add a test module"
+    },
     "impl_borrow": {
         "prefix": "impl Borrow",
         "body": [

@@ -8,6 +8,229 @@
         ],
         "description": "Insert for loop"
     },
+    "assert": {
+        "prefix": "assert",
+        "body": [
+            "assert!(${1:condition}, \"${2:message}\");"
+        ],
+        "description": "Insert assert!"
+    },
+    "assert_eq": {
+        "prefix": "assert_eq",
+        "body": [
+            "assert_eq!(${1:left}, ${2:right}, \"${3:message}\");"
+        ],
+        "description": "Insert assert_eq!"
+    },
+    "assert_ne": {
+        "prefix": "assert_ne",
+        "body": [
+            "assert_ne!(${1:left}, ${2:right}, \"${3:message}\");"
+        ],
+        "description": "Insert assert_ne!"
+    },
+    "debug_assert": {
+        "prefix": "debug_assert",
+        "body": [
+            "debug_assert!(${1:condition}, \"${2:message}\");"
+        ],
+        "description": "Insert debug_assert!"
+    },
+    "debug_assert_eq": {
+        "prefix": "debug_assert_eq",
+        "body": [
+            "debug_assert_eq!(${1:left}, ${2:right}, \"${3:message}\");"
+        ],
+        "description": "Insert debug_assert_eq!"
+    },
+    "debug_assert_ne": {
+        "prefix": "debug_assert_ne",
+        "body": [
+            "debug_assert_ne!(${1:left}, ${2:right}, \"${3:message}\");"
+        ],
+        "description": "Insert debug_assert_ne!"
+    },
+    "if_cfg": {
+        "prefix": "if cfg!",
+        "body": [
+            "if cfg!(${1:condition}) {",
+            "\t${2:unimplemented!()}",
+            "} else {",
+            "\t${3:unimplemented!()}",
+            "}"
+        ],
+        "description": "Insert assert!"
+    },
+    "file": {
+        "prefix": "file",
+        "body": [
+            "file!()"
+        ],
+        "description": "Insert file!"
+    },
+    "line": {
+        "prefix": "line",
+        "body": [
+            "line!()"
+        ],
+        "description": "Insert line!"
+    },
+    "column": {
+        "prefix": "column",
+        "body": [
+            "column!()"
+        ],
+        "description": "Insert column!"
+    },
+    "module_path": {
+        "prefix": "module_path",
+        "body": [
+            "module_path!()"
+        ],
+        "description": "Insert module_path!"
+    },
+    "compile_error": {
+        "prefix": "compile_error",
+        "body": [
+            "compile_error!(\"${1:message}\")"
+        ],
+        "description": "Insert compile_error!"
+    },
+    "concat": {
+        "prefix": "concat",
+        "body": [
+            "concat!(${1})"
+        ],
+        "description": "Insert concat!"
+    },
+    "concat_idents": {
+        "prefix": "concat_idents",
+        "body": [
+            "concat_idents!(${1})"
+        ],
+        "description": "Insert concat_idents!"
+    },
+    "stringify": {
+        "prefix": "stringify",
+        "body": [
+            "stringify!(${1})"
+        ],
+        "description": "Insert stringify!"
+    },
+    "env": {
+        "prefix": "env",
+        "body": [
+            "env!(\"${1}\")"
+        ],
+        "description": "Insert env!"
+    },
+    "option_env": {
+        "prefix": "option_env",
+        "body": [
+            "option_env!(\"${1}\")"
+        ],
+        "description": "Insert option_env!"
+    },
+    "print": {
+        "prefix": "print",
+        "body": [
+            "print!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert print!"
+    },
+    "println": {
+        "prefix": "println",
+        "body": [
+            "println!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert println!"
+    },
+    "eprint": {
+        "prefix": "eprint",
+        "body": [
+            "eprint!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert eprint!"
+    },
+    "eprintln": {
+        "prefix": "eprintln",
+        "body": [
+            "eprintln!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert eprintln!"
+    },
+    "write": {
+        "prefix": "write",
+        "body": [
+            "write!(${1:dst}, \"${2:{\\}}\", $0)"
+        ],
+        "description": "Insert write!"
+    },
+    "writeln": {
+        "prefix": "writeln",
+        "body": [
+            "writeln!(${1:dst}, \"${2:{\\}}\", $0)"
+        ],
+        "description": "Insert writeln!"
+    },
+    "format": {
+        "prefix": "format",
+        "body": [
+            "format!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert format!"
+    },
+    "format_args": {
+        "prefix": "format_args",
+        "body": [
+            "format_args!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert format_args!"
+    },
+    "include": {
+        "prefix": "include",
+        "body": [
+            "include!(\"${1}\")"
+        ],
+        "description": "Insert include!"
+    },
+    "include_bytes": {
+        "prefix": "include_bytes",
+        "body": [
+            "include_bytes!(\"${1}\")"
+        ],
+        "description": "Insert include_bytes!"
+    },
+    "include_str": {
+        "prefix": "include_str",
+        "body": [
+            "include_str!(\"${1}\")"
+        ],
+        "description": "Insert include_str!"
+    },
+    "panic": {
+        "prefix": "panic",
+        "body": [
+            "panic!(\"${1:message}\");"
+        ],
+        "description": "Insert panic!"
+    },
+    "thread_local": {
+        "prefix": "thread_local",
+        "body": [
+            "thread_local! {",
+            "\t${1:pub }static ${2:Identifier}: ${3:Type} = ${4:unimplemented!()};",
+            "}"
+        ],
+        "description": "Insert thread_local!"
+    },
+    "try": {
+        "prefix": "try",
+        "body": [
+            "try!(${1})"
+        ],
+        "description": "Insert try!"
+    },
     "unimplemented": {
         "prefix": "unimplemented",
         "body": [
@@ -22,12 +245,12 @@
         ],
         "description": "Insert unreachable!"
     },
-    "println": {
-        "prefix": "println",
+    "vec": {
+        "prefix": "vec",
         "body": [
-            "println!(\"${1:{\\}}\", $0)"
+            "vec![${1}]"
         ],
-        "description": "Insert println!"
+        "description": "Insert vec!"
     },
     "macro_rules": {
         "prefix": "macro_rules",

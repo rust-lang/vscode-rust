@@ -13,6 +13,8 @@
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
 
+import { getActiveChannel } from './rustup';
+
 function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn {
     switch (value && value.toLowerCase()) {
         case 'info':
@@ -58,15 +60,38 @@ export class RLSConfiguration {
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
         this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);
 
-        this.channel = configuration.get('rust-client.channel', 'nightly');
+        this.channel = RLSConfiguration.readChannel(this.rustupPath, configuration);
         this.componentName = configuration.get('rust-client.rls-name', 'rls');
 
         // Hidden options that are not exposed to the user
         this.rlsPath = configuration.get('rls.path', null);
         this.rlsRoot = configuration.get('rls.root', null);
     }
+
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {
         const setting = configuration.get<string>('rust-client.revealOutputChannelOn', 'never');
         return fromStringToRevealOutputChannelOn(setting);
+    }
+
+    /**
+     * Tries to fetch the `rust-client.channel` configuration value. If missing,
+     * falls back on active toolchain specified by rustup (at `rustupPath`),
+     * finally defaulting to `nightly` if all fails.
+     */
+    private static readChannel(rustupPath: string, configuration: WorkspaceConfiguration): string {
+        const channel = configuration.get<string | null>('rust-client.channel', null);
+        if (channel !== null) {
+            return channel;
+        } else {
+            try {
+                return getActiveChannel(rustupPath);
+            }
+            // rustup might not be installed at the time the configuration is
+            // initially loaded, so silently ignore the error and return a default value
+            catch (e) {
+                return 'nightly';
+            }
+
+        }
     }
 }

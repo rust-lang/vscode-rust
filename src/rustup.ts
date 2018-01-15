@@ -11,7 +11,7 @@
 'use strict';
 
 import * as child_process from 'child_process';
-import { window } from 'vscode';
+import { window, workspace } from 'vscode';
 
 import { execChildProcess } from './utils/child_process';
 import { startSpinner, stopSpinner } from './spinner';
@@ -172,4 +172,43 @@ async function installRls(): Promise<void> {
     }
 
     stopSpinner('RLS components installed successfully');
+}
+
+/**
+ * Parses given output of `rustup show` and retrieves the local active toolchain.
+ */
+export function parseActiveToolchain(rustupOutput: string): string {
+    // There may a default entry under 'installed toolchains' section, so search
+    // for currently active/overridden one only under 'active toolchain' section
+    const activeToolchainsIndex = rustupOutput.search('active toolchain');
+    if (activeToolchainsIndex === -1) {
+        throw new Error(`couldn't find active toolchains`);
+    }
+
+    rustupOutput = rustupOutput.substr(activeToolchainsIndex);
+
+    const matchActiveChannel = new RegExp(/^(\S*) \((?:default|overridden)/gm);
+    const match = matchActiveChannel.exec(rustupOutput);
+    if (match === null) {
+        throw new Error(`couldn't find active toolchain under 'active toolchains'`);
+    } else if (match.length > 2) {
+        throw new Error(`multiple active toolchains found under 'active toolchains'`);
+    }
+
+    return match[1];
+}
+
+/**
+ * Returns active (including local overrides) toolchain, as specified by rustup.
+ * May throw if rustup at specified path can't be executed.
+ */
+export function getActiveChannel(rustupPath: string, cwd = workspace.rootPath): string {
+    // rustup info might differ depending on where it's executed
+    // (e.g. when a toolchain is locally overriden), so executing it
+    // under our current workspace root should give us close enough result
+    const output = child_process.execSync(`${rustupPath} show`, {cwd: cwd}).toString();
+
+    const activeChannel = parseActiveToolchain(output);
+    console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);
+    return activeChannel;
 }

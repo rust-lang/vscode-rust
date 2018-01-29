@@ -130,6 +130,19 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         },
         {
             definition: {
+                taskName: 'cargo check',
+                type: 'shell',
+                command: 'cargo',
+                args: [
+                    'check'
+                ],
+            },
+            problemMatcher,
+            group: TaskGroup.Build,
+            presentationOptions,
+        },
+        {
+            definition: {
                 taskName: 'cargo run',
                 type: 'shell',
                 command: 'cargo',

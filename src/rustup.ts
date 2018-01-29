@@ -12,6 +12,7 @@
 
 import * as child_process from 'child_process';
 import { window, workspace } from 'vscode';
+import * as https from 'https';
 
 import { execChildProcess } from './utils/child_process';
 import { startSpinner, stopSpinner } from './spinner';
@@ -21,7 +22,7 @@ import { CONFIGURATION } from './extension';
 // is installed and installing any required components/toolchains.
 
 export function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
-    return ensureToolchain().then(checkForRls).then(() => child_process.spawn(CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rls'], { env }));
+    return ensureToolchain().then(checkForRls).then((channel) => child_process.spawn(CONFIGURATION.rustupPath, ['run', channel, 'rls'], { env }));
 }
 
 export async function rustupUpdate() {
@@ -52,7 +53,7 @@ async function ensureToolchain(): Promise<void> {
 
     const clicked = await Promise.resolve(window.showInformationMessage(CONFIGURATION.channel + ' toolchain not installed. Install?', 'Yes'));
     if (clicked === 'Yes') {
-        await tryToInstallToolchain();
+        await tryToInstallToolchain(CONFIGURATION.channel);
     }
     else {
         throw new Error();
@@ -73,10 +74,10 @@ async function hasToolchain(): Promise<boolean> {
     }
 }
 
-async function tryToInstallToolchain(): Promise<void> {
+async function tryToInstallToolchain(channel: string): Promise<void> {
     startSpinner('Installing toolchain...');
     try {
-        const { stdout, stderr } = await execChildProcess(CONFIGURATION.rustupPath + ' toolchain install ' + CONFIGURATION.channel);
+        const { stdout, stderr } = await execChildProcess(CONFIGURATION.rustupPath + ' toolchain install ' + channel);
         console.log(stdout);
         console.log(stderr);
         stopSpinner(CONFIGURATION.channel + ' toolchain installed successfully');
@@ -90,20 +91,54 @@ async function tryToInstallToolchain(): Promise<void> {
 }
 
 // Check for rls components.
-async function checkForRls(): Promise<void> {
+async function checkForRls(): Promise<string> {
     const hasRls = await hasRlsComponents();
     if (hasRls) {
-        return;
+        return CONFIGURATION.channel;
     }
 
     // missing component
-    const clicked = await Promise.resolve(window.showInformationMessage('RLS not installed. Install?', 'Yes'));
+    const clicked = await Promise.resolve(window.showInformationMessage('RLS not installed on configured channel. Install?', 'Yes'));
     if (clicked === 'Yes') {
-        await installRls();
+        return await installRls();
     }
     else {
         throw new Error();
     }
+}
+
+async function findLatestRlsVerion(date: Date): Promise<string> {
+    const request: Promise<string> = new Promise((resolve, reject) => {
+        const dateString = date.toISOString().split('T')[0];
+        const url = `https://static.rust-lang.org/dist/${dateString}/channel-rust-nightly.toml`;
+        console.log('Sending request on ' + url);
+        https.get(url, res => {
+            res.setEncoding('utf8');
+            let body = '';
+            res.on('data', data => {
+                body += data;
+                if (body.includes('rls-preview')) {
+                    resolve(dateString);
+                }
+            });
+            res.on('end', () => {
+                reject(new Error('RLS not found on channel: nightly-' + dateString));
+            });
+        }).on('error', (err) => {
+            console.log('Error: ' + err.message);
+            reject(err);
+        });
+    });
+    return request.then((dateString) => {
+        window.showInformationMessage(`RLS found on nightly channel ${dateString}`);
+        return dateString;
+    }).catch((e) => {
+        if (e && e.code === 'ENOTFOUND') {
+            throw e;
+        }
+        // Try the day before
+        return findLatestRlsVerion(new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1));
+    });
 }
 
 async function hasRlsComponents(): Promise<boolean> {
@@ -128,25 +163,29 @@ async function hasRlsComponents(): Promise<boolean> {
     }
 }
 
-async function installRls(): Promise<void> {
+async function installRls(): Promise<string> {
     startSpinner('Installing RLS components');
 
-    const tryFn: (component: string) => Promise<(Error | null)> = async (component: string) => {
+    const tryFn: (component: string, channel: string) => Promise<(Error | null)> = async (component: string, channel: string) => {
         try {
-            const { stdout, stderr, } = await execChildProcess(CONFIGURATION.rustupPath + ` component add ${component} --toolchain ` + CONFIGURATION.channel);
+            const { stdout, stderr, } = await execChildProcess(CONFIGURATION.rustupPath + ` component add ${component} --toolchain ${channel}`);
             console.log(stdout);
             console.log(stderr);
             return null;
         }
         catch (_e) {
-            window.showErrorMessage(`Could not install RLS component (${component})`);
+            window.showErrorMessage(`Could not install RLS component (${component}) on configured channel.`);
             const err = new Error(`installing ${component} failed`);
             return err;
         }
     };
 
+    window.showInformationMessage('Attempting to install RLS on a previous nightly channel');
+    const latest = await findLatestRlsVerion(new Date());
+    const channel = `nightly-${latest}`;
+
     {
-        const e = await tryFn('rust-analysis');
+        const e = await tryFn('rust-analysis', channel);
         if (e !== null) {
             stopSpinner('Could not install RLS');
             throw e;
@@ -154,17 +193,17 @@ async function installRls(): Promise<void> {
     }
 
     {
-        const e = await tryFn('rust-src');
+        const e = await tryFn('rust-src', channel);
         if (e !== null) {
             stopSpinner('Could not install RLS');
             throw e;
         }
     }
 
-    console.log('install rls');
-
+    console.log('Install rls on the channel ' + channel);
     {
-        const e = await tryFn(CONFIGURATION.componentName);
+        await tryToInstallToolchain(channel);
+        const e = await tryFn(CONFIGURATION.componentName, channel);
         if (e !== null) {
             stopSpinner('Could not install RLS');
             throw e;
@@ -172,6 +211,7 @@ async function installRls(): Promise<void> {
     }
 
     stopSpinner('RLS components installed successfully');
+    return channel;
 }
 
 /**
@@ -206,7 +246,7 @@ export function getActiveChannel(rustupPath: string, cwd = workspace.rootPath): 
     // rustup info might differ depending on where it's executed
     // (e.g. when a toolchain is locally overriden), so executing it
     // under our current workspace root should give us close enough result
-    const output = child_process.execSync(`${rustupPath} show`, {cwd: cwd}).toString();
+    const output = child_process.execSync(`${rustupPath} show`, { cwd: cwd }).toString();
 
     const activeChannel = parseActiveToolchain(output);
     console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);

@@ -15,10 +15,12 @@ import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, deactivateTaskProvider } from './tasks';
 
+
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+import { xhr } from 'request-light';
 
-import { commands, ExtensionContext, IndentAction, languages, TextEditor,
+import { commands, ExtensionContext, Hover, IndentAction, languages, TextEditor,
     TextEditorEdit, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions } from 'vscode-languageclient';
@@ -26,6 +28,9 @@ import { LanguageClient, LanguageClientOptions, Location, NotificationType,
 // FIXME(#233): Don't only rely on lazily initializing it once on startup,
 // handle possible `rust-client.*` value changes while extension is running
 export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
+
+
+const USER_AGENT = 'Visual Studio Code';
 
 function getSysroot(env: Object): string | Error {
     const rustcSysroot = child_process.spawnSync(
@@ -140,6 +145,7 @@ export function activate(context: ExtensionContext) {
     configureLanguage(context);
     startLanguageClient(context);
     registerCommands(context);
+    registerHovers(context);
     activateTaskProvider();
 }
 
@@ -222,7 +228,24 @@ function diagnosticCounter() {
         });
     });
 }
-
+function registerHovers(context: ExtensionContext) {
+    const crateLookupDisposable = languages.registerHoverProvider({'language': 'toml', 'pattern': '**/Cargo.toml'}, {
+        provideHover(document, position, _token) {
+        const range = document.getWordRangeAtPosition(position,/[a-zA-Z][a-zA-Z0-9-_]*|_[a-zA-Z0-9-_]+/);
+            if (range === undefined || range.start.character != 0) {return undefined;}
+            const crate = document.getText(range); // Poor heuristic: Actually any word that begins a line
+            return xhr({
+                url: 'https://crates.io/api/v1/crates/' + crate,
+                agent: USER_AGENT,
+                responseType: 'json'
+            }).then(response => {
+                const resObj = JSON.parse(response.responseText);
+                return new Hover(`${resObj.crate.description}\n\nLatest version: ${resObj.crate.max_version}`);}
+            ).catch(() => undefined);
+        }
+    });
+    context.subscriptions.push(crateLookupDisposable);
+}
 function registerCommands(context: ExtensionContext) {
     const findImplsDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {
         lc.onReady().then(() => {

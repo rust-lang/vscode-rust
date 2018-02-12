@@ -46,6 +46,7 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
+        "request-light": "^0.2.2",
         "vscode-languageclient": "^3.4.2"
     },
     "devDependencies": {

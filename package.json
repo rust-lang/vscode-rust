@@ -46,7 +46,6 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "request-light": "^0.2.2",
         "vscode-languageclient": "^3.4.2"
     },
     "devDependencies": {
@@ -177,6 +176,11 @@
                     "type": "string",
                     "default": "rls-preview",
                     "description": "Name of the RLS rustup component."
+                },
+                "rust-client.fetchCrateInfo": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Fetch crate description from crates.io to display on Cargo.toml"
                 },
                 "rust.sysroot": {
                     "type": [

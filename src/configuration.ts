@@ -36,6 +36,7 @@ export class RLSConfiguration {
     public readonly updateOnStartup: boolean;
     public readonly channel: string;
     public readonly componentName: string;
+    public readonly fetchCrateInfo: boolean;
     /**
      * Hidden option that can be specified via `"rls.path"` key (e.g. to `/usr/bin/rls`). If
      * specified, RLS will be spawned by executing a file at the given path.
@@ -62,6 +63,7 @@ export class RLSConfiguration {
 
         this.channel = RLSConfiguration.readChannel(this.rustupPath, configuration);
         this.componentName = configuration.get('rust-client.rls-name', 'rls');
+        this.fetchCrateInfo = configuration.get('rust-client.fetchCrateInfo', true);
 
         // Hidden options that are not exposed to the user
         this.rlsPath = configuration.get('rls.path', null);

@@ -15,13 +15,12 @@ import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, deactivateTaskProvider } from './tasks';
 
-
 import * as child_process from 'child_process';
 import * as fs from 'fs';
-import { xhr } from 'request-light';
+import { get_content } from './utils/get_content';
 
 import { commands, ExtensionContext, Hover, IndentAction, languages, TextEditor,
-    TextEditorEdit, window, workspace } from 'vscode';
+    TextEditorEdit, window, workspace, TextDocument, Range } from 'vscode';
 import { LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions } from 'vscode-languageclient';
 
@@ -29,8 +28,8 @@ import { LanguageClient, LanguageClientOptions, Location, NotificationType,
 // handle possible `rust-client.*` value changes while extension is running
 export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
-
 const USER_AGENT = 'Visual Studio Code';
+const CRATES_API = 'https://crates.io/api/v1/crates/';
 
 function getSysroot(env: Object): string | Error {
     const rustcSysroot = child_process.spawnSync(
@@ -228,23 +227,43 @@ function diagnosticCounter() {
         });
     });
 }
+
+function findDependencyRange(document: TextDocument) {
+    const text = document.getText();
+    const startOffset = text.search(/^\[dependencies\]/gm);
+    const endOffset = text.slice(startOffset + 13).search(/\[|$/);
+    const startPosition = document.positionAt(startOffset);
+    const endPosition = document.positionAt(startOffset + 13 + endOffset);
+    return (startPosition && endPosition) ? new Range(startPosition, endPosition) : undefined;
+}
+
 function registerHovers(context: ExtensionContext) {
-    const crateLookupDisposable = languages.registerHoverProvider({'language': 'toml', 'pattern': '**/Cargo.toml'}, {
-        provideHover(document, position, _token) {
-        const range = document.getWordRangeAtPosition(position,/[a-zA-Z][a-zA-Z0-9-_]*|_[a-zA-Z0-9-_]+/);
-            if (range === undefined || range.start.character != 0) {return undefined;}
-            const crate = document.getText(range); // Poor heuristic: Actually any word that begins a line
-            return xhr({
-                url: 'https://crates.io/api/v1/crates/' + crate,
-                agent: USER_AGENT,
-                responseType: 'json'
-            }).then(response => {
-                const resObj = JSON.parse(response.responseText);
-                return new Hover(`${resObj.crate.description}\n\nLatest version: ${resObj.crate.max_version}`);}
-            ).catch(() => undefined);
-        }
-    });
-    context.subscriptions.push(crateLookupDisposable);
+    if (CONFIGURATION.fetchCrateInfo) {
+        const state: {[idx: string]: string} = {};
+        const crateLookupDisposable = languages.registerHoverProvider({'language': 'toml', 'pattern': '**/Cargo.toml'}, {
+            provideHover(document, position, _token) {
+                const range = document.getWordRangeAtPosition(position,/[a-zA-Z][a-zA-Z0-9-_]*|_[a-zA-Z0-9-_]+/);
+                if (range === undefined || range.start.character != 0) { return undefined; }
+                const dependencyRange = findDependencyRange(document);
+                if ( dependencyRange === undefined || ! dependencyRange.contains(range)) { return undefined; }
+                const crate = document.getText(range); // Poor heuristic: Actually any word that begins a line
+                const crateKey = crate;
+                const crateInfo = state[crateKey];
+                if (crateInfo) {
+                    return new Hover(crateInfo);
+                } else {
+                    return get_content(CRATES_API + crate)
+                    .then((response) => {
+                        const resObj = JSON.parse(response);
+                        const crateInfo = `${resObj.crate.description}\n\nLatest version: ${resObj.crate.max_version}`;
+                        state[crateKey] = crateInfo;
+                        return new Hover(crateInfo);}
+                    ).catch(() => undefined);
+                }
+            }
+        });
+        context.subscriptions.push(crateLookupDisposable);
+    }
 }
 function registerCommands(context: ExtensionContext) {
     const findImplsDisposable = commands.registerTextEditorCommand('rls.findImpls', (textEditor: TextEditor, _edit: TextEditorEdit) => {

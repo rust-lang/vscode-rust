@@ -28,7 +28,6 @@ import { LanguageClient, LanguageClientOptions, Location, NotificationType,
 // handle possible `rust-client.*` value changes while extension is running
 export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 
-const USER_AGENT = 'Visual Studio Code';
 const CRATES_API = 'https://crates.io/api/v1/crates/';
 
 function getSysroot(env: Object): string | Error {

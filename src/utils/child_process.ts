@@ -22,9 +22,11 @@ export interface ExecChildProcessResult<TOut = string> {
     readonly stderr: TOut;
 }
 
-export function execChildProcess(command: string): Promise<ExecChildProcessResult> {
+export async function execChildProcess(command: string): Promise<ExecChildProcessResult> {
     const r: Promise<ExecChildProcessResult> = new Promise((resolve, reject) => {
-        child_process.exec(command, (error, stdout, stderr) => {
+        child_process.exec(command, {
+            encoding: 'utf8',
+        }, (error, stdout, stderr) => {
             if (!!error) {
                 reject(error);
                 return;
@@ -37,4 +39,25 @@ export function execChildProcess(command: string): Promise<ExecChildProcessResul
         });
     });
     return r;
+}
+
+
+export async function execFile(command: string, args: string[], options: child_process.ExecFileOptions): Promise<ExecChildProcessResult> {
+    return new Promise<ExecChildProcessResult>((resolve, reject) => {
+        child_process.execFile(command, args, {
+            encoding: 'utf8',
+            ...options
+        }, (error, stdout, stderr) => {
+            if (!!error) {
+                reject(error);
+                return;
+            }
+
+            resolve({
+                stdout,
+                stderr,
+            });
+        });
+
+    });
 }

@@ -222,10 +222,14 @@ function progressCounter() {
                 runningProgress[progress.id] = true;
             }
             if (Object.keys(runningProgress).length) {
-                const status =
-                    typeof progress.percentage === 'number' ? asPercent(progress.percentage) :
-                    progress.message ? progress.message :
-                    progress.title ? `[${progress.title.toLowerCase()}]` : '';
+                let status = '';
+                if (typeof progress.percentage === 'number') {
+                    status = asPercent(progress.percentage);
+                } else if (progress.message) {
+                    status = progress.message;
+                } else if (progress.title) {
+                    status = `[${progress.title.toLowerCase()}]`;
+                }
                 startSpinner('RLS', status);
             } else {
                 stopSpinner('RLS');

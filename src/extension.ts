@@ -208,7 +208,7 @@ async function autoUpdate() {
 }
 
 function progressCounter() {
-    const runningProgress: { [index: string]: boolean } = {};
+    const runningProgress: Set<string> = new Set();
     const asPercent = (fraction: number): string => `${Math.round(fraction * 100)}%`;
     let runningDiagnostics = 0;
     lc.onReady().then(() => {
@@ -217,11 +217,11 @@ function progressCounter() {
 
         lc.onNotification(new NotificationType('window/progress'), function (progress: any) {
             if (progress.done) {
-                delete runningProgress[progress.id];
+                runningProgress.delete(progress.id);
             } else {
-                runningProgress[progress.id] = true;
+                runningProgress.add(progress.id);
             }
-            if (Object.keys(runningProgress).length) {
+            if (runningProgress.size) {
                 let status = '';
                 if (typeof progress.percentage === 'number') {
                     status = asPercent(progress.percentage);

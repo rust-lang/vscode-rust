@@ -3,8 +3,6 @@
 [![](https://vsmarketplacebadge.apphb.com/version/rust-lang.rust.svg)](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
 [![Build Status](https://travis-ci.org/rust-lang-nursery/rls-vscode.svg?branch=master)](https://travis-ci.org/rust-lang-nursery/rls-vscode)
 
-[impl period](https://blog.rust-lang.org/2017/09/18/impl-future-for-rust.html) has been started! Join us at [Gitter.im](https://gitter.im/rust-impl-period/WG-dev-tools-vscode).
-
 Adds language support for Rust to Visual Studio Code. Supports:
 
 * code completion

@@ -15,7 +15,7 @@ Adds language support for Rust to Visual Studio Code. Supports:
 * build tasks
 
 Rust support is powered by the [Rust Language Server](https://github.com/rust-lang-nursery/rls)
-(RLS). If you don't have it installed, the extension will install the RLS for you.
+(RLS). If you don't have it installed, the extension will install the it for you.
 
 This extension is built and maintained by the RLS team, part of the
 [Rust Developer Tools team](https://www.rust-lang.org/en-US/team.html#Dev-tools-team).
@@ -41,8 +41,8 @@ more details on building and debugging, etc., see [contributing.md](contributing
   Create a new Rust project by following [these instructions](https://doc.rust-lang.org/book/second-edition/ch01-02-hello-world.html#creating-a-project-with-cargo).
 * Open a Rust project (`File > Open Folder...`). Open the folder for the whole
   project (i.e., the folder containing 'Cargo.toml'), not the 'src' folder.
-* The extension will start when you open a Rust file. You'll be prompted to
-  install the RLS. Once installed, the RLS should start building your project.
+* You'll be prompted to install the RLS. Once installed, the RLS should start
+  building your project.
 
 
 ## Configuration
@@ -115,8 +115,8 @@ to `true`. Find it under `File > Preferences > Settings`.
 * [Rustup](https://www.rustup.rs/),
 * A Rust toolchain (the extension will configure this for you, with
   permission),
-* RLS (currently `rls-preview`), `rust-src`, and `rust-analysis` components (the extension will install these
-  for you, with permission).
+* RLS (currently `rls-preview`), `rust-src`, and `rust-analysis` components (the
+  extension will install these for you, with permission).
 
 
 ## Implementation

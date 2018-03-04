@@ -129,7 +129,7 @@ async function hasRlsComponents(): Promise<boolean> {
 }
 
 async function installRls(): Promise<void> {
-    startSpinner('RLS', 'Installing components');
+    startSpinner('RLS', 'Installing components…');
 
     const tryFn: (component: string) => Promise<(Error | null)> = async (component: string) => {
         try {
@@ -206,7 +206,7 @@ export function getActiveChannel(rustupPath: string, cwd = workspace.rootPath): 
     // rustup info might differ depending on where it's executed
     // (e.g. when a toolchain is locally overriden), so executing it
     // under our current workspace root should give us close enough result
-    const output = child_process.execSync(`${rustupPath} show`, {cwd: cwd}).toString();
+    const output = child_process.execSync(`${rustupPath} show`, { cwd: cwd }).toString();
 
     const activeChannel = parseActiveToolchain(output);
     console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);

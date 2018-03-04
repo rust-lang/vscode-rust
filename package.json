@@ -257,19 +257,6 @@
                     "default": false,
                     "description": "Only index the project when a file is saved and not on change."
                 },
-                "rust.workspace_mode": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Enable workspace support and analyze every package in it."
-                },
-                "rust.analyze_package": {
-                    "type": [
-                        "string",
-                        "null"
-                    ],
-                    "default": null,
-                    "description": "if `rust.workspace_mode` is enabled, only the specified package in the workspace will be analyzed."
-                },
                 "rust.features": {
                     "type": "array",
                     "default": [],
@@ -284,6 +271,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Do not enable default Cargo features."
+                },
+                "rust.racer_completion": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables code completion using racer."
                 },
                 "rust.jobs": {
                     "type": [

@@ -52,7 +52,7 @@ async function makeRlsEnv(setLibPath = false): Promise<any> {
 
     let sysroot: string | undefined;
     try {
-        sysroot = await getSysroot(env)
+        sysroot = await getSysroot(env);
     } catch (err) {
         console.info(err.message);
         console.info(`Let's retry with extended $PATH`);
@@ -135,7 +135,7 @@ async function makeRlsProcess(): Promise<child_process.ChildProcess> {
 let lc: LanguageClient;
 
 export async function activate(context: ExtensionContext) {
-    let promise = startLanguageClient(context);
+    const promise = startLanguageClient(context);
     configureLanguage(context);
     registerCommands(context);
     activateTaskProvider();
@@ -161,7 +161,7 @@ async function startLanguageClient(context: ExtensionContext) {
 
     const serverOptions: ServerOptions = async () => {
         await autoUpdate();
-        return makeRlsProcess()
+        return makeRlsProcess();
     };
     const clientOptions: LanguageClientOptions = {
         // Register the server for Rust files
@@ -181,7 +181,7 @@ async function startLanguageClient(context: ExtensionContext) {
     const disposable = lc.start();
     context.subscriptions.push(disposable);
 
-    return promise
+    return promise;
 }
 
 export function deactivate(): Promise<void> {
@@ -191,7 +191,7 @@ export function deactivate(): Promise<void> {
 }
 
 async function warnOnMissingCargoToml() {
-    let files = await workspace.findFiles('Cargo.toml');
+    const files = await workspace.findFiles('Cargo.toml');
 
     if (files.length < 1) {
         window.showWarningMessage('A Cargo.toml file must be at the root of the workspace in order to support all features');
@@ -265,7 +265,7 @@ function registerCommands(context: ExtensionContext) {
             locations = await lc.sendRequest<Location[]>('rustDocument/implementations', params);
         } catch (reason) {
             window.showWarningMessage('find implementations failed: ' + reason);
-            return
+            return;
         }
 
 

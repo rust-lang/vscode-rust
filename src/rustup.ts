@@ -20,8 +20,10 @@ import { CONFIGURATION } from './extension';
 // This module handles running the RLS via rustup, including checking that rustup
 // is installed and installing any required components/toolchains.
 
-export function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
-    return ensureToolchain().then(checkForRls).then(() => child_process.spawn(CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rls'], { env }));
+export async function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
+    await ensureToolchain();
+    await checkForRls();
+    return child_process.spawn(CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rls'], { env });
 }
 
 export async function rustupUpdate() {
@@ -50,7 +52,7 @@ async function ensureToolchain(): Promise<void> {
         return;
     }
 
-    const clicked = await Promise.resolve(window.showInformationMessage(CONFIGURATION.channel + ' toolchain not installed. Install?', 'Yes'));
+    const clicked = await window.showInformationMessage(CONFIGURATION.channel + ' toolchain not installed. Install?', 'Yes');
     if (clicked === 'Yes') {
         await tryToInstallToolchain();
     }

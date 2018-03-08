@@ -55,7 +55,7 @@ export function deactivateTaskProvider(): void {
 interface CargoTaskDefinition extends TaskDefinition {
     // FIXME: By the document, we should add the `taskDefinitions` section to our package.json and use the value of it.
     type: 'shell';
-    taskName: string;
+    label: string;
     command: string;
     args: Array<string>;
 }
@@ -93,7 +93,7 @@ function createTask(rootPath: string, { definition, group, presentationOptions, 
     };
     const exec = new ShellExecution(execCmd, execOption);
 
-    const t = new Task(definition, definition.taskName, TASK_SOURCE, exec, problemMatcher);
+    const t = new Task(definition, definition.label, TASK_SOURCE, exec, problemMatcher);
 
     if (group !== undefined) {
         t.group = group;
@@ -117,7 +117,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
     const taskList: Array<TaskConfigItem> = [
         {
             definition: {
-                taskName: 'cargo build',
+                label: 'cargo build',
                 type: 'shell',
                 command: 'cargo',
                 args: [
@@ -130,7 +130,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         },
         {
             definition: {
-                taskName: 'cargo check',
+                label: 'cargo check',
                 type: 'shell',
                 command: 'cargo',
                 args: [
@@ -143,7 +143,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         },
         {
             definition: {
-                taskName: 'cargo run',
+                label: 'cargo run',
                 type: 'shell',
                 command: 'cargo',
                 args: [
@@ -155,7 +155,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         },
         {
             definition: {
-                taskName: 'cargo test',
+                label: 'cargo test',
                 type: 'shell',
                 command: 'cargo',
                 args: [
@@ -168,7 +168,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         },
         {
             definition: {
-                taskName: 'cargo clean',
+                label: 'cargo clean',
                 type: 'shell',
                 command: 'cargo',
                 args: [

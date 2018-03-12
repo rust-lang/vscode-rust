@@ -45,8 +45,8 @@ export async function execChildProcess(command: string): Promise<ExecChildProces
 export async function execFile(command: string, args: string[], options: child_process.ExecFileOptions): Promise<ExecChildProcessResult> {
     return new Promise<ExecChildProcessResult>((resolve, reject) => {
         child_process.execFile(command, args, {
+            ...options,
             encoding: 'utf8',
-            ...options
         }, (error, stdout, stderr) => {
             if (!!error) {
                 reject(error);

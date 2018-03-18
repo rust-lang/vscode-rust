@@ -1,7 +1,17 @@
 ### Unreleased
 
+* Bug fixes for race conditions.
+* Increased the default `rust.wait_to_build` time.
+
+### 0.4.0 - 2018-03-04
+
+* Added `rust.racer_completion` to allow disabling racer to work around a
+  [performance issue](https://github.com/rust-lang-nursery/rls/issues/688).
+* Spinner UI improvements.
+* Added a `cargo check` task.
+* The local active toolchain channel is now the default `rust-client.channel`.
 * Added `rust.jobs` to allow limiting the number of parallel Cargo jobs.
-* Workspace mode is now enabled by default.
+* Added support for workspaces.
 * Improved startup experience when using workspaces.
 * Deglob is now a code action instead of a command.
 * Warns and no longer crashes RLS if a single file is opened instead of a

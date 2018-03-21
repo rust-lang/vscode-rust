@@ -8,6 +8,229 @@
         ],
         "description": "Insert for loop"
     },
+    "assert": {
+        "prefix": "assert",
+        "body": [
+            "assert!(${1:condition}, \"${2:message}\");"
+        ],
+        "description": "Insert assert!"
+    },
+    "assert_eq": {
+        "prefix": "assert_eq",
+        "body": [
+            "assert_eq!(${1:left}, ${2:right}, \"${3:message}\");"
+        ],
+        "description": "Insert assert_eq!"
+    },
+    "assert_ne": {
+        "prefix": "assert_ne",
+        "body": [
+            "assert_ne!(${1:left}, ${2:right}, \"${3:message}\");"
+        ],
+        "description": "Insert assert_ne!"
+    },
+    "debug_assert": {
+        "prefix": "debug_assert",
+        "body": [
+            "debug_assert!(${1:condition}, \"${2:message}\");"
+        ],
+        "description": "Insert debug_assert!"
+    },
+    "debug_assert_eq": {
+        "prefix": "debug_assert_eq",
+        "body": [
+            "debug_assert_eq!(${1:left}, ${2:right}, \"${3:message}\");"
+        ],
+        "description": "Insert debug_assert_eq!"
+    },
+    "debug_assert_ne": {
+        "prefix": "debug_assert_ne",
+        "body": [
+            "debug_assert_ne!(${1:left}, ${2:right}, \"${3:message}\");"
+        ],
+        "description": "Insert debug_assert_ne!"
+    },
+    "if_cfg": {
+        "prefix": "if cfg!",
+        "body": [
+            "if cfg!(${1:condition}) {",
+            "\t${2:unimplemented!()}",
+            "} else {",
+            "\t${3:unimplemented!()}",
+            "}"
+        ],
+        "description": "Insert assert!"
+    },
+    "file": {
+        "prefix": "file",
+        "body": [
+            "file!()"
+        ],
+        "description": "Insert file!"
+    },
+    "line": {
+        "prefix": "line",
+        "body": [
+            "line!()"
+        ],
+        "description": "Insert line!"
+    },
+    "column": {
+        "prefix": "column",
+        "body": [
+            "column!()"
+        ],
+        "description": "Insert column!"
+    },
+    "module_path": {
+        "prefix": "module_path",
+        "body": [
+            "module_path!()"
+        ],
+        "description": "Insert module_path!"
+    },
+    "compile_error": {
+        "prefix": "compile_error",
+        "body": [
+            "compile_error!(\"${1:message}\")"
+        ],
+        "description": "Insert compile_error!"
+    },
+    "concat": {
+        "prefix": "concat",
+        "body": [
+            "concat!(${1})"
+        ],
+        "description": "Insert concat!"
+    },
+    "concat_idents": {
+        "prefix": "concat_idents",
+        "body": [
+            "concat_idents!(${1})"
+        ],
+        "description": "Insert concat_idents!"
+    },
+    "stringify": {
+        "prefix": "stringify",
+        "body": [
+            "stringify!(${1})"
+        ],
+        "description": "Insert stringify!"
+    },
+    "env": {
+        "prefix": "env",
+        "body": [
+            "env!(\"${1}\")"
+        ],
+        "description": "Insert env!"
+    },
+    "option_env": {
+        "prefix": "option_env",
+        "body": [
+            "option_env!(\"${1}\")"
+        ],
+        "description": "Insert option_env!"
+    },
+    "print": {
+        "prefix": "print",
+        "body": [
+            "print!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert print!"
+    },
+    "println": {
+        "prefix": "println",
+        "body": [
+            "println!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert println!"
+    },
+    "eprint": {
+        "prefix": "eprint",
+        "body": [
+            "eprint!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert eprint!"
+    },
+    "eprintln": {
+        "prefix": "eprintln",
+        "body": [
+            "eprintln!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert eprintln!"
+    },
+    "write": {
+        "prefix": "write",
+        "body": [
+            "write!(${1:dst}, \"${2:{\\}}\", $0)"
+        ],
+        "description": "Insert write!"
+    },
+    "writeln": {
+        "prefix": "writeln",
+        "body": [
+            "writeln!(${1:dst}, \"${2:{\\}}\", $0)"
+        ],
+        "description": "Insert writeln!"
+    },
+    "format": {
+        "prefix": "format",
+        "body": [
+            "format!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert format!"
+    },
+    "format_args": {
+        "prefix": "format_args",
+        "body": [
+            "format_args!(\"${1:{\\}}\", $0)"
+        ],
+        "description": "Insert format_args!"
+    },
+    "include": {
+        "prefix": "include",
+        "body": [
+            "include!(\"${1}\")"
+        ],
+        "description": "Insert include!"
+    },
+    "include_bytes": {
+        "prefix": "include_bytes",
+        "body": [
+            "include_bytes!(\"${1}\")"
+        ],
+        "description": "Insert include_bytes!"
+    },
+    "include_str": {
+        "prefix": "include_str",
+        "body": [
+            "include_str!(\"${1}\")"
+        ],
+        "description": "Insert include_str!"
+    },
+    "panic": {
+        "prefix": "panic",
+        "body": [
+            "panic!(\"${1:message}\");"
+        ],
+        "description": "Insert panic!"
+    },
+    "thread_local": {
+        "prefix": "thread_local",
+        "body": [
+            "thread_local! {",
+            "\t${1:pub }static ${2:Identifier}: ${3:Type} = ${4:unimplemented!()};",
+            "}"
+        ],
+        "description": "Insert thread_local!"
+    },
+    "try": {
+        "prefix": "try",
+        "body": [
+            "try!(${1})"
+        ],
+        "description": "Insert try!"
+    },
     "unimplemented": {
         "prefix": "unimplemented",
         "body": [
@@ -22,12 +245,12 @@
         ],
         "description": "Insert unreachable!"
     },
-    "println": {
-        "prefix": "println",
+    "vec": {
+        "prefix": "vec",
         "body": [
-            "println!(\"${1:{\\}}\", $0)"
+            "vec![${1}]"
         ],
-        "description": "Insert println!"
+        "description": "Insert vec!"
     },
     "macro_rules": {
         "prefix": "macro_rules",
@@ -57,5 +280,1087 @@
             "});"
         ],
         "description": "Wrap code in thread::spawn"
+    },
+    "test": {
+        "prefix": "test",
+        "body": [
+            "#[test]",
+            "fn test_${1}() {",
+            "\t${2:unimplemented!()}",
+            "}"
+        ],
+        "description": "Add a test function"
+    },
+    "mod tests": {
+        "prefix": "mod tests",
+        "body": [
+            "#[cfg(test)]",
+            "mod tests {",
+            "\t${1:use super::*};",
+            "",
+            "\t#[test]",
+            "\tfn test_${2}() {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Add a test module"
+    },
+    "fn": {
+        "prefix": "fn",
+        "body": [
+            "fn ${1:function}(${2:&self}) -> ${3:()} {",
+            "\t${4:unimplemented!()}",
+            "}"
+        ],
+        "description": "Add a function"
+    },
+    "default": {
+        "prefix": "default",
+        "body": [
+            "${1:Default}::default()"
+        ],
+        "description": "Instantiate a default value"
+    },
+    "new": {
+        "prefix": "new",
+        "body": [
+            "${1:Type}::new(${2})"
+        ],
+        "description": "Instantiate a new value"
+    },
+    "impl": {
+        "prefix": "impl",
+        "body": [
+            "impl ${1:Type} {",
+            "\t${2}",
+            "}"
+        ],
+        "description": "Implement type"
+    },
+    "impln": {
+        "prefix": "impln",
+        "body": [
+            "impl ${1:Type} {",
+            "\tpub fn new() -> Self {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement new for type"
+    },
+    "implf": {
+        "prefix": "implf",
+        "body": [
+            "impl ${1:Trait} for ${2:Type} {",
+            "\t${3}",
+            "}"
+        ],
+        "description": "Implement trait for type"
+    },
+    "impl_borrow": {
+        "prefix": "impl Borrow",
+        "body": [
+            "impl Borrow<${1:BorrowType}> for ${2:Type} {",
+            "\tfn borrow(&self) -> &${1} {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Borrow for type"
+    },
+    "impl_borrow_mut": {
+        "prefix": "impl BorrowMut",
+        "body": [
+            "impl BorrowMut<${1:BorrowType}> for ${2:Type} {",
+            "\tfn borrow_mut(&mut self) -> &mut ${1} {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BorrowMut for type"
+    },
+    "impl_to_owned": {
+        "prefix": "impl ToOwned",
+        "body": [
+            "impl ToOwned for ${1:Type} {",
+            "\ttype Owned = ${2:Owned};",
+            "",
+            "\tfn to_owned(&self) -> Self::Owned {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement ToOwned for type"
+    },
+    "impl_clone": {
+        "prefix": "impl Clone",
+        "body": [
+            "impl Clone for ${1:Type} {",
+            "\tfn clone(&self) -> ${1} {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Clone for type"
+    },
+    "impl_copy": {
+        "prefix": "impl Copy",
+        "body": [
+            "impl Copy for ${1:Type} {}"
+        ],
+        "description": "Implement Copy for type"
+    },
+    "impl_partial_eq": {
+        "prefix": "impl PartialEq",
+        "body": [
+            "impl PartialEq for ${1:Type} {",
+            "\tfn eq(&self, other: &Self) -> bool {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement PartialEq for type"
+    },
+    "impl_eq": {
+        "prefix": "impl Eq",
+        "body": [
+            "impl Eq for ${1:Type} {}"
+        ],
+        "description": "Implement Eq for type"
+    },
+    "impl_partial_ord": {
+        "prefix": "impl PartialOrd",
+        "body": [
+            "impl PartialOrd for ${1:Type} {",
+            "\tfn partial_cmp(&self, other: &Self) -> Option<Ordering> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement PartialOrd for type"
+    },
+    "impl_ord": {
+        "prefix": "impl Ord",
+        "body": [
+            "impl Ord for ${1:Type} {",
+            "\tfn cmp(&self, other: &Self) -> Ordering {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Ord for type"
+    },
+    "impl_as_mut": {
+        "prefix": "impl AsMut",
+        "body": [
+            "impl AsMut<${1:MutType}> for ${2:Type} {",
+            "\tfn as_mut(&mut self) -> &mut ${1} {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement AsMut for type"
+    },
+    "impl_as_ref": {
+        "prefix": "impl AsRef",
+        "body": [
+            "impl AsRef<${1:RefType}> for ${2:Type} {",
+            "\tfn as_ref(&self) -> &${1} {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement AsRef for type"
+    },
+    "impl_from": {
+        "prefix": "impl From",
+        "body": [
+            "impl From<${1:FromType}> for ${2:Type} {",
+            "\tfn from(value: ${1}) -> Self {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement From for type"
+    },
+    "impl_into": {
+        "prefix": "impl Into",
+        "body": [
+            "impl Into<${1:IntoType}> for ${2:Type} {",
+            "\tfn into(self) -> ${1} {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Into for type"
+    },
+    "impl_try_from": {
+        "prefix": "impl TryFrom",
+        "body": [
+            "impl TryFrom<${1:FromType}> for ${2:Type} {",
+            "\ttype Error = ${3:Error};",
+            "",
+            "\tfn try_from(value: ${1}) -> Result<Self, Self::Error> {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement TryFrom for type"
+    },
+    "impl_try_into": {
+        "prefix": "impl TryInto",
+        "body": [
+            "impl TryInto<${1:IntoType}> for ${2:Type} {",
+            "\ttype Error = ${3:Error};",
+            "",
+            "\tfn try_into(self) -> Result<${1}, Self::Error> {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement TryInto for type"
+    },
+    "impl_default": {
+        "prefix": "impl Default",
+        "body": [
+            "impl Default for ${1:Type} {",
+            "\tfn default() -> Self {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Default for type"
+    },
+    "impl_error": {
+        "prefix": "impl Error",
+        "body": [
+            "impl Error for ${1:Type} {",
+            "\tfn description(&self) -> &str {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Error for type"
+    },
+    "impl_binary": {
+        "prefix": "impl fmt::Binary",
+        "body": [
+            "impl fmt::Binary for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Binary for type"
+    },
+    "impl_debug": {
+        "prefix": "impl fmt::Debug",
+        "body": [
+            "impl fmt::Debug for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Debug for type"
+    },
+    "impl_display": {
+        "prefix": "impl fmt::Display",
+        "body": [
+            "impl fmt::Display for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Display for type"
+    },
+    "impl_lower_exp": {
+        "prefix": "impl fmt::LowerExp",
+        "body": [
+            "impl fmt::LowerExp for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement LowerExp for type"
+    },
+    "impl_lower_hex": {
+        "prefix": "impl fmt::LowerHex",
+        "body": [
+            "impl fmt::LowerHex for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement LowerHex for type"
+    },
+    "impl_octal": {
+        "prefix": "impl fmt::Octal",
+        "body": [
+            "impl fmt::Octal for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Octal for type"
+    },
+    "impl_pointer": {
+        "prefix": "impl fmt::Pointer",
+        "body": [
+            "impl fmt::Pointer for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Pointer for type"
+    },
+    "impl_upper_exp": {
+        "prefix": "impl fmt::UpperExp",
+        "body": [
+            "impl fmt::UpperExp for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement UpperExp for type"
+    },
+    "impl_upper_hex": {
+        "prefix": "impl fmt::UpperHex",
+        "body": [
+            "impl fmt::UpperHex for ${1:Type} {",
+            "\tfn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement UpperHex for type"
+    },
+    "impl_write": {
+        "prefix": "impl fmt::Write",
+        "body": [
+            "impl fmt::Write for ${1:Type} {",
+            "\tfn write_str(&mut self, s: &str) -> Result<(), fmt::Error> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Write for type"
+    },
+    "impl_build_hasher": {
+        "prefix": "impl BuildHasher",
+        "body": [
+            "impl BuildHasher for ${1:Type} {",
+            "\ttype Hasher = ${2:Hasher};",
+            "",
+            "\tfn build_hasher(&self) -> Self::Hasher {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BuildHasher for type"
+    },
+    "impl_hash": {
+        "prefix": "impl Hash",
+        "body": [
+            "impl Hash for ${1:Type} {",
+            "\tfn hash<H: Hasher>(&self, hasher: &mut H) {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Hash for type"
+    },
+    "impl_hasher": {
+        "prefix": "impl Hasher",
+        "body": [
+            "impl Hasher for ${1:Type} {",
+            "\tfn finish(&self) -> u64 {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn write(&mut self, bytes: &[u8]) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Hasher for type"
+    },
+    "impl_io_read": {
+        "prefix": "impl io::Read",
+        "body": [
+            "impl io::Read for ${1:Type} {",
+            "\tfn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Read for type"
+    },
+    "impl_io_buf_read": {
+        "prefix": "impl io::BufRead",
+        "body": [
+            "impl io::BufRead for ${1:Type} {",
+            "\tfn fill_buf(&mut self) -> io::Result<&[u8]> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn consume(&mut self, amt: usize) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BufRead for type"
+    },
+    "impl_io_seek": {
+        "prefix": "impl io::Seek",
+        "body": [
+            "impl io::Seek for ${1:Type} {",
+            "\tfn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Seek for type"
+    },
+    "impl_io_write": {
+        "prefix": "impl io::Write",
+        "body": [
+            "impl io::Write for ${1:Type} {",
+            "\tfn write(&mut self, buf: &[u8]) -> io::Result<usize> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn flush(&mut self) -> io::Result<()> {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Write for type"
+    },
+    "impl_double_ended_iterator": {
+        "prefix": "impl DoubleEndedIterator",
+        "body": [
+            "impl DoubleEndedIterator for ${1:Type} {",
+            "\tfn next_back(&mut self) -> Option<Self::Item> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement DoubleEndedIterator for type"
+    },
+    "impl_exact_size_iterator": {
+        "prefix": "impl ExactSizeIterator",
+        "body": [
+            "impl ExactSizeIterator for ${1:Type} {",
+            "\tfn len(&self) -> usize {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement ExactSizeIterator for type"
+    },
+    "impl_extend": {
+        "prefix": "impl Extend",
+        "body": [
+            "impl Extend<${1:Item}> for ${2:Type} {",
+            "\tfn extend<I>(&mut self, iter: I)",
+            "\twhere",
+            "\t\tI: IntoIterator<Item = ${1}>",
+            "\t{",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Extend for type"
+    },
+    "impl_from_iterator": {
+        "prefix": "impl FromIterator",
+        "body": [
+            "impl FromIterator<${1:Item}> for ${2:Type} {",
+            "\tfn from_iter<I>(iter: I) -> Self",
+            "\twhere",
+            "\t\tI: IntoIterator<Item = ${1}>",
+            "\t{",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement FromIterator for type"
+    },
+    "impl_into_iterator": {
+        "prefix": "impl IntoIterator",
+        "body": [
+            "impl IntoIterator for ${1:Type} {",
+            "\ttype Item = ${2:Item};",
+            "\ttype IntoIter = ${3:IntoIter};",
+            "",
+            "\tfn into_iter(self) -> Self::IntoIter {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement IntoIterator for type"
+    },
+    "impl_into_iterator_ref": {
+        "prefix": "impl IntoIterator &",
+        "body": [
+            "impl<'a> IntoIterator for &'a ${1:Type} {",
+            "\ttype Item = &'a ${2:Item};",
+            "\ttype IntoIter = ${3:IntoIter};",
+            "",
+            "\tfn into_iter(self) -> Self::IntoIter {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement IntoIterator for reference type"
+    },
+    "impl_into_iterator_mut": {
+        "prefix": "impl IntoIterator &mut",
+        "body": [
+            "impl<'a> IntoIterator for &'a mut ${1:Type} {",
+            "\ttype Item = &'a mut ${2:Item};",
+            "\ttype IntoIter = ${3:IntoIter};",
+            "",
+            "\tfn into_iter(self) -> Self::IntoIter {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement IntoIterator for mutable reference type"
+    },
+    "impl_iterator": {
+        "prefix": "impl Iterator",
+        "body": [
+            "impl Iterator for ${1:Type} {",
+            "\ttype Item = ${2:Item};",
+            "",
+            "\tfn next(&mut self) -> Option<Self::Item> {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Iterator for type"
+    },
+    "impl_product": {
+        "prefix": "impl Product",
+        "body": [
+            "impl Product<${1:Item}> for ${2:Type} {",
+            "\tfn product<I>(iter: I) -> Self",
+            "\twhere",
+            "\t\tI: Iterator<Item = ${1}>",
+            "\t{",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Product for type"
+    },
+    "impl_sum": {
+        "prefix": "impl Sum",
+        "body": [
+            "impl Sum<${1:Item}> for ${2:Type} {",
+            "\tfn sum<I>(iter: I) -> Self",
+            "\twhere",
+            "\t\tI: Iterator<Item = ${1}>",
+            "\t{",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Sum for type"
+    },
+    "impl_fused_iterator": {
+        "prefix": "impl FusedIterator",
+        "body": [
+            "impl FusedIterator for ${1:Type} {}"
+        ],
+        "description": "Implement FusedIterator for type"
+    },
+    "impl_trusted_len": {
+        "prefix": "impl TrustedLen",
+        "body": [
+            "impl TrustedLen for ${1:Type} {}"
+        ],
+        "description": "Implement TrustedLen for type"
+    },
+    "impl_step": {
+        "prefix": "impl Step",
+        "body": [
+            "impl Step for ${1:Type} {",
+            "\tfn steps_between(start: &Self, end: &Self) -> Option<usize> {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn replace_one(&mut self) -> Self {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn replace_zero(&mut self) -> Self {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn add_one(&self) -> Self {",
+            "\t\t${5:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn sub_one(&self) -> Self {",
+            "\t\t${6:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn add_usize(&self, n: usize) -> Option<Self> {",
+            "\t\t${7:unimplemented!()}",
+            "\t}",
+            "",
+            "}"
+        ],
+        "description": "Implement Step for type"
+    },
+    "impl_to_socket_addrs": {
+        "prefix": "impl net::ToSocketAddrs",
+        "body": [
+            "impl net::ToSocketAddrs for ${1:Type} {",
+            "\ttype Iter = ${2:Iterator}<Item = ${3:Item}>;",
+            "",
+            "\tfn to_socket_addrs(&self) -> io::Result<Self::Iter> {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement ToSocketAddrs for type"
+    },
+    "impl_add": {
+        "prefix": "impl Add",
+        "body": [
+            "impl Add<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn add(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Add for type"
+    },
+    "impl_add_assign": {
+        "prefix": "impl AddAssign",
+        "body": [
+            "impl AddAssign<${2:Self}> for ${1:Type} {",
+            "\tfn add_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement AddAssign for type"
+    },
+    "impl_bit_and": {
+        "prefix": "impl BitAnd",
+        "body": [
+            "impl BitAnd<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn bitand(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BitAnd for type"
+    },
+    "impl_bit_and_assign": {
+        "prefix": "impl BitAndAssign",
+        "body": [
+            "impl BitAndAssign<${2:Self}> for ${1:Type} {",
+            "\tfn bitand_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BitAndAssign for type"
+    },
+    "impl_bit_or": {
+        "prefix": "impl BitOr",
+        "body": [
+            "impl BitOr<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn bitor(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BitOr for type"
+    },
+    "impl_bit_or_assign": {
+        "prefix": "impl BitOrAssign",
+        "body": [
+            "impl BitOrAssign<${2:Self}> for ${1:Type} {",
+            "\tfn bitor_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BitOrAssign for type"
+    },
+    "impl_bit_xor": {
+        "prefix": "impl BitXor",
+        "body": [
+            "impl BitXor<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn bitxor(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BitXor for type"
+    },
+    "impl_bit_xor_assign": {
+        "prefix": "impl BitXorAssign",
+        "body": [
+            "impl BitXorAssign<${2:Self}> for ${1:Type} {",
+            "\tfn bitxor_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement BitXorAssign for type"
+    },
+    "impl_deref": {
+        "prefix": "impl Deref",
+        "body": [
+            "impl Deref for ${1:Type} {",
+            "\ttype Target = ${2:Target};",
+            "",
+            "\tfn deref(&self) -> &Self::Target {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Deref for type"
+    },
+    "impl_deref_mut": {
+        "prefix": "impl DerefMut",
+        "body": [
+            "impl DerefMut for ${1:Type} {",
+            "\tfn deref_mut(&mut self) -> &mut Self::Target {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement DerefMut for type"
+    },
+    "impl_div": {
+        "prefix": "impl Div",
+        "body": [
+            "impl Div<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn div(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Div for type"
+    },
+    "impl_div_assign": {
+        "prefix": "impl DivAssign",
+        "body": [
+            "impl DivAssign<${2:Self}> for ${1:Type} {",
+            "\tfn div_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement DivAssign for type"
+    },
+    "impl_drop": {
+        "prefix": "impl Drop",
+        "body": [
+            "impl Drop for ${1:Type} {",
+            "\tfn drop(&mut self) {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Drop for type"
+    },
+    "impl_fn": {
+        "prefix": "impl Fn",
+        "body": [
+            "impl FnOnce<${2:Args}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\textern \"rust-call\" fn call_once(self, args: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}",
+            "",
+            "impl FnMut<${2}> for ${1} {",
+            "\textern \"rust-call\" fn call_mut(&mut self, args: ${2}) -> Self::Output {",
+            "\t\t${5:unimplemented!()}",
+            "\t}",
+            "}",
+            "",
+            "impl Fn<${2}> for ${1} {",
+            "\textern \"rust-call\" fn call(&self, args: ${2}) -> Self::Output {",
+            "\t\t${6:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Fn for type"
+    },
+    "impl_fn_mut": {
+        "prefix": "impl FnMut",
+        "body": [
+            "impl FnOnce<${2:Args}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\textern \"rust-call\" fn call_once(self, args: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}",
+            "",
+            "impl FnMut<${2}> for ${1} {",
+            "\textern \"rust-call\" fn call_mut(&mut self, args: ${2}) -> Self::Output {",
+            "\t\t${5:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement FnMut for type"
+    },
+    "impl_fn_once": {
+        "prefix": "impl FnOnce",
+        "body": [
+            "impl FnOnce<${2:Args}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "\textern \"rust-call\" fn call_once(self, args: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement FnOnce for type"
+    },
+    "impl_index": {
+        "prefix": "impl Index",
+        "body": [
+            "impl Index<${1:Idx}> for ${2:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn index(&self, index: ${1}) -> &Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Index for type"
+    },
+    "impl_index_mut": {
+        "prefix": "impl IndexMut",
+        "body": [
+            "impl IndexMut<${1:Idx}> for ${2:Type} {",
+            "\tfn index_mut(&mut self, index: ${1}) -> &mut Self::Output {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement IndexMut for type"
+    },
+    "impl_mul": {
+        "prefix": "impl Mul",
+        "body": [
+            "impl Mul<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn mul(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Mul for type"
+    },
+    "impl_mul_assign": {
+        "prefix": "impl MulAssign",
+        "body": [
+            "impl MulAssign<${2:Self}> for ${1:Type} {",
+            "\tfn mul_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement MulAssign for type"
+    },
+    "impl_neg": {
+        "prefix": "impl Neg",
+        "body": [
+            "impl Neg for ${1:Type} {",
+            "\ttype Output = ${2:Self};",
+            "",
+            "\tfn neg(self) -> Self::Output {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Neg for type"
+    },
+    "impl_not": {
+        "prefix": "impl Not",
+        "body": [
+            "impl Not for ${1:Type} {",
+            "\ttype Output = ${2:Self};",
+            "",
+            "\tfn not(self) -> Self::Output {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Not for type"
+    },
+    "impl_rem": {
+        "prefix": "impl Rem",
+        "body": [
+            "impl Rem<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn rem(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Rem for type"
+    },
+    "impl_rem_assign": {
+        "prefix": "impl RemAssign",
+        "body": [
+            "impl RemAssign<${2:Self}> for ${1:Type} {",
+            "\tfn rem_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement RemAssign for type"
+    },
+    "impl_shl": {
+        "prefix": "impl Shl",
+        "body": [
+            "impl Shl<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn shl(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Shl for type"
+    },
+    "impl_shl_assign": {
+        "prefix": "impl ShlAssign",
+        "body": [
+            "impl ShlAssign<${2:Self}> for ${1:Type} {",
+            "\tfn shl_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement ShlAssign for type"
+    },
+    "impl_shr": {
+        "prefix": "impl Shr",
+        "body": [
+            "impl Shr<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn shr(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Shr for type"
+    },
+    "impl_shr_assign": {
+        "prefix": "impl ShrAssign",
+        "body": [
+            "impl ShrAssign<${2:Self}> for ${1:Type} {",
+            "\tfn shr_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement ShrAssign for type"
+    },
+    "impl_sub": {
+        "prefix": "impl Sub",
+        "body": [
+            "impl Sub<${2:Self}> for ${1:Type} {",
+            "\ttype Output = ${3:Self};",
+            "",
+            "\tfn sub(self, rhs: ${2}) -> Self::Output {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Sub for type"
+    },
+    "impl_sub_assign": {
+        "prefix": "impl SubAssign",
+        "body": [
+            "impl SubAssign<${2:Self}> for ${1:Type} {",
+            "\tfn sub_assign(&mut self, rhs: ${2}) {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement SubAssign for type"
+    },
+    "impl_try": {
+        "prefix": "impl Try",
+        "body": [
+            "impl Try for ${1:Type} {",
+            "\ttype Ok = ${2:Ok};",
+            "\ttype Error = ${3:Error};",
+            "",
+            "\tfn into_result(self) -> Result<Self::Ok, Self::Error> {",
+            "\t\t${4:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn from_error(v: Self::Error) -> Self {",
+            "\t\t${5:unimplemented!()}",
+            "\t}",
+            "",
+            "\tfn from_ok(v: Self::Ok) -> Self {",
+            "\t\t${6:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement Try for type"
+    },
+    "impl_from_str": {
+        "prefix": "impl FromStr",
+        "body": [
+            "impl FromStr for ${1:Type} {",
+            "\ttype Err = ${2:Error};",
+            "",
+            "\tfn from_str(s: &str) -> Result<Self, Self::Err> {",
+            "\t\t${3:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement FromStr for type"
+    },
+    "impl_to_str": {
+        "prefix": "impl ToString",
+        "body": [
+            "impl ToString for ${1:Type} {",
+            "\tfn to_string(&self) -> String {",
+            "\t\t${2:unimplemented!()}",
+            "\t}",
+            "}"
+        ],
+        "description": "Implement ToString for type"
     }
 }

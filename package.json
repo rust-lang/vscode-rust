@@ -284,6 +284,11 @@
                     ],
                     "default": null,
                     "description": "Number of Cargo jobs to be run in parallel."
+                },
+                "rust.all_targets": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Checks the project as if you were running cargo check --all-targets (I.e., check all targets and integration tests too)."
                 }
             }
         }

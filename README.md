@@ -59,6 +59,7 @@ Some highlights:
 * `rust.build_bin` - if you have multiple binaries, you can specify which to build
   using this option.
 * `rust.cfg_test` - build and index test code (i.e., code with `#[cfg(test)]`/`#[test]`)
+* `rust.all_targets` - build and index code for all targets (i.e., integration tests, examples, and benches)
 
 
 ## Features

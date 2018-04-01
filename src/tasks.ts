@@ -168,6 +168,20 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         },
         {
             definition: {
+                label: 'cargo bench',
+                type: 'shell',
+                command: 'cargo',
+                args: [
+                    '+nightly',
+                    'bench'
+                ],
+            },
+            problemMatcher,
+            group: TaskGroup.Test,
+            presentationOptions,
+        },
+        {
+            definition: {
                 label: 'cargo clean',
                 type: 'shell',
                 command: 'cargo',

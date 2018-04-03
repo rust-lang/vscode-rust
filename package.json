@@ -289,6 +289,14 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Checks the project as if you were running cargo check --all-targets (I.e., check all targets and integration tests too)."
+                },
+                "rust.target_dir": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "When specified, it places the generated analysis files at the specified target directory. By default it is placed target/rls directory."
                 }
             }
         }

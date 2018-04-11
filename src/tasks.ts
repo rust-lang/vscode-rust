@@ -72,7 +72,6 @@ function getCargoTasks(): Array<Task> {
 
     const rootPath = workspace.rootPath;
     if (rootPath === undefined) {
-        console.error('`workspace.rootPath` is `undefined`');
         return [];
     }
 

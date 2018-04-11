@@ -165,7 +165,10 @@ async function startLanguageClient(context: ExtensionContext) {
     };
     const clientOptions: LanguageClientOptions = {
         // Register the server for Rust files
-        documentSelector: ['rust'],
+        documentSelector: [
+            { language: 'rust', scheme: 'file' },
+            { language: 'rust', scheme: 'untitled' }
+        ],
         synchronize: { configurationSection: 'rust' },
         // Controls when to focus the channel rather than when to reveal it in the drop-down list
         revealOutputChannelOn: CONFIGURATION.revealOutputChannelOn,

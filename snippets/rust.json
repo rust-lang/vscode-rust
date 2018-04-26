@@ -9,9 +9,9 @@
         "description": "Insert for loop"
     },
     "fn": {
-		"prefix": "fn",
-		"body": [
-			"fn ${1:name}($2) {",
+	    "prefix": "fn",
+	    "body": [
+		    "fn ${1:name}($2) {",
 			"\t${0:unimplemented!()}",
 			"}"
 		],
@@ -111,6 +111,15 @@
             "});"
         ],
         "description": "Wrap code in thread::spawn"
+    },
+    "struct": {
+        "prefix": "struct",
+        "body": [
+            "struct ${1:Name} {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Insert a struct"
     },
     "unimplemented": {
         "prefix": "unimplemented",

@@ -9,32 +9,32 @@
         "description": "Insert for loop"
     },
     "fn": {
-	    "prefix": "fn",
-	    "body": [
-		    "fn ${1:name}($2) {",
-			"\t${0:unimplemented!()}",
-			"}"
-		],
-		"description": "Insert function"
-	},
-	"fnr": {
-		"prefix": "fnr",
-		"body": [
-			"fn ${1:name}($2) -> $3 {",
-			"\t${0:unimplemented!()}",
-			"}"
-		],
-		"description": "Insert function with return values"
-	},
-	"if": {
-		"prefix": "if",
-		"body": [
-			"if ${1:condition} {",
-			"\t$0",
-			"}"
-		],
-		"description": "Insert if loop"
-	},
+        "prefix": "fn",
+        "body": [
+            "fn ${1:name}($2) {",
+            "\t${0:unimplemented!()}",
+            "}"
+        ],
+        "description": "Insert function"
+    },
+    "fnr": {
+        "prefix": "fnr",
+        "body": [
+            "fn ${1:name}($2) -> $3 {",
+            "\t${0:unimplemented!()}",
+            "}"
+        ],
+        "description": "Insert function with return values"
+    },
+    "if": {
+        "prefix": "if",
+        "body": [
+            "if ${1:condition} {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Insert if loop"
+    },
     "if let Option": {
         "prefix": "if let",
         "body": [
@@ -44,29 +44,29 @@
         ],
         "description": "Unwrap Option with if let"
     },
-	"let": {
-		"prefix": "let",
-		"body": [
-			"let ${1:variable} = ${0:value}"
-		],
-		"description": "Insert variable with value"
-	},
-	"let mut": {
-		"prefix": "let mut",
-		"body": [
-			"let mut ${1:variable} = ${0:value}"
-		],
-		"description": "Insert mutable variable with value"
-	},
-	"loop": {
-		"prefix": "loop",
-		"body": [
-			"loop {",
-			"\t$0",
-			"}"
-		],
-		"description": "Insert infinite loop"
-	},
+    "let": {
+        "prefix": "let",
+        "body": [
+            "let ${1:variable} = ${0:value}"
+        ],
+        "description": "Insert variable with value"
+    },
+    "let mut": {
+        "prefix": "let mut",
+        "body": [
+            "let mut ${1:variable} = ${0:value}"
+        ],
+        "description": "Insert mutable variable with value"
+    },
+    "loop": {
+        "prefix": "loop",
+        "body": [
+            "loop {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Insert infinite loop"
+    },
     "macro_rules": {
         "prefix": "macro_rules",
         "body": [
@@ -78,24 +78,24 @@
         ],
         "description": "Insert macro_rules!"
     },
-	"main": {
-		"prefix": "main",
-		"body": [
-			"fn main() {",
-			"\t${0:unimplemented!()}",
-			"}"
-		],
-		"description": "Insert main function"
-	},
-	"match": {
-		"prefix": "match",
-		"body": [
-			"match $1 {",
-			"\t$0",
-			"}"
-		],
-		"description": "Insert match expression"
-	},
+    "main": {
+        "prefix": "main",
+        "body": [
+            "fn main() {",
+            "\t${0:unimplemented!()}",
+            "}"
+        ],
+        "description": "Insert main function"
+    },
+    "match": {
+        "prefix": "match",
+        "body": [
+            "match $1 {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Insert match expression"
+    },
     "println": {
         "prefix": "println",
         "body": [
@@ -135,13 +135,13 @@
         ],
         "description": "Insert unreachable!"
     },
-	"while": {
-		"prefix": "while",
-		"body": [
-			"while ${1:condition} {",
-			"\t$0",
-			"}"
-		],
-		"description": "Insert while loop"
-	}
+    "while": {
+        "prefix": "while",
+        "body": [
+            "while ${1:condition} {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Insert while loop"
+    }
 }

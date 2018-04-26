@@ -180,7 +180,6 @@ async function startLanguageClient(context: ExtensionContext) {
 
     const promise = progressCounter();
 
-
     const disposable = lc.start();
     context.subscriptions.push(disposable);
 
@@ -189,6 +188,8 @@ async function startLanguageClient(context: ExtensionContext) {
 
 export function deactivate(): Promise<void> {
     deactivateTaskProvider();
+
+    lc.stop();
 
     return Promise.resolve();
 }

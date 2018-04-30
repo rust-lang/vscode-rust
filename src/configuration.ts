@@ -60,7 +60,7 @@ export class RLSConfiguration {
         // the depreacted `rls.path` setting.
         const rlsPath = configuration.get('rls.path', null);
         if (rlsPath) {
-            console.warn("`rls.path` has been deprecated; prefer `rust-client.rlsPath`")
+            console.warn('`rls.path` has been deprecated; prefer `rust-client.rlsPath`');
         }
         this.rlsPath = configuration.get('rust-client.rlsPath', null);
         if (!this.rlsPath) {

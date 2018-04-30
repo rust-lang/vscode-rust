@@ -1,7 +1,13 @@
-### Unreleased
+### 0.4.2 - 2018-04-29
 
+* Added `rust-client.rlsPath` setting for easier RLS development and debugging
+  (and deprecated the `rls.path` setting)
 * Bug fixes for race conditions.
 * Increased the default `rust.wait_to_build` time.
+* Updated LS client
+* Added `cargo bench` task
+* Added `rust.target_dir` and `rust.all_targets` settings
+
 
 ### 0.4.0 - 2018-03-04
 

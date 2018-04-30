@@ -37,8 +37,7 @@ export class RLSConfiguration {
     public readonly channel: string;
     public readonly componentName: string;
     /**
-     * Hidden option that can be specified via `"rls.path"` key (e.g. to `/usr/bin/rls`). If
-     * specified, RLS will be spawned by executing a file at the given path.
+     * If specified, RLS will be spawned by executing a file at the given path.
      */
     public readonly rlsPath: string | null;
 
@@ -57,8 +56,16 @@ export class RLSConfiguration {
         this.channel = RLSConfiguration.readChannel(this.rustupPath, configuration);
         this.componentName = configuration.get('rust-client.rls-name', 'rls');
 
-        // Hidden options that are not exposed to the user
-        this.rlsPath = configuration.get('rls.path', null);
+        // Path to the rls. Prefer `rust-client.rlsPath` if present, otherwise consider
+        // the depreacted `rls.path` setting.
+        const rlsPath = configuration.get('rls.path', null);
+        if (rlsPath) {
+            console.warn("`rls.path` has been deprecated; prefer `rust-client.rlsPath`")
+        }
+        this.rlsPath = configuration.get('rust-client.rlsPath', null);
+        if (!this.rlsPath) {
+            this.rlsPath = rlsPath;
+        }
     }
 
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {

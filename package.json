@@ -148,6 +148,14 @@
                     "default": "rustup",
                     "description": "Path to rustup executable"
                 },
+                "rust-client.rlsPath": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "Path to rls executable (only required for rls developers)"
+                },
                 "rust-client.revealOutputChannelOn": {
                     "type": "string",
                     "enum": [

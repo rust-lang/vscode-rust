@@ -27,10 +27,12 @@ from https://www.rustup.rs/.
 ### Via Source
 
 Check out the RLS source code, following the [directions](https://github.com/rust-lang-nursery/rls/blob/master/contributing.md). 
-Point the `rls.path` setting at the RLS executable (e.g.,
+Point the `rust-client.rlsPath` setting at the RLS executable (e.g.,
 `/rls/target/release/rls`). Note that you must include the name of the
 executable, not just the path.
 
+Note that this used to be possible via `rls.path` which is deprecated and `rls.root`
+which has been removed.
 
 ## Logging
 

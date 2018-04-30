@@ -38,7 +38,7 @@ which has been removed.
 
 You can log to the output panel in VSCode by setting `rust-client.revealOutputChannelOn` to
 `info`. You can log to a file in the project directory by setting `rust-client.logToFile`
-to `true`.
+to `true`. You won't see much logging unless you modify your RLS.
 
 
 ## Installing in VSCode

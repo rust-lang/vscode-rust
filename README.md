@@ -17,16 +17,18 @@ Adds language support for Rust to Visual Studio Code. Supports:
 Rust support is powered by the [Rust Language Server](https://github.com/rust-lang-nursery/rls)
 (RLS). If you don't have it installed, the extension will install the it for you.
 
-This extension is built and maintained by the RLS team, part of the
-[Rust Developer Tools team](https://www.rust-lang.org/en-US/team.html#Dev-tools-team).
+This extension is built and maintained by the RLS team, part of the Rust
+[IDEs and editors team](https://www.rust-lang.org/en-US/team.html#Dev-tools-team).
 It is the reference client implementation for the RLS. Our focus is on providing
 a stable, high quality extension that makes best use of the RLS. We aim to
 support as many features as possible, but our priority is supporting the
 essential features as well as possible.
 
 For support, please file an [issue on the repo](https://github.com/rust-lang-nursery/rls-vscode/issues/new)
-or talk to us in #rust-dev-tools on IRC ([Mozilla servers](https://wiki.mozilla.org/IRC)).
-There is also some [troubleshooting and debugging](https://github.com/rust-lang-nursery/rls/blob/master/debugging.md) advice.
+or talk to us [on Gitter](https://gitter.im/rust-lang/IDEs) or in #rust-dev-tools
+on IRC ([Mozilla servers](https://wiki.mozilla.org/IRC)). There is also some
+[troubleshooting and debugging](https://github.com/rust-lang-nursery/rls/blob/master/debugging.md)
+advice.
 
 Contributing code, tests, documentation, and bug reports is appreciated! For
 more details on building and debugging, etc., see [contributing.md](contributing.md).
@@ -54,12 +56,12 @@ options have names which start with `rust.`. You can find the settings under
 Some highlights:
 
 * `rust.show_warnings` - set to false to silence warnings in the editor.
+* `rust.all_targets` - build and index code for all targets (i.e., integration tests, examples, and benches)
 * `rust.build_lib` - if you have both a binary and library in your crate, set to
-  true to build the library.
+  true to build only the library.
 * `rust.build_bin` - if you have multiple binaries, you can specify which to build
   using this option.
 * `rust.cfg_test` - build and index test code (i.e., code with `#[cfg(test)]`/`#[test]`)
-* `rust.all_targets` - build and index code for all targets (i.e., integration tests, examples, and benches)
 
 
 ## Features

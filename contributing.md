@@ -27,14 +27,8 @@ from https://www.rustup.rs/.
 ### Via Source
 
 Check out the RLS source code, following the [directions](https://github.com/rust-lang-nursery/rls/blob/master/contributing.md). 
-For the plugin to find the RLS, set the `rls.root` setting to the
-root of your rls checkout (e.g., `/Source/rls`):
-
-
-### Via an executable
-
-Similar to above, but use the `rls.path` and point it at the RLS executable
-(e.g., `/rls/target/release/rls`). Note that you must include the name of the
+Point the `rls.path` setting at the RLS executable (e.g.,
+`/rls/target/release/rls`). Note that you must include the name of the
 executable, not just the path.
 
 

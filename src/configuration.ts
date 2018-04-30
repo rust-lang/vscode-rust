@@ -41,12 +41,6 @@ export class RLSConfiguration {
      * specified, RLS will be spawned by executing a file at the given path.
      */
     public readonly rlsPath: string | null;
-    /**
-     * Hidden option that can be specified via `"rls.root"` key (e.g. to `/home/<user>/rls/repo`).
-     * If specified, RLS will be spawned by executing `cargo run --release` under a given working
-     * directory.
-     */
-    public readonly rlsRoot: string | null;
 
     public static loadFromWorkspace(): RLSConfiguration {
         const configuration = workspace.getConfiguration();
@@ -65,7 +59,6 @@ export class RLSConfiguration {
 
         // Hidden options that are not exposed to the user
         this.rlsPath = configuration.get('rls.path', null);
-        this.rlsRoot = configuration.get('rls.root', null);
     }
 
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {

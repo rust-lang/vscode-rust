@@ -81,20 +81,12 @@ async function makeRlsEnv(setLibPath = false): Promise<any> {
 async function makeRlsProcess(): Promise<child_process.ChildProcess> {
     // Allow to override how RLS is started up.
     const rls_path = CONFIGURATION.rlsPath;
-    const rls_root = CONFIGURATION.rlsRoot;
 
     let childProcessPromise: Promise<child_process.ChildProcess>;
     if (rls_path) {
         const env = await makeRlsEnv(true);
         console.info('running ' + rls_path);
         childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
-    } else if (rls_root) {
-        const env = await makeRlsEnv();
-        console.info('running `cargo run` in ' + rls_root);
-        childProcessPromise = Promise.resolve(child_process.spawn(
-            CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'cargo', 'run', '--release'],
-            { cwd: rls_root, env })
-        );
     } else {
         const env = await makeRlsEnv();
         console.info('running with rustup');

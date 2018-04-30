@@ -13,7 +13,7 @@
 import * as child_process from 'child_process';
 import { window, workspace } from 'vscode';
 
-import { execChildProcess } from './utils/child_process';
+import { execChildProcess, spawnChildProcess } from './utils/child_process';
 import { startSpinner, stopSpinner } from './spinner';
 import { CONFIGURATION } from './extension';
 
@@ -78,9 +78,16 @@ async function hasToolchain(): Promise<boolean> {
 async function tryToInstallToolchain(): Promise<void> {
     startSpinner('RLS', 'Installing toolchain…');
     try {
-        const { stdout, stderr } = await execChildProcess(CONFIGURATION.rustupPath + ' toolchain install ' + CONFIGURATION.channel);
-        console.log(stdout);
-        console.log(stderr);
+        const channel = window.createOutputChannel('Rustup');
+        channel.show();
+        // TODO: See if I need to split this into the path and the arguments
+        // TODO: Consider reporting error lines to the Problems pane?
+        await spawnChildProcess(
+            CONFIGURATION.rustupPath + ' toolchain install ' + CONFIGURATION.channel,
+            stdOut => channel.append(stdOut),
+            stdErr => channel.append(stdErr)
+        );
+
         stopSpinner(CONFIGURATION.channel + ' toolchain installed successfully');
     }
     catch (e) {

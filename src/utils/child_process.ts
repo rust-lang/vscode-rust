@@ -41,6 +41,15 @@ export async function execChildProcess(command: string): Promise<ExecChildProces
     return r;
 }
 
+export async function spawnChildProcess(command: string, onStdOut: (data: string) => void, onStdErr: (data: string) => void): Promise<number> {
+    const r: Promise<number> = new Promise((resolve, reject) => {
+        const process = child_process.spawn(command, []);
+        process.stdout.on('data', onStdOut);
+        process.stderr.on('data', onStdErr);
+        process.on('exit', code => code !== 0 ? reject : resolve);
+    });
+    return r;
+}
 
 export async function execFile(command: string, args: string[], options: child_process.ExecFileOptions): Promise<ExecChildProcessResult> {
     return new Promise<ExecChildProcessResult>((resolve, reject) => {

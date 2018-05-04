@@ -18,10 +18,14 @@ import { activateTaskProvider, deactivateTaskProvider } from './tasks';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 
-import { commands, ExtensionContext, IndentAction, languages, TextEditor,
-    TextEditorEdit, window, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, Location, NotificationType,
-    ServerOptions } from 'vscode-languageclient';
+import {
+    commands, ExtensionContext, IndentAction, languages, TextEditor,
+    TextEditorEdit, window, workspace
+} from 'vscode';
+import {
+    LanguageClient, LanguageClientOptions, Location, NotificationType,
+    ServerOptions
+} from 'vscode-languageclient';
 import { execFile, ExecChildProcessResult } from './utils/child_process';
 
 // FIXME(#233): Don't only rely on lazily initializing it once on startup,
@@ -78,7 +82,7 @@ async function makeRlsEnv(setLibPath = false): Promise<any> {
     return env;
 }
 
-async function makeRlsProcess(): Promise<child_process.ChildProcess> {
+async function makeRlsProcess(context: ExtensionContext): Promise<child_process.ChildProcess> {
     // Allow to override how RLS is started up.
     const rls_path = CONFIGURATION.rlsPath;
 
@@ -90,7 +94,7 @@ async function makeRlsProcess(): Promise<child_process.ChildProcess> {
     } else {
         const env = await makeRlsEnv();
         console.info('running with rustup');
-        childProcessPromise = runRlsViaRustup(env);
+        childProcessPromise = runRlsViaRustup(env, context);
     }
     try {
         const childProcess = await childProcessPromise;
@@ -153,7 +157,7 @@ async function startLanguageClient(context: ExtensionContext) {
 
     const serverOptions: ServerOptions = async () => {
         await autoUpdate();
-        return makeRlsProcess();
+        return makeRlsProcess(context);
     };
     const clientOptions: LanguageClientOptions = {
         // Register the server for Rust files

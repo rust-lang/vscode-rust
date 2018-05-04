@@ -11,7 +11,7 @@
 'use strict';
 
 import * as child_process from 'child_process';
-import { window, workspace } from 'vscode';
+import { window, workspace, ExtensionContext } from 'vscode';
 
 import { execChildProcess, spawnChildProcess } from './utils/child_process';
 import { startSpinner, stopSpinner } from './spinner';
@@ -20,8 +20,8 @@ import { CONFIGURATION } from './extension';
 // This module handles running the RLS via rustup, including checking that rustup
 // is installed and installing any required components/toolchains.
 
-export async function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
-    await ensureToolchain();
+export async function runRlsViaRustup(env: any, context: ExtensionContext): Promise<child_process.ChildProcess> {
+    await ensureToolchain(context);
     await checkForRls();
     return child_process.spawn(CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rls'], { env });
 }
@@ -46,7 +46,7 @@ export async function rustupUpdate() {
 }
 
 // Check for the nightly toolchain (and that rustup exists)
-async function ensureToolchain(): Promise<void> {
+async function ensureToolchain(context: ExtensionContext): Promise<void> {
     const toolchainInstalled = await hasToolchain();
     if (toolchainInstalled) {
         return;
@@ -54,7 +54,7 @@ async function ensureToolchain(): Promise<void> {
 
     const clicked = await window.showInformationMessage(CONFIGURATION.channel + ' toolchain not installed. Install?', 'Yes');
     if (clicked === 'Yes') {
-        await tryToInstallToolchain();
+        await tryToInstallToolchain(context);
     }
     else {
         throw new Error();
@@ -75,19 +75,27 @@ async function hasToolchain(): Promise<boolean> {
     }
 }
 
-async function tryToInstallToolchain(): Promise<void> {
+async function tryToInstallToolchain(context: ExtensionContext): Promise<void> {
     startSpinner('RLS', 'Installing toolchain…');
     try {
-        // TODO: Register this for disposal by passing the `context.subscriptions` array from `activate` all the way up here
         const channel = window.createOutputChannel('Rustup');
+        context.subscriptions.push(channel);
         channel.show();
+
+        // Collect error separately from the output channel as well to display an error message
+        let error = '';
         await spawnChildProcess(
-            // TODO: See if I need to split this into the path and the arguments (for `child_process.spawn`)
-            CONFIGURATION.rustupPath + ' toolchain install ' + CONFIGURATION.channel,
+            CONFIGURATION.rustupPath, ['toolchain install ' + CONFIGURATION.channel],
             stdOut => channel.append(stdOut),
-            // TODO: Display an error message (`window.showErrorMessage`) if we get any data here
-            stdErr => channel.append(stdErr)
+            stdErr => {
+                channel.append(stdErr);
+                error += stdErr;
+            }
         );
+
+        if (error !== '') {
+            window.showErrorMessage(error);
+        }
 
         stopSpinner(CONFIGURATION.channel + ' toolchain installed successfully');
     }

@@ -78,13 +78,14 @@ async function hasToolchain(): Promise<boolean> {
 async function tryToInstallToolchain(): Promise<void> {
     startSpinner('RLS', 'Installing toolchain…');
     try {
+        // TODO: Register this for disposal by passing the `context.subscriptions` array from `activate` all the way up here
         const channel = window.createOutputChannel('Rustup');
         channel.show();
-        // TODO: See if I need to split this into the path and the arguments
-        // TODO: Consider reporting error lines to the Problems pane?
         await spawnChildProcess(
+            // TODO: See if I need to split this into the path and the arguments (for `child_process.spawn`)
             CONFIGURATION.rustupPath + ' toolchain install ' + CONFIGURATION.channel,
             stdOut => channel.append(stdOut),
+            // TODO: Display an error message (`window.showErrorMessage`) if we get any data here
             stdErr => channel.append(stdErr)
         );
 

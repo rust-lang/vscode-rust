@@ -85,11 +85,11 @@ async function tryToInstallToolchain(context: ExtensionContext): Promise<void> {
         // Collect error separately from the output channel as well to display an error message
         let error = '';
         await spawnChildProcess(
-            CONFIGURATION.rustupPath, ['toolchain install ' + CONFIGURATION.channel],
-            stdOut => channel.append(stdOut),
+            CONFIGURATION.rustupPath, ['toolchain', 'install', CONFIGURATION.channel],
+            stdOut => channel.append(String(stdOut)),
             stdErr => {
-                channel.append(stdErr);
-                error += stdErr;
+                channel.append(String(stdErr));
+                error += String(stdErr);
             }
         );
 

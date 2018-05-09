@@ -220,7 +220,7 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Specify to run analysis as if running `cargo check --lib`. Use `null` to auto-detect."
+                    "description": "Specify to run analysis as if running `cargo check --lib`. Use `null` to auto-detect. (unstable)"
                 },
                 "rust.build_bin": {
                     "type": [
@@ -228,12 +228,12 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Specify to run analysis as if running `cargo check --bin <name>`. Use `null` to auto-detect."
+                    "description": "Specify to run analysis as if running `cargo check --bin <name>`. Use `null` to auto-detect. (unstable)"
                 },
                 "rust.cfg_test": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Build cfg(test) code."
+                    "description": "Build cfg(test) code. (unstable)"
                 },
                 "rust.unstable_features": {
                     "type": "boolean",
@@ -295,7 +295,7 @@
                 },
                 "rust.all_targets": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "Checks the project as if you were running cargo check --all-targets (I.e., check all targets and integration tests too)."
                 },
                 "rust.target_dir": {

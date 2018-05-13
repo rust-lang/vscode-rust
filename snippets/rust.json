@@ -1,4 +1,11 @@
 {
+    "extern crate": {
+        "prefix": "extern crate",
+        "body": [
+            "extern crate ${1:name};$0"
+        ],
+        "description": "Insert extern crate"
+    },
     "for": {
         "prefix": "for",
         "body": [

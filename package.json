@@ -303,7 +303,7 @@
                         "string",
                         "null"
                     ],
-                    "default": null,
+                    "default": "rls",
                     "description": "When specified, it places the generated analysis files at the specified target directory. By default it is placed target/rls directory."
                 }
             }

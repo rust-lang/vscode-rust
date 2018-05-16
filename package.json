@@ -174,10 +174,14 @@
                 },
                 "rust-client.channel": {
                     "type": [
-                        "string",
-                        "null"
+                        "string"
                     ],
-                    "default": null,
+                    "enum": [
+                        "stable",
+                        "beta",
+                        "nightly"
+                    ],
+                    "default": "stable",
                     "description": "Rust channel to install RLS from."
                 },
                 "rust-client.rls-name": {

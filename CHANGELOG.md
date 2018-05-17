@@ -1,3 +1,17 @@
+### Unreleased
+
+
+### 0.4.4 - 2018-05-17
+
+* Update the VSCode client library dependency
+* Fix the target directory
+
+### 0.4.3 - 2018-05-14
+
+* Set the target directory default to work around a but in the stable RLS
+* `extern crate` snippet
+* remove non-workspace mode
+
 ### 0.4.2 - 2018-04-29
 
 * Added `rust-client.rlsPath` setting for easier RLS development and debugging

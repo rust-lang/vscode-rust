@@ -87,6 +87,7 @@ the following snippets:
 * `unimplemented`
 * `unreachable`
 * `println`
+* `assert` and `assert_eq`
 * `macro_rules` - declare a macro
 * `if let Option` - an `if let` statement for executing code only in the `Some`
   case.

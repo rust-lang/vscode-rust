@@ -22,25 +22,24 @@ export interface ExecChildProcessResult<TOut = string> {
     readonly stderr: TOut;
 }
 
-export async function execChildProcess(command: string): Promise<ExecChildProcessResult> {
-    const r: Promise<ExecChildProcessResult> = new Promise((resolve, reject) => {
-        child_process.exec(command, {
-            encoding: 'utf8',
-        }, (error, stdout, stderr) => {
-            if (!!error) {
-                reject(error);
-                return;
-            }
+// export async function execChildProcess(command: string): Promise<ExecChildProcessResult> {
+//     const r: Promise<ExecChildProcessResult> = new Promise((resolve, reject) => {
+//         child_process.exec(command, {
+//             encoding: 'utf8',
+//         }, (error, stdout, stderr) => {
+//             if (!!error) {
+//                 reject(error);
+//                 return;
+//             }
 
-            resolve({
-                stdout,
-                stderr,
-            });
-        });
-    });
-    return r;
-}
-
+//             resolve({
+//                 stdout,
+//                 stderr,
+//             });
+//         });
+//     });
+//     return r;
+// }
 
 export async function execFile(command: string, args: string[], options: child_process.ExecFileOptions): Promise<ExecChildProcessResult> {
     return new Promise<ExecChildProcessResult>((resolve, reject) => {
@@ -60,4 +59,22 @@ export async function execFile(command: string, args: string[], options: child_p
         });
 
     });
+}
+
+export async function run_rustup(rustup: string, args: string[], options: child_process.ExecFileOptions, wsl?: string): Promise<ExecChildProcessResult> {
+    let command: string = rustup;
+    if (wsl) {
+        command = wsl
+        args.unshift(rustup);
+    }
+    return execFile(command, args, options);
+}
+
+export function run_rustup_process(rustup: string, args: string[], options: child_process.ExecFileOptions, wsl?: string): child_process.ChildProcess {
+    let command: string = rustup;
+    if (wsl) {
+        command = wsl
+        args.unshift(rustup);
+    }
+    return child_process.spawn(command, args, options);
 }

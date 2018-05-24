@@ -148,6 +148,11 @@
                     "default": "rustup",
                     "description": "Path to rustup executable"
                 },
+                "rust-client.wslPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to WSL executable"
+                },
                 "rust-client.rlsPath": {
                     "type": [
                         "string",

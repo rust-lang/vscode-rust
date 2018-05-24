@@ -22,7 +22,7 @@ import { commands, ExtensionContext, IndentAction, languages, TextEditor,
     TextEditorEdit, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions } from 'vscode-languageclient';
-import { execFile, ExecChildProcessResult } from './utils/child_process';
+import { ExecChildProcessResult, run_rustup } from './utils/child_process';
 
 // FIXME(#233): Don't only rely on lazily initializing it once on startup,
 // handle possible `rust-client.*` value changes while extension is running
@@ -31,8 +31,8 @@ export const CONFIGURATION = RLSConfiguration.loadFromWorkspace();
 async function getSysroot(env: Object): Promise<string> {
     let output: ExecChildProcessResult;
     try {
-        output = await execFile(
-            CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rustc', '--print', 'sysroot'], { env }
+        output = await run_rustup(
+            CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rustc', '--print', 'sysroot'], { env }, CONFIGURATION.wslPath
         );
     } catch (e) {
         throw new Error(`Error getting sysroot from \`rustc\`: ${e}`);

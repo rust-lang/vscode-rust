@@ -174,15 +174,16 @@
                 },
                 "rust-client.channel": {
                     "type": [
-                        "string"
+                        "string",
+                        null
                     ],
                     "enum": [
                         "stable",
                         "beta",
                         "nightly"
                     ],
-                    "default": "stable",
-                    "description": "Rust channel to install RLS from."
+                    "default": null,
+                    "description": "Rust channel to install RLS from. By default it will use the same channel as your currently open project"
                 },
                 "rust-client.rls-name": {
                     "type": "string",

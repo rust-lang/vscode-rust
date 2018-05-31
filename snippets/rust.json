@@ -32,7 +32,7 @@
     "println": {
         "prefix": "println",
         "body": [
-            "println!(\"${1:{\\}}\", $0)"
+            "println!(\"${1:{\\}}\", $2)$0"
         ],
         "description": "Insert println!"
     },

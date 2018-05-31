@@ -37,19 +37,19 @@
         "description": "Insert println!"
     },
     "assert": {
-		"prefix": "assert",
-		"body": [
-			"assert!($1)$0"
-		],
-		"description": "Insert assert!"
-	},
-	"assert_eq": {
-		"prefix": "assert_eq",
-		"body": [
-			"assert_eq!($1, $2)$0"
-		],
-		"description": "Insert assert_eq!"
-	},
+        "prefix": "assert",
+        "body": [
+            "assert!($1)$0"
+        ],
+        "description": "Insert assert!"
+    },
+    "assert_eq": {
+        "prefix": "assert_eq",
+        "body": [
+            "assert_eq!($1, $2)$0"
+        ],
+        "description": "Insert assert_eq!"
+    },
     "macro_rules": {
         "prefix": "macro_rules",
         "body": [

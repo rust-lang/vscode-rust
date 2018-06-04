@@ -2,7 +2,7 @@
     "name": "rust",
     "displayName": "Rust (rls)",
     "description": "Rust language support - code completion, Intellisense, refactoring, reformatting, errors, snippets. A client for the Rust Language Server, built by the RLS team.",
-    "version": "0.4.4",
+    "version": "0.4.5",
     "publisher": "rust-lang",
     "icon": "rust-icon.png",
     "galleryBanner": {
@@ -309,7 +309,7 @@
                         "string",
                         "null"
                     ],
-                    "default": "target/rls",
+                    "default": null,
                     "description": "When specified, it places the generated analysis files at the specified target directory. By default it is placed target/rls directory."
                 }
             }

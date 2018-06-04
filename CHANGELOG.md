@@ -1,5 +1,8 @@
 ### Unreleased
 
+### 0.4.5 - 2018-06-03
+
+* Undo the change to target directory default (unnecessary with Rust 1.26.1)
 
 ### 0.4.4 - 2018-05-17
 

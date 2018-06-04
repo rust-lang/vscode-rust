@@ -65,7 +65,6 @@ async function makeRlsEnv(setLibPath = false): Promise<any> {
         }
     }
 
-
     console.info(`Setting sysroot to`, sysroot);
     if (!process.env.RUST_SRC_PATH) {
         env.RUST_SRC_PATH = sysroot + '/lib/rustlib/src/rust/src';

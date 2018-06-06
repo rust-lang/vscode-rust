@@ -34,10 +34,10 @@ export async function activate(context: ExtensionContext) {
 }
 
 export function deactivate(): Promise<void> {
-    let promises: Thenable<void>[] = [];
-	for (let ws of workspaces.values()) {
-		promises.push(ws.stop());
-	}
+    const promises: Thenable<void>[] = [];
+    for (const ws of workspaces.values()) {
+        promises.push(ws.stop());
+    }
     return Promise.all(promises).then(() => undefined);
 }
 
@@ -47,7 +47,7 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
         return;
     }
 
-    let uri = document.uri;
+    const uri = document.uri;
     let folder = workspace.getWorkspaceFolder(uri);
     if (!folder) {
         window.showWarningMessage('Startup error: the RLS can only operate on a folder, not a single file');
@@ -57,7 +57,7 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
     folder = getOuterMostWorkspaceFolder(folder);
 
     if (!workspaces.has(folder.uri.toString())) {
-        let workspace = new Workspace(folder);
+        const workspace = new Workspace(folder);
         workspaces.set(folder.uri.toString(), workspace);
         workspace.start(context);
     }
@@ -66,34 +66,34 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
 let _sortedWorkspaceFolders: string[] | undefined;
 
 function sortedWorkspaceFolders(): string[] {
-	if (!_sortedWorkspaceFolders && workspace.workspaceFolders) {
-		_sortedWorkspaceFolders = workspace.workspaceFolders.map(folder => {
-			let result = folder.uri.toString();
-			if (result.charAt(result.length - 1) !== '/') {
-				result = result + '/';
-			}
-			return result;
-		}).sort(
-			(a, b) => {
-				return a.length - b.length;
-			}
-		);
-	}
-	return _sortedWorkspaceFolders || [];
+    if (!_sortedWorkspaceFolders && workspace.workspaceFolders) {
+        _sortedWorkspaceFolders = workspace.workspaceFolders.map(folder => {
+            let result = folder.uri.toString();
+            if (result.charAt(result.length - 1) !== '/') {
+                result = result + '/';
+            }
+            return result;
+        }).sort(
+            (a, b) => {
+                return a.length - b.length;
+            }
+        );
+    }
+    return _sortedWorkspaceFolders || [];
 }
 
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
-	let sorted = sortedWorkspaceFolders();
-	for (let element of sorted) {
-		let uri = folder.uri.toString();
-		if (uri.charAt(uri.length - 1) !== '/') {
-			uri = uri + '/';
-		}
-		if (uri.startsWith(element)) {
-			return workspace.getWorkspaceFolder(Uri.parse(element))!;
-		}
-	}
-	return folder;
+    const sorted = sortedWorkspaceFolders();
+    for (const element of sorted) {
+        let uri = folder.uri.toString();
+        if (uri.charAt(uri.length - 1) !== '/') {
+            uri = uri + '/';
+        }
+        if (uri.startsWith(element)) {
+            return workspace.getWorkspaceFolder(Uri.parse(element)) || folder;
+        }
+    }
+    return folder;
 }
 
 function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent, context: ExtensionContext): void {
@@ -106,15 +106,15 @@ function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent, context: Exte
         }
         for (const f of fs.readdirSync(folder.uri.fsPath)) {
             if (f === 'Cargo.toml') {
-                let workspace = new Workspace(folder);
+                const workspace = new Workspace(folder);
                 workspace.start(context);
                 break;
             }
         }
     }
 
-    for (let folder of e.removed) {
-        let ws = workspaces.get(folder.uri.toString());
+    for (const folder of e.removed) {
+        const ws = workspaces.get(folder.uri.toString());
         if (ws) {
             workspaces.delete(folder.uri.toString());
             ws.stop();
@@ -122,7 +122,7 @@ function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent, context: Exte
     }
 }
 
-let workspaces: Map<string, Workspace> = new Map();
+const workspaces: Map<string, Workspace> = new Map();
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client

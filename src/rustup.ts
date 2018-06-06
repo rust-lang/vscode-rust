@@ -11,26 +11,37 @@
 'use strict';
 
 import * as child_process from 'child_process';
-import { window, workspace } from 'vscode';
+import { window } from 'vscode';
 
 import { execChildProcess } from './utils/child_process';
 import { startSpinner, stopSpinner } from './spinner';
-import { CONFIGURATION } from './extension';
+
+export class RustupConfig {
+    channel: string;
+    path: string;
+    componentName: string;
+
+    constructor(channel: string, path: string, componentName: string) {
+        this.channel = channel;
+        this.path = path;
+        this.componentName = componentName;
+    }
+}
 
 // This module handles running the RLS via rustup, including checking that rustup
 // is installed and installing any required components/toolchains.
 
-export async function runRlsViaRustup(env: any): Promise<child_process.ChildProcess> {
-    await ensureToolchain();
-    await checkForRls();
-    return child_process.spawn(CONFIGURATION.rustupPath, ['run', CONFIGURATION.channel, 'rls'], { env });
+export async function runRlsViaRustup(env: any, config: RustupConfig): Promise<child_process.ChildProcess> {
+    await ensureToolchain(config);
+    await checkForRls(config);
+    return child_process.spawn(config.path, ['run', config.channel, 'rls'], { env });
 }
 
-export async function rustupUpdate() {
+export async function rustupUpdate(config: RustupConfig) {
     startSpinner('RLS', 'Updating…');
 
     try {
-        const { stdout } = await execChildProcess(CONFIGURATION.rustupPath + ' update');
+        const { stdout } = await execChildProcess(config.path + ' update');
         // This test is imperfect because if the user has multiple toolchains installed, they
         // might have one updated and one unchanged. But I don't want to go too far down the
         // rabbit hole of parsing rustup's output.
@@ -46,25 +57,25 @@ export async function rustupUpdate() {
 }
 
 // Check for the nightly toolchain (and that rustup exists)
-async function ensureToolchain(): Promise<void> {
-    const toolchainInstalled = await hasToolchain();
+async function ensureToolchain(config: RustupConfig): Promise<void> {
+    const toolchainInstalled = await hasToolchain(config);
     if (toolchainInstalled) {
         return;
     }
 
-    const clicked = await window.showInformationMessage(CONFIGURATION.channel + ' toolchain not installed. Install?', 'Yes');
+    const clicked = await window.showInformationMessage(config.channel + ' toolchain not installed. Install?', 'Yes');
     if (clicked === 'Yes') {
-        await tryToInstallToolchain();
+        await tryToInstallToolchain(config);
     }
     else {
         throw new Error();
     }
 }
 
-async function hasToolchain(): Promise<boolean> {
+async function hasToolchain(config: RustupConfig): Promise<boolean> {
     try {
-        const { stdout } = await execChildProcess(CONFIGURATION.rustupPath + ' toolchain list');
-        const hasToolchain = stdout.indexOf(CONFIGURATION.channel) > -1;
+        const { stdout } = await execChildProcess(config.path + ' toolchain list');
+        const hasToolchain = stdout.indexOf(config.channel) > -1;
         return hasToolchain;
     }
     catch (e) {
@@ -75,25 +86,25 @@ async function hasToolchain(): Promise<boolean> {
     }
 }
 
-async function tryToInstallToolchain(): Promise<void> {
+async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
     startSpinner('RLS', 'Installing toolchain…');
     try {
-        const { stdout, stderr } = await execChildProcess(CONFIGURATION.rustupPath + ' toolchain install ' + CONFIGURATION.channel);
+        const { stdout, stderr } = await execChildProcess(config.path + ' toolchain install ' + config.channel);
         console.log(stdout);
         console.log(stderr);
-        stopSpinner(CONFIGURATION.channel + ' toolchain installed successfully');
+        stopSpinner(config.channel + ' toolchain installed successfully');
     }
     catch (e) {
         console.log(e);
-        window.showErrorMessage('Could not install ' + CONFIGURATION.channel + ' toolchain');
-        stopSpinner('Could not install ' + CONFIGURATION.channel + ' toolchain');
+        window.showErrorMessage('Could not install ' + config.channel + ' toolchain');
+        stopSpinner('Could not install ' + config.channel + ' toolchain');
         throw e;
     }
 }
 
 // Check for rls components.
-async function checkForRls(): Promise<void> {
-    const hasRls = await hasRlsComponents();
+async function checkForRls(config: RustupConfig): Promise<void> {
+    const hasRls = await hasRlsComponents(config);
     if (hasRls) {
         return;
     }
@@ -101,17 +112,17 @@ async function checkForRls(): Promise<void> {
     // missing component
     const clicked = await Promise.resolve(window.showInformationMessage('RLS not installed. Install?', 'Yes'));
     if (clicked === 'Yes') {
-        await installRls();
+        await installRls(config);
     }
     else {
         throw new Error();
     }
 }
 
-async function hasRlsComponents(): Promise<boolean> {
+async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
     try {
-        const { stdout } = await execChildProcess(CONFIGURATION.rustupPath + ' component list --toolchain ' + CONFIGURATION.channel);
-        const componentName = new RegExp('^' + CONFIGURATION.componentName + '.* \\((default|installed)\\)$', 'm');
+        const { stdout } = await execChildProcess(config.path + ' component list --toolchain ' + config.channel);
+        const componentName = new RegExp('^' + config.componentName + '.* \\((default|installed)\\)$', 'm');
         if (
             stdout.search(componentName) === -1 ||
             stdout.search(/^rust-analysis.* \((default|installed)\)$/m) === -1 ||
@@ -130,12 +141,12 @@ async function hasRlsComponents(): Promise<boolean> {
     }
 }
 
-async function installRls(): Promise<void> {
+async function installRls(config: RustupConfig): Promise<void> {
     startSpinner('RLS', 'Installing components…');
 
     const tryFn: (component: string) => Promise<(Error | null)> = async (component: string) => {
         try {
-            const { stdout, stderr, } = await execChildProcess(CONFIGURATION.rustupPath + ` component add ${component} --toolchain ` + CONFIGURATION.channel);
+            const { stdout, stderr, } = await execChildProcess(config.path + ` component add ${component} --toolchain ` + config.channel);
             console.log(stdout);
             console.log(stderr);
             return null;
@@ -166,7 +177,7 @@ async function installRls(): Promise<void> {
     console.log('install rls');
 
     {
-        const e = await tryFn(CONFIGURATION.componentName);
+        const e = await tryFn(config.componentName);
         if (e !== null) {
             stopSpinner('Could not install RLS');
             throw e;
@@ -204,11 +215,11 @@ export function parseActiveToolchain(rustupOutput: string): string {
  * Returns active (including local overrides) toolchain, as specified by rustup.
  * May throw if rustup at specified path can't be executed.
  */
-export function getActiveChannel(rustupPath: string, cwd = workspace.rootPath): string {
+export function getActiveChannel(rustupPath: string, wsPath: string): string {
     // rustup info might differ depending on where it's executed
     // (e.g. when a toolchain is locally overriden), so executing it
     // under our current workspace root should give us close enough result
-    const output = child_process.execSync(`${rustupPath} show`, { cwd: cwd }).toString();
+    const output = child_process.execSync(`${rustupPath} show`, { cwd: wsPath }).toString();
 
     const activeChannel = parseActiveToolchain(output);
     console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);

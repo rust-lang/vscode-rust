@@ -197,7 +197,8 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "--sysroot"
+                    "description": "--sysroot",
+                    "scope": "resource"
                 },
                 "rust.target": {
                     "type": [
@@ -205,7 +206,8 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "--target"
+                    "description": "--target",
+                    "scope": "resource"
                 },
                 "rust.rustflags": {
                     "type": [
@@ -213,12 +215,14 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Flags added to RUSTFLAGS."
+                    "description": "Flags added to RUSTFLAGS.",
+                    "scope": "resource"
                 },
                 "rust.clear_env_rust_log": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Clear the RUST_LOG environment variable before running rustc or cargo."
+                    "description": "Clear the RUST_LOG environment variable before running rustc or cargo.",
+                    "scope": "resource"
                 },
                 "rust.build_lib": {
                     "type": [
@@ -226,7 +230,8 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Specify to run analysis as if running `cargo check --lib`. Use `null` to auto-detect. (unstable)"
+                    "description": "Specify to run analysis as if running `cargo check --lib`. Use `null` to auto-detect. (unstable)",
+                    "scope": "resource"
                 },
                 "rust.build_bin": {
                     "type": [
@@ -234,62 +239,74 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Specify to run analysis as if running `cargo check --bin <name>`. Use `null` to auto-detect. (unstable)"
+                    "description": "Specify to run analysis as if running `cargo check --bin <name>`. Use `null` to auto-detect. (unstable)",
+                    "scope": "resource"
                 },
                 "rust.cfg_test": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Build cfg(test) code. (unstable)"
+                    "description": "Build cfg(test) code. (unstable)",
+                    "scope": "resource"
                 },
                 "rust.unstable_features": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable unstable features."
+                    "description": "Enable unstable features.",
+                    "scope": "resource"
                 },
                 "rust.wait_to_build": {
                     "type": "number",
                     "default": 1500,
-                    "description": "Time in milliseconds between receiving a change notification and starting build."
+                    "description": "Time in milliseconds between receiving a change notification and starting build.",
+                    "scope": "resource"
                 },
                 "rust.show_warnings": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Show warnings."
-                },
-                "rust.goto_def_racer_fallback": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Use racer as a fallback for goto def."
+                    "description": "Show warnings.",
+                    "scope": "resource"
                 },
                 "rust.use_crate_blacklist": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Don't index crates on the crate blacklist."
+                    "description": "Don't index crates on the crate blacklist.",
+                    "scope": "resource"
                 },
                 "rust.build_on_save": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Only index the project when a file is saved and not on change."
+                    "description": "Only index the project when a file is saved and not on change.",
+                    "scope": "resource"
                 },
                 "rust.features": {
                     "type": "array",
                     "default": [],
-                    "description": "A list of Cargo features to enable."
+                    "description": "A list of Cargo features to enable.",
+                    "scope": "resource"
                 },
                 "rust.all_features": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable all Cargo features."
+                    "description": "Enable all Cargo features.",
+                    "scope": "resource"
                 },
                 "rust.no_default_features": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Do not enable default Cargo features."
+                    "description": "Do not enable default Cargo features.",
+                    "scope": "resource"
+                },
+                "rust.goto_def_racer_fallback": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use racer as a fallback for goto def.",
+                    "scope": "resource"
                 },
                 "rust.racer_completion": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Enables code completion using racer."
+                    "description": "Enables code completion using racer.",
+                    "scope": "resource"
                 },
                 "rust.jobs": {
                     "type": [
@@ -297,12 +314,14 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Number of Cargo jobs to be run in parallel."
+                    "description": "Number of Cargo jobs to be run in parallel.",
+                    "scope": "resource"
                 },
                 "rust.all_targets": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Checks the project as if you were running cargo check --all-targets (I.e., check all targets and integration tests too)."
+                    "description": "Checks the project as if you were running cargo check --all-targets (I.e., check all targets and integration tests too).",
+                    "scope": "resource"
                 },
                 "rust.target_dir": {
                     "type": [
@@ -310,7 +329,8 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "When specified, it places the generated analysis files at the specified target directory. By default it is placed target/rls directory."
+                    "description": "When specified, it places the generated analysis files at the specified target directory. By default it is placed target/rls directory.",
+                    "scope": "resource"
                 }
             }
         }

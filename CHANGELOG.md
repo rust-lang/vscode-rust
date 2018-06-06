@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Support VSCode workspaces
+
 ### 0.4.5 - 2018-06-03
 
 * Undo the change to target directory default (unnecessary with Rust 1.26.1)

@@ -13,7 +13,7 @@
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
 
-import { getActiveChannel } from './rustup';
+import { getActiveChannel, RustupConfig } from './rustup';
 
 function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn {
     switch (value && value.toLowerCase()) {
@@ -41,19 +41,18 @@ export class RLSConfiguration {
      */
     public readonly rlsPath: string | null;
 
-    public static loadFromWorkspace(): RLSConfiguration {
+    public static loadFromWorkspace(wsPath: string): RLSConfiguration {
         const configuration = workspace.getConfiguration();
-
-        return new RLSConfiguration(configuration);
+        return new RLSConfiguration(configuration, wsPath);
     }
 
-    private constructor(configuration: WorkspaceConfiguration) {
+    private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
         this.rustupPath = configuration.get('rust-client.rustupPath', 'rustup');
         this.logToFile = configuration.get<boolean>('rust-client.logToFile', false);
         this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
         this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);
 
-        this.channel = RLSConfiguration.readChannel(this.rustupPath, configuration);
+        this.channel = RLSConfiguration.readChannel(this.rustupPath, configuration, wsPath);
         this.componentName = configuration.get('rust-client.rls-name', 'rls');
 
         // Path to the rls. Prefer `rust-client.rlsPath` if present, otherwise consider
@@ -68,6 +67,10 @@ export class RLSConfiguration {
         }
     }
 
+    public rustupConfig(): RustupConfig {
+        return new RustupConfig(this.channel, this.rustupPath, this.componentName);
+    }
+
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {
         const setting = configuration.get<string>('rust-client.revealOutputChannelOn', 'never');
         return fromStringToRevealOutputChannelOn(setting);
@@ -78,13 +81,13 @@ export class RLSConfiguration {
      * falls back on active toolchain specified by rustup (at `rustupPath`),
      * finally defaulting to `nightly` if all fails.
      */
-    private static readChannel(rustupPath: string, configuration: WorkspaceConfiguration): string {
+    private static readChannel(rustupPath: string, configuration: WorkspaceConfiguration, wsPath: string): string {
         const channel = configuration.get<string | null>('rust-client.channel', null);
         if (channel !== null) {
             return channel;
         } else {
             try {
-                return getActiveChannel(rustupPath);
+                return getActiveChannel(rustupPath, wsPath);
             }
             // rustup might not be installed at the time the configuration is
             // initially loaded, so silently ignore the error and return a default value

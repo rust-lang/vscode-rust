@@ -47,7 +47,8 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "vscode-languageclient": "^4.1.4"
+        "vscode-languageclient": "^4.1.4",
+        "path": "^0.12.0"
     },
     "devDependencies": {
         "@types/mocha": "^2.2.43",
@@ -190,6 +191,11 @@
                     "type": "string",
                     "default": "rls-preview",
                     "description": "Name of the RLS rustup component."
+                },
+                "rust-client.cargoSubdir": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Relative path to Cargo.toml. By default, it is workspace root."
                 },
                 "rust.sysroot": {
                     "type": [

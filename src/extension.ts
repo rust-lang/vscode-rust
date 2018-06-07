@@ -17,9 +17,10 @@ import { activateTaskProvider, deactivateTaskProvider } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
 
 import { commands, ExtensionContext, IndentAction, languages, TextEditor,
-    TextEditorEdit, window, workspace } from 'vscode';
+    TextEditorEdit, window, workspace, Uri } from 'vscode';
 import { LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions } from 'vscode-languageclient';
 import { execFile, ExecChildProcessResult } from './utils/child_process';
@@ -82,14 +83,19 @@ async function makeRlsProcess(): Promise<child_process.ChildProcess> {
     const rls_path = CONFIGURATION.rlsPath;
 
     let childProcessPromise: Promise<child_process.ChildProcess>;
+    const cargoSubdir = workspace.getConfiguration().get('rust-client.cargoSubdir');
+    const cargo_toml_path = workspace.rootPath + ( cargoSubdir ? '/'+cargoSubdir : '');
     if (rls_path) {
         const env = await makeRlsEnv(true);
-        console.info('running ' + rls_path);
-        childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
+        console.info('running ' + rls_path + ' using CWD "'+cargo_toml_path+'"');
+        childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { cwd: cargo_toml_path, env }));
     } else {
         const env = await makeRlsEnv();
-        console.info('running with rustup');
-        childProcessPromise = runRlsViaRustup(env);
+        console.info('running with rustup using CWD "'+cargo_toml_path+'"');
+        const env_2 = {...env, cwd: cargo_toml_path};
+        console.info(env_2);
+        console.info(cargo_toml_path);
+        childProcessPromise = runRlsViaRustup(env_2);
     }
     try {
         const childProcess = await childProcessPromise;
@@ -134,7 +140,7 @@ export async function activate(context: ExtensionContext) {
 }
 
 async function startLanguageClient(context: ExtensionContext) {
-    if (workspace.rootPath === undefined) {
+    if (workspace.rootPath === undefined || !workspace.workspaceFolders) {
         window.showWarningMessage('Startup error: the RLS can only operate on a folder, not a single file');
         return;
     }
@@ -154,6 +160,8 @@ async function startLanguageClient(context: ExtensionContext) {
         await autoUpdate();
         return makeRlsProcess();
     };
+    const cargoSubdir = workspace.getConfiguration().get('rust-client.cargoSubdir');
+    const workspaceFolder = workspace.workspaceFolders[0];
     const clientOptions: LanguageClientOptions = {
         // Register the server for Rust files
         documentSelector: [
@@ -164,6 +172,8 @@ async function startLanguageClient(context: ExtensionContext) {
         // Controls when to focus the channel rather than when to reveal it in the drop-down list
         revealOutputChannelOn: CONFIGURATION.revealOutputChannelOn,
         initializationOptions: { omitInitBuild: true },
+        workspaceFolder: {...workspaceFolder,
+            uri: Uri.parse('file://' + workspace.rootPath + (cargoSubdir ? '/'+cargoSubdir : ''))}
     };
 
     // Create the language client and start the client.
@@ -186,10 +196,34 @@ export function deactivate(): Promise<void> {
 }
 
 async function warnOnMissingCargoToml() {
-    const files = await workspace.findFiles('Cargo.toml');
+    const setting_section = 'rust-client.cargoSubdir';
+    const root_toml_files = await workspace.findFiles('Cargo.toml');
 
-    if (files.length < 1) {
-        window.showWarningMessage('A Cargo.toml file must be at the root of the workspace in order to support all features');
+    if (root_toml_files.length < 1) {
+        const subdir_toml_files = await workspace.findFiles('**/Cargo.toml');
+        const setting_value = workspace.getConfiguration().get(setting_section);
+        if (subdir_toml_files.length < 1) {
+            window.showWarningMessage(`The Cargo.toml file has not been found at
+            the root of the workspace or anywhere else. In order to support all
+            RLS features, some Cargo.toml must be present.`);
+
+        } else if (! setting_value) {
+            const subdir = path.dirname(workspace.asRelativePath(subdir_toml_files[0]));
+            const item_save_to_settings = `Save to '.vscode/settings.json'`;
+            window.showWarningMessage(`A Cargo.toml has been found in the sudirectory '${subdir}/'.
+            Although RLS expects Cargo.toml to be at the root of the workspace,
+            we can set this path using the '${setting_section}' setting in your
+            '.vscode/settings.json'`, ...[item_save_to_settings])
+                .then(v => {
+                    switch (v) {
+                        case item_save_to_settings:
+                            workspace.getConfiguration().update(setting_section, subdir);
+                            break;
+                        default:
+                            break;
+                    }
+                });
+        }
     }
 }
 

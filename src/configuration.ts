@@ -40,6 +40,7 @@ export class RLSConfiguration {
      * If specified, RLS will be spawned by executing a file at the given path.
      */
     public readonly rlsPath: string | null;
+    public readonly cargoSubdir: string | null;
 
     public static loadFromWorkspace(): RLSConfiguration {
         const configuration = workspace.getConfiguration();
@@ -66,6 +67,7 @@ export class RLSConfiguration {
         if (!this.rlsPath) {
             this.rlsPath = rlsPath;
         }
+        this.cargoSubdir = configuration.get('rust-client.cargoSubdir', null);
     }
 
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {

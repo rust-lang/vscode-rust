@@ -64,7 +64,7 @@ export async function execFile(command: string, args: string[], options: child_p
 export async function run_rustup(rustup: string, args: string[], options: child_process.ExecFileOptions, wsl?: string): Promise<ExecChildProcessResult> {
     let command: string = rustup;
     if (wsl) {
-        command = wsl
+        command = wsl;
         args.unshift(rustup);
     }
     return execFile(command, args, options);
@@ -73,7 +73,7 @@ export async function run_rustup(rustup: string, args: string[], options: child_
 export function run_rustup_process(rustup: string, args: string[], options: child_process.ExecFileOptions, wsl?: string): child_process.ChildProcess {
     let command: string = rustup;
     if (wsl) {
-        command = wsl
+        command = wsl;
         args.unshift(rustup);
     }
     return child_process.spawn(command, args, options);

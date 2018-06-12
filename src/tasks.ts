@@ -20,36 +20,24 @@ import {
     ShellExecution,
     ShellExecutionOptions,
     workspace,
+    WorkspaceFolder,
 } from 'vscode';
 
-let taskProvider: Disposable | null = null;
-
-export function activateTaskProvider(): void {
-    if (taskProvider !== null) {
-        console.log('the task provider has been activated');
-        return;
-    }
-
+export function activateTaskProvider(target: WorkspaceFolder): Disposable {
     const provider: TaskProvider = {
         provideTasks: function () {
             // npm or others parse their task definitions. So they need to provide 'autoDetect' feature.
             //  e,g, https://github.com/Microsoft/vscode/blob/de7e216e9ebcad74f918a025fc5fe7bdbe0d75b2/extensions/npm/src/main.ts
             // However, cargo.toml does not support to define a new task like them.
             // So we are not 'autoDetect' feature and the setting for it.
-            return getCargoTasks();
+            return getCargoTasks(target);
         },
         resolveTask(_task: Task): Task | undefined {
             return undefined;
         }
     };
 
-    taskProvider = workspace.registerTaskProvider('rust', provider);
-}
-
-export function deactivateTaskProvider(): void {
-    if (taskProvider !== null) {
-        taskProvider.dispose();
-    }
+    return workspace.registerTaskProvider('rust', provider);
 }
 
 interface CargoTaskDefinition extends TaskDefinition {
@@ -67,32 +55,27 @@ interface TaskConfigItem {
     presentationOptions?: TaskPresentationOptions;
 }
 
-function getCargoTasks(): Array<Task> {
+function getCargoTasks(target: WorkspaceFolder): Array<Task> {
     const taskList = createTaskConfigItem();
 
-    const rootPath = workspace.rootPath;
-    if (rootPath === undefined) {
-        return [];
-    }
-
     const list = taskList.map((def) => {
-        const t = createTask(rootPath, def);
+        const t = createTask(def, target);
         return t;
     });
 
     return list;
 }
 
-function createTask(rootPath: string, { definition, group, presentationOptions, problemMatcher }: TaskConfigItem): Task {
+function createTask({ definition, group, presentationOptions, problemMatcher }: TaskConfigItem, target: WorkspaceFolder): Task {
     const TASK_SOURCE = 'Rust';
 
     const execCmd = `${definition.command} ${definition.args.join(' ')}`;
     const execOption: ShellExecutionOptions = {
-        cwd: rootPath,
+        cwd: target.uri.path,
     };
     const exec = new ShellExecution(execCmd, execOption);
 
-    const t = new Task(definition, definition.label, TASK_SOURCE, exec, problemMatcher);
+    const t = new Task(definition, target, definition.label, TASK_SOURCE, exec, problemMatcher);
 
     if (group !== undefined) {
         t.group = group;

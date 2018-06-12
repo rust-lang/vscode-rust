@@ -57,12 +57,14 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
     folder = getOuterMostWorkspaceFolder(folder);
 
     if (!workspaces.has(folder.uri.toString())) {
-        const workspace = new Workspace(folder);
+        const workspace = new ClientWorkspace(folder);
         workspaces.set(folder.uri.toString(), workspace);
         workspace.start(context);
     }
 }
 
+// This is an intermediate, lazy cache used by `getOuterMostWorkspaceFolder`
+// and cleared when VSCode workspaces change.
 let _sortedWorkspaceFolders: string[] | undefined;
 
 function sortedWorkspaceFolders(): string[] {
@@ -99,6 +101,8 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
 function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent, context: ExtensionContext): void {
     _sortedWorkspaceFolders = undefined;
 
+    // If a VSCode workspace has been added, check to see if it is part of an existing one, and
+    // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
     for (let folder of e.added) {
         folder = getOuterMostWorkspaceFolder(folder);
         if (workspaces.has(folder.uri.toString())) {
@@ -106,13 +110,14 @@ function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent, context: Exte
         }
         for (const f of fs.readdirSync(folder.uri.fsPath)) {
             if (f === 'Cargo.toml') {
-                const workspace = new Workspace(folder);
+                const workspace = new ClientWorkspace(folder);
                 workspace.start(context);
                 break;
             }
         }
     }
 
+    // If a workspace is removed which is a Rust workspace, kill the client.
     for (const folder of e.removed) {
         const ws = workspaces.get(folder.uri.toString());
         if (ws) {
@@ -122,12 +127,12 @@ function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent, context: Exte
     }
 }
 
-const workspaces: Map<string, Workspace> = new Map();
+const workspaces: Map<string, ClientWorkspace> = new Map();
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
 // and per-workspace stuff.
-class Workspace {
+class ClientWorkspace {
     // FIXME(#233): Don't only rely on lazily initializing it once on startup,
     // handle possible `rust-client.*` value changes while extension is running
     readonly config: RLSConfiguration;

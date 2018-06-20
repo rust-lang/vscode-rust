@@ -30,7 +30,8 @@
     "keywords": [
         "rust",
         "rust-lang",
-        "rls"
+        "rls",
+        "multi-root ready"
     ],
     "preview": true,
     "activationEvents": [

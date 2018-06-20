@@ -50,10 +50,8 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
     const uri = document.uri;
     let folder = workspace.getWorkspaceFolder(uri);
     if (!folder) {
-        window.showWarningMessage('Startup error: the RLS can only operate on a folder, not a single file');
         return;
     }
-
     folder = getOuterMostWorkspaceFolder(folder);
 
     if (!workspaces.has(folder.uri.toString())) {

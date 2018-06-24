@@ -350,7 +350,7 @@ class ClientWorkspace {
     async makeRlsProcess(): Promise<child_process.ChildProcess> {
         // Allow to override how RLS is started up.
         const rls_path = this.config.rlsPath;
-    
+
         let childProcessPromise: Promise<child_process.ChildProcess>;
         if (rls_path) {
             const env = await this.makeRlsEnv(true);
@@ -363,7 +363,7 @@ class ClientWorkspace {
         }
         try {
             const childProcess = await childProcessPromise;
-    
+
             childProcess.on('error', err => {
                 if ((<any>err).code == 'ENOENT') {
                     console.error('Could not spawn RLS process: ', err.message);
@@ -372,7 +372,7 @@ class ClientWorkspace {
                     throw err;
                 }
             });
-    
+
             if (this.config.logToFile) {
                 const logPath = this.folder.uri.path + '/rls' + Date.now() + '.log';
                 const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
@@ -385,7 +385,7 @@ class ClientWorkspace {
                     logStream.end();
                 });
             }
-    
+
             return childProcess;
         } catch (e) {
             stopSpinner('RLS could not be started');

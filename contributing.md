@@ -1,6 +1,6 @@
 # Contributing
 
-This repo provides the RLS client for vscode built using the Language 
+This repo provides the RLS client for vscode built using the Language
 Server protocol.
 
 This file contains information for building, running, and debugging the plugin.
@@ -26,7 +26,7 @@ from https://www.rustup.rs/.
 
 ### Via Source
 
-Check out the RLS source code, following the [directions](https://github.com/rust-lang-nursery/rls/blob/master/contributing.md). 
+Check out the RLS source code, following the [directions](https://github.com/rust-lang-nursery/rls/blob/master/contributing.md).
 Point the `rust-client.rlsPath` setting at the RLS executable (e.g.,
 `/rls/target/release/rls`). Note that you must include the name of the
 executable, not just the path.
@@ -45,20 +45,14 @@ to `true`. You won't see much logging unless you modify your RLS.
 
 If you'd like to test on multiple projects and already have the extension
 working properly, you can manually install the extension so that it's loaded
-into VSCode by default.
-
-After following the above instructions, and successfully building the extension
-once, build a .vsix archive by running the following:
+into VSCode by default. To do so, run the following:
 
 ```
-npm install -g vsce
-vsce package
+npm run installDevExtension
 ```
 
-Then, install it in VSCode from the Extensions tab menu, select "Install from VSIX..."
-
-Restart VSCode in order to load the extension. More information available via
-[VSCode docs](https://code.visualstudio.com/Docs/extensions/example-hello-world#_installing-your-extension-locally).
+See the defenition of `installDevExtension` in `package.json` and  [VSCode docs](https://code.visualstudio.com/Docs/extensions/example-hello-world#_installing-your-extension-locally)
+for more.
 
 
 ## Troubleshooting

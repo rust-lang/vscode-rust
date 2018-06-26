@@ -340,8 +340,12 @@ class ClientWorkspace {
             env.RUST_SRC_PATH = sysroot + '/lib/rustlib/src/rust/src';
         }
         if (setLibPath) {
-            env.DYLD_LIBRARY_PATH = sysroot + '/lib';
-            env.LD_LIBRARY_PATH = sysroot + '/lib';
+            function appendEnv(envVar: string, newComponent: string) {
+                const old = process.env[envVar];
+                return old ? `${newComponent}:${old}` : newComponent;
+            }
+            env.DYLD_LIBRARY_PATH = appendEnv('DYLD_LIBRARY_PATH', sysroot + '/lib');
+            env.LD_LIBRARY_PATH = appendEnv('LD_LIBRARY_PATH', sysroot + '/lib');
         }
 
         return env;

@@ -170,7 +170,10 @@ class ClientWorkspace {
             synchronize: { configurationSection: 'rust' },
             // Controls when to focus the channel rather than when to reveal it in the drop-down list
             revealOutputChannelOn: this.config.revealOutputChannelOn,
-            initializationOptions: { omitInitBuild: true },
+            initializationOptions: {
+                omitInitBuild: true,
+                cmdRun: true,
+            },
             workspaceFolder: this.folder,
         };
 

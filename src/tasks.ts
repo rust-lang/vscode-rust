@@ -33,6 +33,7 @@ interface CargoTaskDefinition extends TaskDefinition {
     label: string;
     command: string;
     args: Array<string>;
+    env?: { [key: string]: string };
 }
 
 interface TaskConfigItem {
@@ -59,6 +60,7 @@ function createTask({ definition, group, presentationOptions, problemMatcher }: 
     const execCmd = `${definition.command} ${definition.args.join(' ')}`;
     const execOption: ShellExecutionOptions = {
         cwd: target.uri.path,
+        env: definition.env,
     };
     const exec = new ShellExecution(execCmd, execOption);
 

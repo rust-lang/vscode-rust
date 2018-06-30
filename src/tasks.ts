@@ -8,20 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-import {
-    Disposable,
-    TaskProvider,
-    Task,
-    TaskDefinition,
-    TaskGroup,
-    TaskPanelKind,
-    TaskPresentationOptions,
-    TaskRevealKind,
-    ShellExecution,
-    ShellExecutionOptions,
-    workspace,
-    WorkspaceFolder,
-} from 'vscode';
+import { Disposable, ShellExecution, ShellExecutionOptions, Task, TaskDefinition, TaskGroup, TaskPanelKind, TaskPresentationOptions, TaskProvider, TaskRevealKind, WorkspaceFolder, workspace, tasks } from 'vscode';
 
 export function activateTaskProvider(target: WorkspaceFolder): Disposable {
     const provider: TaskProvider = {
@@ -46,6 +33,7 @@ interface CargoTaskDefinition extends TaskDefinition {
     label: string;
     command: string;
     args: Array<string>;
+    env?: { [key: string]: string };
 }
 
 interface TaskConfigItem {
@@ -72,6 +60,7 @@ function createTask({ definition, group, presentationOptions, problemMatcher }: 
     const execCmd = `${definition.command} ${definition.args.join(' ')}`;
     const execOption: ShellExecutionOptions = {
         cwd: target.uri.path,
+        env: definition.env,
     };
     const exec = new ShellExecution(execCmd, execOption);
 
@@ -177,4 +166,30 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
     ];
 
     return taskList;
+}
+
+export interface Cmd {
+    binary: string;
+    args: string[];
+    env: { [key: string]: string };
+}
+
+export function runCommand(folder: WorkspaceFolder, cmd: Cmd) {
+    const config: TaskConfigItem = {
+        definition: {
+            label: 'run Cargo command',
+            type: 'shell',
+            command: cmd.binary,
+            args: cmd.args,
+            env: cmd.env,
+        },
+        problemMatcher: ['$rustc'],
+        group: TaskGroup.Build,
+        presentationOptions: {
+            reveal: TaskRevealKind.Always,
+            panel: TaskPanelKind.New,
+        },
+    };
+    const task = createTask(config, folder);
+    tasks.executeTask(task);
 }

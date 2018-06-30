@@ -13,7 +13,7 @@
 import { runRlsViaRustup, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
-import { activateTaskProvider } from './tasks';
+import { activateTaskProvider, runCommand } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -170,7 +170,10 @@ class ClientWorkspace {
             synchronize: { configurationSection: 'rust' },
             // Controls when to focus the channel rather than when to reveal it in the drop-down list
             revealOutputChannelOn: this.config.revealOutputChannelOn,
-            initializationOptions: { omitInitBuild: true },
+            initializationOptions: {
+                omitInitBuild: true,
+                cmdRun: true,
+            },
             workspaceFolder: this.folder,
         };
 
@@ -236,6 +239,10 @@ class ClientWorkspace {
             return this.start(context);
         });
         context.subscriptions.push(restartServer);
+
+        context.subscriptions.push(
+            commands.registerCommand('rls.run', (cmd) => runCommand(this.folder, cmd))
+        );
     }
 
     async progressCounter() {

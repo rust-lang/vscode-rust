@@ -92,7 +92,11 @@ the following snippets:
 * `if let Option` - an `if let` statement for executing code only in the `Some`
   case.
 * `spawn` - spawn a thread
+* `extern crate` - insert an `extern crate` statement
 
+This extension is deliberately conservative about snippets and doesn't include
+too many. If you want more, check out
+[Trusty Rusty Snippets](https://marketplace.visualstudio.com/items?itemName=polypus74.trusty-rusty-snippets).
 
 ### Tasks
 

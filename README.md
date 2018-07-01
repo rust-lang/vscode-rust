@@ -15,7 +15,7 @@ Adds language support for Rust to Visual Studio Code. Supports:
 * build tasks
 
 Rust support is powered by the [Rust Language Server](https://github.com/rust-lang-nursery/rls)
-(RLS). If you don't have it installed, the extension will install the it for you.
+(RLS). If you don't have it installed, the extension will install it for you.
 
 This extension is built and maintained by the RLS team, part of the Rust
 [IDEs and editors team](https://www.rust-lang.org/en-US/team.html#Dev-tools-team).
@@ -49,9 +49,9 @@ more details on building and debugging, etc., see [contributing.md](contributing
 
 ## Configuration
 
-This extension provides some options into VSCode's configuration settings. These
+This extension provides options in VSCode's configuration settings. These
 options have names which start with `rust.`. You can find the settings under
-`File > Preferences > Settings`, they all have Intellisense help.
+`File > Preferences > Settings`; they all have Intellisense help.
 
 Some highlights:
 
@@ -124,8 +124,8 @@ to `true`. Find it under `File > Preferences > Settings`.
 
 This extension almost exclusively uses the RLS for its feature support (syntax
 highlighting, snippets, and build tasks are provided client-side). The RLS uses
-the Rust compiler (rustc) to get data about Rust programs. It uses Cargo to
-manage building. Both Cargo and rustc are run in-process by the RLS. Formatting
-and code completion are provided by rustfmt and Racer, again both of these are
+the Rust compiler (`rustc`) to get data about Rust programs. It uses Cargo to
+manage building. Both Cargo and `rustc` are run in-process by the RLS. Formatting
+and code completion are provided by `rustfmt` and Racer, again both of these are
 run in-process by the RLS.
 

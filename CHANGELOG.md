@@ -1,6 +1,9 @@
 ### Unreleased
 
+### 0.4.6 - 2018-07-05
+
 * Support VSCode workspaces
+* Code lens for running unit tests
 
 ### 0.4.5 - 2018-06-03
 

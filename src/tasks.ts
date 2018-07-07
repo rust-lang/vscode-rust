@@ -8,7 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-import { Disposable, ShellExecution, ShellExecutionOptions, Task, TaskDefinition, TaskGroup, TaskPanelKind, TaskPresentationOptions, TaskProvider, TaskRevealKind, WorkspaceFolder, workspace, tasks } from 'vscode';
+import { Disposable, ShellExecution, ShellExecutionOptions, Task, TaskDefinition, TaskGroup, TaskPanelKind, TaskPresentationOptions, TaskProvider, TaskRevealKind, WorkspaceFolder, workspace, tasks, TaskExecution } from 'vscode';
 
 export function activateTaskProvider(target: WorkspaceFolder): Disposable {
     const provider: TaskProvider = {
@@ -28,8 +28,7 @@ export function activateTaskProvider(target: WorkspaceFolder): Disposable {
 }
 
 interface CargoTaskDefinition extends TaskDefinition {
-    // FIXME: By the document, we should add the `taskDefinitions` section to our package.json and use the value of it.
-    type: 'shell';
+    type: 'cargo';
     label: string;
     command: string;
     args: Array<string>;
@@ -89,7 +88,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         {
             definition: {
                 label: 'cargo build',
-                type: 'shell',
+                type: 'cargo',
                 command: 'cargo',
                 args: [
                     'build'
@@ -102,7 +101,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         {
             definition: {
                 label: 'cargo check',
-                type: 'shell',
+                type: 'cargo',
                 command: 'cargo',
                 args: [
                     'check'
@@ -115,7 +114,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         {
             definition: {
                 label: 'cargo run',
-                type: 'shell',
+                type: 'cargo',
                 command: 'cargo',
                 args: [
                     'run'
@@ -127,7 +126,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         {
             definition: {
                 label: 'cargo test',
-                type: 'shell',
+                type: 'cargo',
                 command: 'cargo',
                 args: [
                     'test'
@@ -140,7 +139,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         {
             definition: {
                 label: 'cargo bench',
-                type: 'shell',
+                type: 'cargo',
                 command: 'cargo',
                 args: [
                     '+nightly',
@@ -154,7 +153,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
         {
             definition: {
                 label: 'cargo clean',
-                type: 'shell',
+                type: 'cargo',
                 command: 'cargo',
                 args: [
                     'clean'
@@ -174,11 +173,11 @@ export interface Cmd {
     env: { [key: string]: string };
 }
 
-export function runCommand(folder: WorkspaceFolder, cmd: Cmd) {
+export function runCommand(folder: WorkspaceFolder, cmd: Cmd): Thenable<TaskExecution> {
     const config: TaskConfigItem = {
         definition: {
             label: 'run Cargo command',
-            type: 'shell',
+            type: 'cargo',
             command: cmd.binary,
             args: cmd.args,
             env: cmd.env,
@@ -191,5 +190,5 @@ export function runCommand(folder: WorkspaceFolder, cmd: Cmd) {
         },
     };
     const task = createTask(config, folder);
-    tasks.executeTask(task);
+    return tasks.executeTask(task);
 }

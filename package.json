@@ -333,6 +333,17 @@
                     "description": "Enables code completion using racer.",
                     "scope": "resource"
                 },
+                "rust.clippy_preference": {
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "opt-in",
+                        "on"
+                    ],
+                    "default": "opt-in",
+                    "description": "Controls eagerness of clippy diagnostics when available.",
+                    "scope": "resource"
+                },
                 "rust.jobs": {
                     "type": [
                         "number",

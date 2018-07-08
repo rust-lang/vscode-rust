@@ -1,5 +1,9 @@
 ### Unreleased
 
+### 0.4.7 - 2018-07-08
+
+* Fix missing tasks in recent versions of VSCode
+
 ### 0.4.6 - 2018-07-05
 
 * Support VSCode workspaces

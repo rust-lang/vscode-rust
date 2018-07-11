@@ -225,9 +225,17 @@ export function getActiveChannel(rustupPath: string, wsPath: string): string {
     // rustup info might differ depending on where it's executed
     // (e.g. when a toolchain is locally overriden), so executing it
     // under our current workspace root should give us close enough result
-    const output = child_process.execSync(`${rustupPath} show`, { cwd: wsPath }).toString();
 
-    const activeChannel = parseActiveToolchain(output);
+    let activeChannel;
+    try {
+        // `rustup show active-toolchain` is available since rustup 1.12.0
+        activeChannel = child_process.execSync(`${rustupPath} show active-toolchain`, { cwd: wsPath }).toString().trim();
+    } catch (e) {
+        // Possibly an old rustup version, so try rustup show
+        const showOutput = child_process.execSync(`${rustupPath} show`, { cwd: wsPath }).toString();
+        activeChannel = parseActiveToolchain(showOutput);
+    }
+
     console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);
     return activeChannel;
 }

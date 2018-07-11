@@ -194,21 +194,27 @@ export function parseActiveToolchain(rustupOutput: string): string {
     // There may a default entry under 'installed toolchains' section, so search
     // for currently active/overridden one only under 'active toolchain' section
     const activeToolchainsIndex = rustupOutput.search('active toolchain');
-    if (activeToolchainsIndex === -1) {
-        throw new Error(`couldn't find active toolchains`);
+    if (activeToolchainsIndex !== -1) {
+        rustupOutput = rustupOutput.substr(activeToolchainsIndex);
+
+        const matchActiveChannel = /^(\S*) \((?:default|overridden)/gm;
+        const match = matchActiveChannel.exec(rustupOutput);
+        if (match === null) {
+            throw new Error(`couldn't find active toolchain under 'active toolchains'`);
+        } else if (matchActiveChannel.exec(rustupOutput) !== null) {
+            throw new Error(`multiple active toolchains found under 'active toolchains'`);
+        }
+
+        return match[1];        
     }
 
-    rustupOutput = rustupOutput.substr(activeToolchainsIndex);
-
-    const matchActiveChannel = new RegExp(/^(\S*) \((?:default|overridden)/gm);
-    const match = matchActiveChannel.exec(rustupOutput);
-    if (match === null) {
-        throw new Error(`couldn't find active toolchain under 'active toolchains'`);
-    } else if (match.length > 2) {
-        throw new Error(`multiple active toolchains found under 'active toolchains'`);
+    // Try matching the third line as the active toolchain
+    const match = /^(?:.*\r?\n){2}(\S*) \((?:default|overridden)/.exec(rustupOutput);
+    if (match !== null) {
+        return match[1];
     }
 
-    return match[1];
+    throw new Error(`couldn't find active toolchains`);
 }
 
 /**

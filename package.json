@@ -49,7 +49,7 @@
         "installDevExtension": "npm install && ./node_modules/.bin/vsce package -o ./out/rls-vscode-dev.vsix && code --install-extension ./out/rls-vscode-dev.vsix"
     },
     "dependencies": {
-        "vscode-languageclient": "^4.1.4"
+        "vscode-languageclient": "^4.3.0"
     },
     "devDependencies": {
         "vsce": "^1.42.0",

@@ -164,8 +164,8 @@ class ClientWorkspace {
         const clientOptions: LanguageClientOptions = {
             // Register the server for Rust files
             documentSelector: [
-                { language: 'rust', scheme: 'file', pattern: `${this.folder.uri.fsPath}/**/*` },
-                { language: 'rust', scheme: 'untitled', pattern: `${this.folder.uri.fsPath}/**/*` }
+                { language: 'rust', scheme: 'file' },
+                { language: 'rust', scheme: 'untitled' }
             ],
             synchronize: { configurationSection: 'rust' },
             // Controls when to focus the channel rather than when to reveal it in the drop-down list

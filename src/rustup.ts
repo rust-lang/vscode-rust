@@ -194,21 +194,27 @@ export function parseActiveToolchain(rustupOutput: string): string {
     // There may a default entry under 'installed toolchains' section, so search
     // for currently active/overridden one only under 'active toolchain' section
     const activeToolchainsIndex = rustupOutput.search('active toolchain');
-    if (activeToolchainsIndex === -1) {
-        throw new Error(`couldn't find active toolchains`);
+    if (activeToolchainsIndex !== -1) {
+        rustupOutput = rustupOutput.substr(activeToolchainsIndex);
+
+        const matchActiveChannel = /^(\S*) \((?:default|overridden)/gm;
+        const match = matchActiveChannel.exec(rustupOutput);
+        if (match === null) {
+            throw new Error(`couldn't find active toolchain under 'active toolchains'`);
+        } else if (matchActiveChannel.exec(rustupOutput) !== null) {
+            throw new Error(`multiple active toolchains found under 'active toolchains'`);
+        }
+
+        return match[1];        
     }
 
-    rustupOutput = rustupOutput.substr(activeToolchainsIndex);
-
-    const matchActiveChannel = new RegExp(/^(\S*) \((?:default|overridden)/gm);
-    const match = matchActiveChannel.exec(rustupOutput);
-    if (match === null) {
-        throw new Error(`couldn't find active toolchain under 'active toolchains'`);
-    } else if (match.length > 2) {
-        throw new Error(`multiple active toolchains found under 'active toolchains'`);
+    // Try matching the third line as the active toolchain
+    const match = /^(?:.*\r?\n){2}(\S*) \((?:default|overridden)/.exec(rustupOutput);
+    if (match !== null) {
+        return match[1];
     }
 
-    return match[1];
+    throw new Error(`couldn't find active toolchains`);
 }
 
 /**
@@ -219,9 +225,17 @@ export function getActiveChannel(rustupPath: string, wsPath: string): string {
     // rustup info might differ depending on where it's executed
     // (e.g. when a toolchain is locally overriden), so executing it
     // under our current workspace root should give us close enough result
-    const output = child_process.execSync(`${rustupPath} show`, { cwd: wsPath }).toString();
 
-    const activeChannel = parseActiveToolchain(output);
+    let activeChannel;
+    try {
+        // `rustup show active-toolchain` is available since rustup 1.12.0
+        activeChannel = child_process.execSync(`${rustupPath} show active-toolchain`, { cwd: wsPath }).toString().trim();
+    } catch (e) {
+        // Possibly an old rustup version, so try rustup show
+        const showOutput = child_process.execSync(`${rustupPath} show`, { cwd: wsPath }).toString();
+        activeChannel = parseActiveToolchain(showOutput);
+    }
+
     console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);
     return activeChannel;
 }

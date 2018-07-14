@@ -22,7 +22,7 @@ import { commands, ExtensionContext, IndentAction, languages, TextEditor,
     TextEditorEdit, window, workspace, TextDocument, WorkspaceFolder, Disposable, Uri,
     WorkspaceFoldersChangeEvent } from 'vscode';
 import { LanguageClient, LanguageClientOptions, Location, NotificationType,
-    ServerOptions } from 'vscode-languageclient';
+    ServerOptions, ImplementationRequest } from 'vscode-languageclient';
 import { execFile, ExecChildProcessResult } from './utils/child_process';
 
 export async function activate(context: ExtensionContext) {
@@ -204,6 +204,11 @@ class ClientWorkspace {
                         return;
                     }
                     await this.lc.onReady();
+                    // Prior to https://github.com/rust-lang-nursery/rls/pull/936 we used a custom
+                    // LSP message - if the implementation provider is specified this means we can use the 3.6 one.
+                    const useLSPRequest = this.lc.initializeResult &&
+                        this.lc.initializeResult.capabilities.implementationProvider === true;
+                    const request = useLSPRequest ? ImplementationRequest.type.method : 'rustDocument/implementations';
 
                     const params =
                         this.lc
@@ -211,7 +216,7 @@ class ClientWorkspace {
                             .asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
                     let locations: Location[];
                     try {
-                        locations = await this.lc.sendRequest<Location[]>('rustDocument/implementations', params);
+                        locations = await this.lc.sendRequest<Location[]>(request, params);
                     } catch (reason) {
                         window.showWarningMessage('find implementations failed: ' + reason);
                         return;

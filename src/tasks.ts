@@ -58,7 +58,7 @@ function createTask({ definition, group, presentationOptions, problemMatcher }: 
 
     const execCmd = `${definition.command} ${definition.args.join(' ')}`;
     const execOption: ShellExecutionOptions = {
-        cwd: target.uri.path,
+        cwd: target.uri.fsPath,
         env: definition.env,
     };
     const exec = new ShellExecution(execCmd, execOption);

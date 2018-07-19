@@ -24,7 +24,7 @@ export function activateTaskProvider(target: WorkspaceFolder): Disposable {
         }
     };
 
-    return workspace.registerTaskProvider('rust', provider);
+    return workspace.registerTaskProvider('cargo', provider);
 }
 
 interface CargoTaskDefinition extends TaskDefinition {

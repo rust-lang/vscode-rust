@@ -1,5 +1,11 @@
 ### Unreleased
 
+### 0.4.8 - 2018-07-20
+
+* Fix some Windows bugs
+* add the `rust.clippy_preference` setting.
+* Fix some Rustup/installation bugs
+
 ### 0.4.7 - 2018-07-08
 
 * Fix missing tasks in recent versions of VSCode

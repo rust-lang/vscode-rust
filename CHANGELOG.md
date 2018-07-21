@@ -1,5 +1,9 @@
 ### Unreleased
 
+### 0.4.9 - 2018-07-20
+
+* Fix a bug in the `rust.clippy_preference` setting.
+
 ### 0.4.8 - 2018-07-20
 
 * Fix some Windows bugs

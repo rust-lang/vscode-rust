@@ -2,7 +2,7 @@
     "name": "rust",
     "displayName": "Rust (rls)",
     "description": "Rust language support - code completion, Intellisense, refactoring, reformatting, errors, snippets. A client for the Rust Language Server, built by the RLS team.",
-    "version": "0.4.8",
+    "version": "0.4.9",
     "publisher": "rust-lang",
     "icon": "rust-icon.png",
     "galleryBanner": {
@@ -334,7 +334,8 @@
                     "scope": "resource"
                 },
                 "rust.clippy_preference": {
-                    "type": [
+                    "type": "string",
+                    "enum": [
                         "on",
                         "opt-in",
                         "off"

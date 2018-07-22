@@ -15,7 +15,7 @@ Adds language support for Rust to Visual Studio Code. Supports:
 * build tasks
 
 Rust support is powered by the [Rust Language Server](https://github.com/rust-lang-nursery/rls)
-(RLS). If you don't have it installed, the extension will install the it for you.
+(RLS). If you don't have it installed, the extension will install it for you.
 
 This extension is built and maintained by the RLS team, part of the Rust
 [IDEs and editors team](https://www.rust-lang.org/en-US/team.html#Dev-tools-team).

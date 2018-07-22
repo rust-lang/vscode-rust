@@ -344,6 +344,7 @@ class ClientWorkspace {
                 window.showWarningMessage(
                     'RLS could not set RUST_SRC_PATH for Racer because it could not read the Rust sysroot.'
                 );
+                return env;
             }
         }
 

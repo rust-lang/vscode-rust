@@ -30,16 +30,51 @@ function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn
 }
 
 export class RLSConfiguration {
-    public readonly rustupPath: string;
-    public readonly logToFile: boolean;
-    public readonly revealOutputChannelOn: RevealOutputChannelOn = RevealOutputChannelOn.Never;
-    public readonly updateOnStartup: boolean;
-    public readonly channel: string;
-    public readonly componentName: string;
+    public get rustupPath(): string {
+        return this.configuration.get('rust-client.rustupPath', 'rustup');        
+    }
+
+    public get logToFile(): boolean {
+        return this.configuration.get<boolean>('rust-client.logToFile', false);
+    }
+    
+    public get revealOutputChannelOn(): RevealOutputChannelOn {
+        return RLSConfiguration.readRevealOutputChannelOn(this.configuration);
+    }
+    
+    public get updateOnStartup(): boolean {
+        return this.configuration.get<boolean>('rust-client.updateOnStartup', true);
+    }
+    
+    public get channel(): string {
+        return RLSConfiguration.readChannel(this.rustupPath, this.configuration, this.wsPath);
+    }
+    
+    public get componentName(): string {
+        return this.configuration.get('rust-client.rls-name', 'rls');
+    }
+
     /**
      * If specified, RLS will be spawned by executing a file at the given path.
      */
-    public readonly rlsPath: string | null;
+    public get rlsPath(): string | null {
+        // Path to the rls. Prefer `rust-client.rlsPath` if present, otherwise consider
+        // the depreacted `rls.path` setting.
+        const rlsPath = this.configuration.get('rls.path', null);
+        if (rlsPath) {
+            console.warn('`rls.path` has been deprecated; prefer `rust-client.rlsPath`');
+        }
+        
+        const rustClientRlsPath = this.configuration.get('rust-client.rlsPath', null);
+        if (!rustClientRlsPath) {
+            return rlsPath;
+        }
+        
+        return rustClientRlsPath;
+    }
+    
+    private readonly configuration: WorkspaceConfiguration;
+    private readonly wsPath: string;
 
     public static loadFromWorkspace(wsPath: string): RLSConfiguration {
         const configuration = workspace.getConfiguration();
@@ -47,24 +82,8 @@ export class RLSConfiguration {
     }
 
     private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
-        this.rustupPath = configuration.get('rust-client.rustupPath', 'rustup');
-        this.logToFile = configuration.get<boolean>('rust-client.logToFile', false);
-        this.revealOutputChannelOn = RLSConfiguration.readRevealOutputChannelOn(configuration);
-        this.updateOnStartup = configuration.get<boolean>('rust-client.updateOnStartup', true);
-
-        this.channel = RLSConfiguration.readChannel(this.rustupPath, configuration, wsPath);
-        this.componentName = configuration.get('rust-client.rls-name', 'rls');
-
-        // Path to the rls. Prefer `rust-client.rlsPath` if present, otherwise consider
-        // the depreacted `rls.path` setting.
-        const rlsPath = configuration.get('rls.path', null);
-        if (rlsPath) {
-            console.warn('`rls.path` has been deprecated; prefer `rust-client.rlsPath`');
-        }
-        this.rlsPath = configuration.get('rust-client.rlsPath', null);
-        if (!this.rlsPath) {
-            this.rlsPath = rlsPath;
-        }
+        this.configuration = configuration;
+        this.wsPath = wsPath;
     }
 
     public rustupConfig(): RustupConfig {

@@ -92,5 +92,15 @@
             "#[cfg(${1})]"
         ],
         "description": "#[cfg(…)]"
+    },
+    "test": {
+        "prefix": "test",
+        "body": [
+            "#[test]",
+            "fn ${1:name}() {",
+            "    ${2:unimplemented!();}",
+            "}"
+        ],
+        "description": "#[test]"
     }
 }

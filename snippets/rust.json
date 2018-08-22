@@ -78,5 +78,19 @@
             "});"
         ],
         "description": "Wrap code in thread::spawn"
+    },
+    "derive": {
+        "prefix": "derive",
+        "body": [
+            "#[derive(${1})]"
+        ],
+        "description": "#[derive(…)]"
+    },
+    "cfg": {
+        "prefix": "cfg",
+        "body": [
+            "#[cfg(${1})]"
+        ],
+        "description": "#[cfg(…)]"
     }
 }

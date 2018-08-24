@@ -186,7 +186,7 @@ export function runCommand(folder: WorkspaceFolder, cmd: Cmd): Thenable<TaskExec
         group: TaskGroup.Build,
         presentationOptions: {
             reveal: TaskRevealKind.Always,
-            panel: TaskPanelKind.New,
+            panel: TaskPanelKind.Dedicated,
         },
     };
     const task = createTask(config, folder);

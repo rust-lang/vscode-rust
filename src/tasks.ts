@@ -81,7 +81,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
 
     const presentationOptions: TaskPresentationOptions = {
         reveal: TaskRevealKind.Always,
-        panel: TaskPanelKind.New,
+        panel: TaskPanelKind.Dedicated,
     };
 
     const taskList: Array<TaskConfigItem> = [

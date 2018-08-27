@@ -7,7 +7,7 @@ notifications:
 language: node_js
 
 node_js:
-  - 8.9 # Sort with the version bundled in supported vscode.
+  - 8.9 # Lock to the version shipped with VSCode 1.26+
 
 env:
   matrix:

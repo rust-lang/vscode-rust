@@ -7,18 +7,12 @@ notifications:
 language: node_js
 
 node_js:
-  - 7.4 # Sort with the version bundled in supported vscode.
+  - 8.9 # Sort with the version bundled in supported vscode.
 
 env:
   matrix:
     - CI_MATRIX_BUILD=true
     - CI_MATRIX_LINT=true
-
-before_install:
-  # Use npm@5 to use `package-lock.json`. After `node_js` field will be `8` or later.
-  # This process might be needless.
-  - npm upgrade npm@5 --global
-  - npm --version # to check TravisCI uses the expected version.
 
 script:
   - |

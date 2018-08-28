@@ -367,6 +367,15 @@
                     "default": null,
                     "description": "When specified, it places the generated analysis files at the specified target directory. By default it is placed target/rls directory.",
                     "scope": "resource"
+                },
+                "rust.rustfmt_path": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "When specified, RLS will use the Rustfmt pointed at the path instead of the bundled one",
+                    "scope": "resource"
                 }
             }
         }

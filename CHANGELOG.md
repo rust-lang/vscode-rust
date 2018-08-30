@@ -1,5 +1,11 @@
 ### Unreleased
 
+### 0.4.10 - 2018-08-29
+
+* Can use an external Rustfmt using `rust.rustfmt_path` option
+* snippets for test, derive, and cfg
+* fix a bug where the Rust sysroot was set to an invalid value
+
 ### 0.4.9 - 2018-07-20
 
 * Fix a bug in the `rust.clippy_preference` setting.

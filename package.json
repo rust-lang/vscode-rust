@@ -376,6 +376,15 @@
                     "default": null,
                     "description": "When specified, RLS will use the Rustfmt pointed at the path instead of the bundled one",
                     "scope": "resource"
+                },
+                "rust.build_command": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "EXPERIMENTAL (requires `unstable_features`)\nIf set, executes a given program responsible for rebuilding save-analysis to be loaded by the RLS. The program given should output a list of resulting .json files on stdout. \nImplies `rust.build_on_save`: true.",
+                    "scope": "resource"
                 }
             }
         }

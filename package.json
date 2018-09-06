@@ -341,7 +341,7 @@
                         "off"
                     ],
                     "default": "opt-in",
-                    "description": "Controls eagerness of clippy diagnostics.",
+                    "description": "Controls eagerness of clippy diagnostics when available. Valid values are (case-insensitive):\n - \"off\": Disable clippy lints.\n - \"opt-in\": Clippy lints are shown when crates specify `#![warn(clippy)]`.\n - \"on\": Clippy lints enabled for all crates in workspace.\nYou need to install clippy via rustup if you haven't already.",
                     "scope": "resource"
                 },
                 "rust.jobs": {

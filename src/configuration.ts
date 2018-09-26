@@ -37,6 +37,10 @@ export class RLSConfiguration {
     public get logToFile(): boolean {
         return this.configuration.get<boolean>('rust-client.logToFile', false);
     }
+
+    public get rustupDisabled(): boolean {
+        return this.configuration.get<boolean>('rust-client.disableRustup', false);
+    }
     
     public get revealOutputChannelOn(): RevealOutputChannelOn {
         return RLSConfiguration.readRevealOutputChannelOn(this.configuration);

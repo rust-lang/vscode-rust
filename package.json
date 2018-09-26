@@ -198,6 +198,11 @@
                     "default": false,
                     "description": "Update the RLS whenever the extension starts up."
                 },
+                "rust-client.disableRustup": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Disable usage of rustup and use rustc/rls from PATH."
+                },
                 "rust-client.channel": {
                     "type": [
                         "string",

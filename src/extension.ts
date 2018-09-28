@@ -311,9 +311,15 @@ class ClientWorkspace {
     async getSysroot(env: Object): Promise<string> {
         let output: ExecChildProcessResult;
         try {
-            output = await execFile(
-                this.config.rustupPath, ['run', this.config.channel, 'rustc', '--print', 'sysroot'], { env }
-            );
+            if (this.config.rustupDisabled) {
+                output = await execFile(
+                    'rustc' , ['--print', 'sysroot'], { env }
+                );
+            } else {
+                output = await execFile(
+                    this.config.rustupPath, ['run', this.config.channel, 'rustc', '--print', 'sysroot'], { env }
+                );
+            }
         } catch (e) {
             throw new Error(`Error getting sysroot from \`rustc\`: ${e}`);
         }
@@ -373,6 +379,10 @@ class ClientWorkspace {
             const env = await this.makeRlsEnv(true);
             console.info('running ' + rls_path);
             childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
+        } else if (this.config.rustupDisabled) {
+            const env = await this.makeRlsEnv(true);
+            console.info('running ' + rls_path);
+            childProcessPromise = Promise.resolve(child_process.spawn('rls', [], { env }));
         } else {
             const env = await this.makeRlsEnv();
             console.info('running with rustup');
@@ -411,7 +421,7 @@ class ClientWorkspace {
     }
 
     async autoUpdate() {
-        if (this.config.updateOnStartup) {
+        if (this.config.updateOnStartup && !this.config.rustupDisabled) {
             await rustupUpdate(this.config.rustupConfig());
         }
     }

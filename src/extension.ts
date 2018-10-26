@@ -109,6 +109,7 @@ function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent, context: Exte
         for (const f of fs.readdirSync(folder.uri.fsPath)) {
             if (f === 'Cargo.toml') {
                 const workspace = new ClientWorkspace(folder);
+                workspaces.set(folder.uri.toString(), workspace);
                 workspace.start(context);
                 break;
             }

@@ -137,11 +137,12 @@ class ClientWorkspace {
     readonly config: RLSConfiguration;
     lc: LanguageClient | null = null;
     readonly folder: WorkspaceFolder;
-    taskProvider: Disposable | null = null;
+    disposables: Disposable[];
 
     constructor(folder: WorkspaceFolder) {
         this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
         this.folder = folder;
+        this.disposables = [];
     }
 
     async start(context: ExtensionContext) {
@@ -184,9 +185,9 @@ class ClientWorkspace {
         const promise = this.progressCounter();
 
         const disposable = this.lc.start();
-        context.subscriptions.push(disposable);
+        this.disposables.push(disposable);
 
-        this.taskProvider = activateTaskProvider(this.folder);
+        this.disposables.push(activateTaskProvider(this.folder));
         this.registerCommands(context);
 
         return promise;
@@ -231,22 +232,20 @@ class ClientWorkspace {
                     );
                 }
             );
-        context.subscriptions.push(findImplsDisposable);
+        this.disposables.push(findImplsDisposable);
 
         const rustupUpdateDisposable = commands.registerCommand('rls.update', () => {
             return rustupUpdate(this.config.rustupConfig());
         });
-        context.subscriptions.push(rustupUpdateDisposable);
+        this.disposables.push(rustupUpdateDisposable);
 
         const restartServer = commands.registerCommand('rls.restart', async () => {
-            if (this.lc) {
-                await this.lc.stop();
-            }
+            await this.stop();
             return this.start(context);
         });
-        context.subscriptions.push(restartServer);
+        this.disposables.push(restartServer);
 
-        context.subscriptions.push(
+        this.disposables.push(
             commands.registerCommand('rls.run', (cmd) => runCommand(this.folder, cmd))
         );
     }
@@ -303,9 +302,7 @@ class ClientWorkspace {
             promise = this.lc.stop();
         }
         return promise.then(() => {
-            if (this.taskProvider) {
-                this.taskProvider.dispose();
-            }
+            this.disposables.forEach(d => d.dispose());
         });
     }
 

@@ -8,7 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-import { Disposable, ShellExecution, ShellExecutionOptions, Task, TaskDefinition, TaskGroup, TaskPanelKind, TaskPresentationOptions, TaskProvider, TaskRevealKind, WorkspaceFolder, workspace, tasks, TaskExecution } from 'vscode';
+import { Disposable, ShellExecution, ShellExecutionOptions, Task, TaskDefinition, TaskGroup, TaskPanelKind, TaskPresentationOptions, TaskProvider, TaskRevealKind, WorkspaceFolder, tasks, TaskExecution } from 'vscode';
 
 export function activateTaskProvider(target: WorkspaceFolder): Disposable {
     const provider: TaskProvider = {
@@ -24,7 +24,7 @@ export function activateTaskProvider(target: WorkspaceFolder): Disposable {
         }
     };
 
-    return workspace.registerTaskProvider('cargo', provider);
+    return tasks.registerTaskProvider('cargo', provider);
 }
 
 interface CargoTaskDefinition extends TaskDefinition {

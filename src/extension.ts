@@ -379,7 +379,7 @@ class ClientWorkspace {
             childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
         } else if (this.config.rustupDisabled) {
             const env = await this.makeRlsEnv(true);
-            console.info('running ' + rls_path);
+            console.info('running rls from $PATH');
             childProcessPromise = Promise.resolve(child_process.spawn('rls', [], { env }));
         } else {
             const env = await this.makeRlsEnv();

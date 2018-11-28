@@ -17,6 +17,7 @@ import { activateTaskProvider, runCommand } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+import path = require('path');
 
 import { commands, ExtensionContext, IndentAction, languages, TextEditor,
     TextEditorEdit, window, workspace, TextDocument, WorkspaceFolder, Disposable, Uri,
@@ -53,6 +54,10 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
         return;
     }
     folder = getOuterMostWorkspaceFolder(folder);
+    folder = getCargoTomlWorkspace(folder, document.uri.fsPath);
+    if (!folder) {
+        return;
+    }
 
     if (!workspaces.has(folder.uri.toString())) {
         const workspace = new ClientWorkspace(folder);
@@ -80,6 +85,27 @@ function sortedWorkspaceFolders(): string[] {
         );
     }
     return _sortedWorkspaceFolders || [];
+}
+
+function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder | undefined {
+    let current = file_path;
+    const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
+    while (true) {
+        const old = current;
+        current = path.dirname(current);
+        if (old == current) {
+            break;
+        }
+        if (workspace_root == path.parse(current).dir) {
+            break;
+        }
+
+        const cargo_path = path.join(current, 'Cargo.toml');
+        if (fs.existsSync(cargo_path)) {
+            return { ...cur_workspace, uri: Uri.parse(current) };
+        }
+    }
+    return undefined;
 }
 
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
@@ -146,8 +172,6 @@ class ClientWorkspace {
     }
 
     async start(context: ExtensionContext) {
-        // These methods cannot throw an error, so we can drop it.
-        warnOnMissingCargoToml();
 
         startSpinner('RLS', 'Starting');
 
@@ -436,15 +460,6 @@ class ClientWorkspace {
     }
 }
 
-async function warnOnMissingCargoToml() {
-    const files = await workspace.findFiles('Cargo.toml');
-
-    if (files.length < 1) {
-        window.showWarningMessage(
-            'A Cargo.toml file must be at the root of the workspace in order to support all features'
-        );
-    }
-}
 
 
 function configureLanguage(context: ExtensionContext) {

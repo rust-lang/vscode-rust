@@ -371,16 +371,17 @@ class ClientWorkspace {
     async makeRlsProcess(): Promise<child_process.ChildProcess> {
         // Allow to override how RLS is started up.
         const rls_path = this.config.rlsPath;
+        const cwd = this.folder.uri.fsPath;
 
         let childProcessPromise: Promise<child_process.ChildProcess>;
         if (rls_path) {
             const env = await this.makeRlsEnv(true);
             console.info('running ' + rls_path);
-            childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
+            childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env, cwd }));
         } else if (this.config.rustupDisabled) {
             const env = await this.makeRlsEnv(true);
             console.info('running rls from $PATH');
-            childProcessPromise = Promise.resolve(child_process.spawn('rls', [], { env }));
+            childProcessPromise = Promise.resolve(child_process.spawn('rls', [], { env, cwd }));
         } else {
             const env = await this.makeRlsEnv();
             console.info('running with rustup');

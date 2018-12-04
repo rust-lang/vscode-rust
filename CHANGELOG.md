@@ -1,5 +1,12 @@
 ### Unreleased
 
+### 0.5.0 - 2018-12-04
+
+* Added `build_command` setting
+* Work better without Rustup
+* Fix some bugs with VSCode workspaces
+
+
 ### 0.4.10 - 2018-08-29
 
 * Can use an external Rustfmt using `rust.rustfmt_path` option

@@ -218,7 +218,7 @@
                 },
                 "rust-client.rls-name": {
                     "type": "string",
-                    "default": "rls-preview",
+                    "default": "rls",
                     "description": "Name of the RLS rustup component."
                 },
                 "rust.sysroot": {

@@ -88,9 +88,14 @@ function sortedWorkspaceFolders(): string[] {
     return _sortedWorkspaceFolders || [];
 }
 
-function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder | undefined {
+function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder {
+    if (!cur_workspace) {
+        return cur_workspace;
+    }
+
     let current = file_path;
     const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
+
     while (true) {
         const old = current;
         current = path.dirname(current);
@@ -106,7 +111,8 @@ function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string
             return { ...cur_workspace, uri: Uri.parse(current) };
         }
     }
-    return undefined;
+
+    return cur_workspace;
 }
 
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {

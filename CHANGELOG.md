@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Try harder to find Cargo.toml
+
 ### 0.5.0 - 2018-12-04
 
 * Added `build_command` setting

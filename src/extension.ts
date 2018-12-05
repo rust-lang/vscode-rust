@@ -56,6 +56,7 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
     folder = getOuterMostWorkspaceFolder(folder);
     folder = getCargoTomlWorkspace(folder, document.uri.fsPath);
     if (!folder) {
+        window.showWarningMessage(`A Cargo.toml was not found for document ${ document.uri.fsPath }`);
         return;
     }
 

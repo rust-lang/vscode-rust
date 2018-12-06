@@ -1,6 +1,9 @@
 ### Unreleased
 
+### 0.5.1 - 2018-12-06
+
 * Try harder to find Cargo.toml
+* Account for the `rls-preview` to `rls` component name change (and remove the `rust-client.rls-name` option)
 
 ### 0.5.0 - 2018-12-04
 

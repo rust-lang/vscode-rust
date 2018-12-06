@@ -31,7 +31,7 @@ function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn
 
 export class RLSConfiguration {
     public get rustupPath(): string {
-        return this.configuration.get('rust-client.rustupPath', 'rustup');        
+        return this.configuration.get('rust-client.rustupPath', 'rustup');
     }
 
     public get logToFile(): boolean {
@@ -41,21 +41,17 @@ export class RLSConfiguration {
     public get rustupDisabled(): boolean {
         return this.configuration.get<boolean>('rust-client.disableRustup', false);
     }
-    
+
     public get revealOutputChannelOn(): RevealOutputChannelOn {
         return RLSConfiguration.readRevealOutputChannelOn(this.configuration);
     }
-    
+
     public get updateOnStartup(): boolean {
         return this.configuration.get<boolean>('rust-client.updateOnStartup', true);
     }
-    
+
     public get channel(): string {
         return RLSConfiguration.readChannel(this.rustupPath, this.configuration, this.wsPath);
-    }
-    
-    public get componentName(): string {
-        return this.configuration.get('rust-client.rls-name', 'rls');
     }
 
     /**
@@ -68,15 +64,15 @@ export class RLSConfiguration {
         if (rlsPath) {
             console.warn('`rls.path` has been deprecated; prefer `rust-client.rlsPath`');
         }
-        
+
         const rustClientRlsPath = this.configuration.get('rust-client.rlsPath', null);
         if (!rustClientRlsPath) {
             return rlsPath;
         }
-        
+
         return rustClientRlsPath;
     }
-    
+
     private readonly configuration: WorkspaceConfiguration;
     private readonly wsPath: string;
 
@@ -91,7 +87,7 @@ export class RLSConfiguration {
     }
 
     public rustupConfig(): RustupConfig {
-        return new RustupConfig(this.channel, this.rustupPath, this.componentName);
+        return new RustupConfig(this.channel, this.rustupPath);
     }
 
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {

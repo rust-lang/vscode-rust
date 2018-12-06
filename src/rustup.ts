@@ -19,12 +19,10 @@ import { startSpinner, stopSpinner } from './spinner';
 export class RustupConfig {
     channel: string;
     path: string;
-    componentName: string;
 
-    constructor(channel: string, path: string, componentName: string) {
+    constructor(channel: string, path: string) {
         this.channel = channel;
         this.path = path;
-        this.componentName = componentName;
     }
 }
 
@@ -122,7 +120,7 @@ async function checkForRls(config: RustupConfig): Promise<void> {
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
     try {
         const { stdout } = await execChildProcess(config.path + ' component list --toolchain ' + config.channel);
-        const componentName = new RegExp('^' + config.componentName + '.* \\((default|installed)\\)$', 'm');
+        const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
         if (
             stdout.search(componentName) === -1 ||
             stdout.search(/^rust-analysis.* \((default|installed)\)$/m) === -1 ||
@@ -177,7 +175,7 @@ async function installRls(config: RustupConfig): Promise<void> {
     console.log('install rls');
 
     {
-        const e = await tryFn(config.componentName);
+        const e = await tryFn('rls-preview');
         if (e !== null) {
             stopSpinner('Could not install RLS');
             throw e;
@@ -205,7 +203,7 @@ export function parseActiveToolchain(rustupOutput: string): string {
             throw new Error(`multiple active toolchains found under 'active toolchains'`);
         }
 
-        return match[1];        
+        return match[1];
     }
 
     // Try matching the third line as the active toolchain

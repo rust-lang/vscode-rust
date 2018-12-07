@@ -1,5 +1,9 @@
 ### Unreleased
 
+### 0.5.2 - 2018-12-07
+
+* Prefer workspace Cargo.toml to local ones
+
 ### 0.5.1 - 2018-12-06
 
 * Try harder to find Cargo.toml

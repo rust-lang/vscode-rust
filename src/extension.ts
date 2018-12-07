@@ -19,11 +19,15 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 import path = require('path');
 
-import { commands, ExtensionContext, IndentAction, languages, TextEditor,
+import {
+    commands, ExtensionContext, IndentAction, languages, TextEditor,
     TextEditorEdit, window, workspace, TextDocument, WorkspaceFolder, Disposable, Uri,
-    WorkspaceFoldersChangeEvent } from 'vscode';
-import { LanguageClient, LanguageClientOptions, Location, NotificationType,
-    ServerOptions, ImplementationRequest } from 'vscode-languageclient';
+    WorkspaceFoldersChangeEvent
+} from 'vscode';
+import {
+    LanguageClient, LanguageClientOptions, Location, NotificationType,
+    ServerOptions, ImplementationRequest
+} from 'vscode-languageclient';
 import { execFile, ExecChildProcessResult } from './utils/child_process';
 
 export async function activate(context: ExtensionContext) {
@@ -93,8 +97,13 @@ function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string
         return cur_workspace;
     }
 
-    let current = file_path;
     const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
+    const root_manifest = path.join(workspace_root, 'Cargo.toml');
+    if (fs.existsSync(root_manifest)) {
+        return cur_workspace;
+    }
+
+    let current = file_path;
 
     while (true) {
         const old = current;
@@ -342,7 +351,7 @@ class ClientWorkspace {
         try {
             if (this.config.rustupDisabled) {
                 output = await execFile(
-                    'rustc' , ['--print', 'sysroot'], { env }
+                    'rustc', ['--print', 'sysroot'], { env }
                 );
             } else {
                 output = await execFile(

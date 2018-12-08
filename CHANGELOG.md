@@ -1,5 +1,9 @@
 ### Unreleased
 
+### 0.5.3 - 2018-12-08
+
+* Revert Cargo.toml changes
+
 ### 0.5.2 - 2018-12-07
 
 * Prefer workspace Cargo.toml to local ones

@@ -17,7 +17,7 @@ import { activateTaskProvider, runCommand } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
-import path = require('path');
+//import path = require('path');
 
 import {
     commands, ExtensionContext, IndentAction, languages, TextEditor,
@@ -58,7 +58,7 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
         return;
     }
     folder = getOuterMostWorkspaceFolder(folder);
-    folder = getCargoTomlWorkspace(folder, document.uri.fsPath);
+    // folder = getCargoTomlWorkspace(folder, document.uri.fsPath);
     if (!folder) {
         stopSpinner(`RLS: Cargo.toml missing`);
         return;
@@ -92,37 +92,37 @@ function sortedWorkspaceFolders(): string[] {
     return _sortedWorkspaceFolders || [];
 }
 
-function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder {
-    if (!cur_workspace) {
-        return cur_workspace;
-    }
+// function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder {
+//     if (!cur_workspace) {
+//         return cur_workspace;
+//     }
 
-    const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
-    const root_manifest = path.join(workspace_root, 'Cargo.toml');
-    if (fs.existsSync(root_manifest)) {
-        return cur_workspace;
-    }
+//     const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
+//     const root_manifest = path.join(workspace_root, 'Cargo.toml');
+//     if (fs.existsSync(root_manifest)) {
+//         return cur_workspace;
+//     }
 
-    let current = file_path;
+//     let current = file_path;
 
-    while (true) {
-        const old = current;
-        current = path.dirname(current);
-        if (old == current) {
-            break;
-        }
-        if (workspace_root == path.parse(current).dir) {
-            break;
-        }
+//     while (true) {
+//         const old = current;
+//         current = path.dirname(current);
+//         if (old == current) {
+//             break;
+//         }
+//         if (workspace_root == path.parse(current).dir) {
+//             break;
+//         }
 
-        const cargo_path = path.join(current, 'Cargo.toml');
-        if (fs.existsSync(cargo_path)) {
-            return { ...cur_workspace, uri: Uri.parse(current) };
-        }
-    }
+//         const cargo_path = path.join(current, 'Cargo.toml');
+//         if (fs.existsSync(cargo_path)) {
+//             return { ...cur_workspace, uri: Uri.parse(current) };
+//         }
+//     }
 
-    return cur_workspace;
-}
+//     return cur_workspace;
+// }
 
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
     const sorted = sortedWorkspaceFolders();
@@ -188,6 +188,7 @@ class ClientWorkspace {
     }
 
     async start(context: ExtensionContext) {
+        warnOnMissingCargoToml();
 
         startSpinner('RLS', 'Starting');
 
@@ -476,7 +477,15 @@ class ClientWorkspace {
     }
 }
 
+async function warnOnMissingCargoToml() {
+    const files = await workspace.findFiles('Cargo.toml');
 
+    if (files.length < 1) {
+        window.showWarningMessage(
+            'A Cargo.toml file must be at the root of the workspace in order to support all features'
+        );
+    }
+}
 
 function configureLanguage(context: ExtensionContext) {
     const disposable = languages.setLanguageConfiguration('rust', {

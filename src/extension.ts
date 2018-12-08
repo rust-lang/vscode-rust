@@ -117,7 +117,7 @@ function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string
 
         const cargo_path = path.join(current, 'Cargo.toml');
         if (fs.existsSync(cargo_path)) {
-            return { ...cur_workspace, uri: Uri.parse(current) };
+            return { ...cur_workspace, uri: Uri.file(current) };
         }
     }
 

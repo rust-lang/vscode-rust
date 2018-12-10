@@ -385,6 +385,21 @@
                     "default": null,
                     "description": "EXPERIMENTAL (requires `unstable_features`)\nIf set, executes a given program responsible for rebuilding save-analysis to be loaded by the RLS. The program given should output a list of resulting .json files on stdout. \nImplies `rust.build_on_save`: true.",
                     "scope": "resource"
+                },
+                "rust.full_docs": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "Instructs cargo to enable full documentation extraction during save-analysis while building the crate.",
+                    "scope": "resource"
+                },
+                "rust.show_hover_context": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show additional context in hover tooltips when available. This is often the type local variable declaration.",
+                    "scope": "resource"
                 }
             }
         }

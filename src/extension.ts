@@ -10,7 +10,7 @@
 
 'use strict';
 
-import { runRlsViaRustup, rustupUpdate } from './rustup';
+import { rustupUpdate, ensureToolchain, checkForRls } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, runCommand } from './tasks';
@@ -410,26 +410,32 @@ class ClientWorkspace {
     }
 
     async makeRlsProcess(): Promise<child_process.ChildProcess> {
-        // Allow to override how RLS is started up.
-        const rls_path = this.config.rlsPath;
+        // Run "rls" from the PATH unless there's an override.
+        const rls_path = this.config.rlsPath || 'rls';
 
-        let childProcessPromise: Promise<child_process.ChildProcess>;
-        if (rls_path) {
-            const env = await this.makeRlsEnv(true);
-            console.info('running ' + rls_path);
-            childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
-        } else if (this.config.rustupDisabled) {
-            const env = await this.makeRlsEnv(true);
-            console.info('running rls from $PATH');
-            childProcessPromise = Promise.resolve(child_process.spawn('rls', [], { env }));
+        // We don't need to set [DY]LD_LIBRARY_PATH if we're using rustup,
+        // as rustup will set it for us when it chooses a toolchain.
+        const env = await this.makeRlsEnv(/*setLibPath*/ this.config.rustupDisabled);
+
+        let childProcess: child_process.ChildProcess;
+        if (this.config.rustupDisabled) {
+            console.info('running without rustup: ' + rls_path);
+            childProcess = child_process.spawn(rls_path, [], { env });
         } else {
-            const env = await this.makeRlsEnv();
-            console.info('running with rustup');
-            childProcessPromise = runRlsViaRustup(env, this.config.rustupConfig());
+            console.info('running with rustup: ' + rls_path);
+            const config = this.config.rustupConfig();
+
+            await ensureToolchain(config);
+            if (!this.config.rlsPath) {
+                // We only need a rustup-installed RLS if we weren't given a
+                // custom RLS path.
+                console.info('will use a rustup-installed RLS; ensuring present');
+                await checkForRls(config);
+            }
+
+            childProcess = child_process.spawn(config.path, ['run', config.channel, rls_path], { env });
         }
         try {
-            const childProcess = await childProcessPromise;
-
             childProcess.on('error', err => {
                 if ((<any>err).code == 'ENOENT') {
                     console.error('Could not spawn RLS process: ', err.message);

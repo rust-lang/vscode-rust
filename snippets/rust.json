@@ -15,6 +15,24 @@
         ],
         "description": "Insert for loop"
     },
+    "while": {
+        "prefix": "while",
+        "body": [
+            "while ${1:condition} {",
+            "\t${2:args}",
+            "}"
+        ],
+        "description": "While loop"
+    },
+    "while let": {
+        "prefix": "while let",
+        "body":[
+            "while let ${1:pattern} = ${2:expr} {",
+            "\t${3:args}",
+            "}"
+        ],
+        "description": "While let loop"
+    },
     "unimplemented": {
         "prefix": "unimplemented",
         "body": [
@@ -102,5 +120,32 @@
             "}"
         ],
         "description": "#[test]"
+    },
+    "function": {
+        "prefix": "fn",
+        "body": [
+            "fn ${1:name}() {",
+            "\t${2:args}",
+            "}"
+        ],
+        "description": "Function"
+    },
+    "parameterized function": {
+        "prefix": "fnpar",
+        "body": [
+            "fn ${1:name}(${2:var}: ${3:type}) -> ${3:type} {",
+            "\t${4:args}",
+            "}"
+        ],
+        "description": "Parametrized function",
+    },
+    "match": {
+        "prefix": "mat",
+        "body": [
+            "match ${1:var} {",
+            "\t${2:args}",
+            "}"
+        ],
+        "description": "Match"
     }
 }

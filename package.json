@@ -400,6 +400,17 @@
                     "default": true,
                     "description": "Show additional context in hover tooltips when available. This is often the type local variable declaration.",
                     "scope": "resource"
+                },
+                "rust.trace.server": {
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "default": "off",
+                    "description": "Traces the communication between VS Code and the RLS.",
+                    "scope": "window"
                 }
             }
         }

@@ -221,7 +221,7 @@ class ClientWorkspace {
         };
 
         // Create the language client and start the client.
-        this.lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
+        this.lc = new LanguageClient('rust', 'Rust Language Server', serverOptions, clientOptions);
 
         const promise = this.progressCounter();
 

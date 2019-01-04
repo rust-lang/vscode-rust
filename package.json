@@ -409,7 +409,7 @@
                         "verbose"
                     ],
                     "default": "off",
-                    "description": "Traces the communication between VS Code and the RLS.",
+                    "description": "Traces the communication between VS Code and the Rust language server.",
                     "scope": "window"
                 }
             }

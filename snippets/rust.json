@@ -1,4 +1,50 @@
 {
+    "assert": {
+        "prefix": "assert",
+        "body": [
+            "assert!($1)$0"
+        ],
+        "description": "Insert assert!"
+    },
+    "assert_eq": {
+        "prefix": "assert_eq",
+        "body": [
+            "assert_eq!($1, $2)$0"
+        ],
+        "description": "Insert assert_eq!"
+    },
+    "cfg": {
+        "prefix": "cfg",
+        "body": [
+            "#[cfg(${1})]"
+        ],
+        "description": "#[cfg(…)]"
+    },
+    "derive": {
+        "prefix": "derive",
+        "body": [
+            "#[derive(${1})]"
+        ],
+        "description": "#[derive(…)]"
+    },
+    "else": {
+        "prefix": "else",
+        "body": [
+            "else {",
+            "\t${1:args}",
+            "}"
+        ],
+        "description": "Insert else"
+    },
+    "else if": {
+        "prefix": "else if",
+        "body": [
+            "else if ${1:condition} {",
+            "\t${2:args}",
+            "}"
+        ],
+        "description": "Insert else if"
+    },
     "extern crate": {
         "prefix": "extern crate",
         "body": [
@@ -6,39 +52,170 @@
         ],
         "description": "Insert extern crate"
     },
-    "use": {
-        "prefix": "use",
-        "body": "use $1;"
-        "description": "Insert use"
-    },
     "for": {
         "prefix": "for",
         "body": [
             "for ${1:var} in ${2:range} {",
-            "\t$0",
+            "\t${3:args}",
             "}"
         ],
         "description": "Insert for loop"
     },
+    "function": {
+        "prefix": "fn",
+        "body": [
+            "fn ${1:name}() {",
+            "\t${2:args}",
+            "}"
+        ],
+        "description": "Insert function"
+    },
+    "function with parameters": {
+        "prefix": "fnpar",
+        "body": [
+            "fn ${1:name}(${2:var}: ${3:type}) -> ${3:type} {",
+            "\t${4:args}",
+            "}"
+        ],
+        "description": "Insert parametrized function",
+    },
+    "if": {
+        "prefix": "if",
+        "body": [
+            "if ${1:condition} {",
+            "\t${2:args}",
+            "}"
+        ],
+        "descripition": "Insert if"
+    },
+    "if else": {
+        "prefix": "if else",
+        "body": [
+            "if ${1:condition} {",
+            "\t${2:args}",
+            "} else {",
+            "\t${3:args}",
+            "}"
+        ],
+        "description": "Insert if else"
+    },
+    "if else if": {
+        "prefix": "if else if",
+        "body": [
+            "if ${1:condition} {",
+            "\t${2:args}",
+            "} else if ${3:condition} {",
+            "\t${4:args}",
+            "}"
+        ],
+        "description": "Insert if else if"
+    },
+    "if else if else": {
+        "prefix": "if else if else":
+        "body": [
+            "if ${1:condition} {",
+            "\t${2:args}",
+            "} else if ${3:condition} {",
+            "\t${4:args}",
+            "} else {",
+            "\t${5:args}",
+            "}"
+        ],
+        "description": "Insert if else if else"
+    },
+    "if let Option": {
+        "prefix": "if let",
+        "body": [
+            "if let Some(${1:foo}) = ${1:foo} {",
+            "\t${0:${1:foo}.}",
+            "}"
+        ],
+        "description": "Unwrap Option with if let"
+    },
     "let": {
         "prefix": "let",
-        "body": "let ${1:local const} = ${2:expr}",
+        "body": "let ${1:local const} = ${2:expr};",
         "description": "Insert let"
     },
     "let as": {
         "prefix": "let as",
-        "body": "let ${1:local const} = ${2:expr} as {3:type}",
+        "body": "let ${1:local const} = ${2:expr} as {3:type};",
         "description": "Insert let as"
     },
     "let mut": {
         "prefix": "let mut",
-        "body": "let mut ${1:mut var} = ${2:expr}",
+        "body": "let mut ${1:mut var} = ${2:expr};",
         "description": "Insert let mut"
     },
     "let mut as": {
         "prefix": "let mut as",
-        "body": "let mut ${1:mut var} = ${2:expr} as ${3:type}",
+        "body": "let mut ${1:mut var} = ${2:expr} as ${3:type};",
         "description": "Insert let mut as"
+    },
+    "macro_rules": {
+        "prefix": "macro_rules",
+        "body": [
+            "macro_rules! $1 {",
+            "\t($2) => {",
+            "\t\t$0",
+            "\t};",
+            "}"
+        ],
+        "description": "Insert macro_rules!"
+    },
+    "match": {
+        "prefix": "mat",
+        "body": [
+            "match ${1:var} {",
+            "\t${2:args}",
+            "}"
+        ],
+        "description": "Insert match"
+    },
+    "println": {
+        "prefix": "println",
+        "body": [
+            "println!(\"${1:{\\}}\", $2)$0"
+        ],
+        "description": "Insert println!"
+    },
+    "spawn": {
+        "prefix": "thread::spawn",
+        "body": [
+            "thread::spawn(move || {",
+            "\t$0",
+            "});"
+        ],
+        "description": "Wrap code in thread::spawn"
+    },
+    "test": {
+        "prefix": "test",
+        "body": [
+            "#[test]",
+            "fn ${1:name}() {",
+            "    ${2:unimplemented!();}",
+            "}"
+        ],
+        "description": "#[test]"
+    },
+    "unimplemented": {
+        "prefix": "unimplemented",
+        "body": [
+            "unimplemented!()"
+        ],
+        "description": "Insert unimplemented!"
+    },
+    "unreachable": {
+        "prefix": "unreachable",
+        "body": [
+            "unreachable!()"
+        ],
+        "description": "Insert unreachable!"
+    },
+    "use": {
+        "prefix": "use",
+        "body": "use $1;",
+        "description": "Insert use"
     },
     "while": {
         "prefix": "while",
@@ -57,120 +234,5 @@
             "}"
         ],
         "description": "Insert while let loop"
-    },
-    "unimplemented": {
-        "prefix": "unimplemented",
-        "body": [
-            "unimplemented!()"
-        ],
-        "description": "Insert unimplemented!"
-    },
-    "unreachable": {
-        "prefix": "unreachable",
-        "body": [
-            "unreachable!()"
-        ],
-        "description": "Insert unreachable!"
-    },
-    "println": {
-        "prefix": "println",
-        "body": [
-            "println!(\"${1:{\\}}\", $2)$0"
-        ],
-        "description": "Insert println!"
-    },
-    "assert": {
-        "prefix": "assert",
-        "body": [
-            "assert!($1)$0"
-        ],
-        "description": "Insert assert!"
-    },
-    "assert_eq": {
-        "prefix": "assert_eq",
-        "body": [
-            "assert_eq!($1, $2)$0"
-        ],
-        "description": "Insert assert_eq!"
-    },
-    "macro_rules": {
-        "prefix": "macro_rules",
-        "body": [
-            "macro_rules! $1 {",
-            "\t($2) => {",
-            "\t\t$0",
-            "\t};",
-            "}"
-        ],
-        "description": "Insert macro_rules!"
-    },
-    "if let Option": {
-        "prefix": "if let",
-        "body": [
-            "if let Some(${1:foo}) = ${1:foo} {",
-            "\t${0:${1:foo}.}",
-            "}"
-        ],
-        "description": "Unwrap Option with if let"
-    },
-    "spawn": {
-        "prefix": "thread::spawn",
-        "body": [
-            "thread::spawn(move || {",
-            "\t$0",
-            "});"
-        ],
-        "description": "Wrap code in thread::spawn"
-    },
-    "derive": {
-        "prefix": "derive",
-        "body": [
-            "#[derive(${1})]"
-        ],
-        "description": "#[derive(…)]"
-    },
-    "cfg": {
-        "prefix": "cfg",
-        "body": [
-            "#[cfg(${1})]"
-        ],
-        "description": "#[cfg(…)]"
-    },
-    "test": {
-        "prefix": "test",
-        "body": [
-            "#[test]",
-            "fn ${1:name}() {",
-            "    ${2:unimplemented!();}",
-            "}"
-        ],
-        "description": "#[test]"
-    },
-    "function": {
-        "prefix": "fn",
-        "body": [
-            "fn ${1:name}() {",
-            "\t${2:args}",
-            "}"
-        ],
-        "description": "Insert function"
-    },
-    "parameterized function": {
-        "prefix": "fnpar",
-        "body": [
-            "fn ${1:name}(${2:var}: ${3:type}) -> ${3:type} {",
-            "\t${4:args}",
-            "}"
-        ],
-        "description": "Insert parametrized function",
-    },
-    "match": {
-        "prefix": "mat",
-        "body": [
-            "match ${1:var} {",
-            "\t${2:args}",
-            "}"
-        ],
-        "description": "Insert match"
     }
 }

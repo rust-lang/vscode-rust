@@ -39,7 +39,7 @@ more details on building and debugging, etc., see [contributing.md](contributing
 * Install this extension from [the VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
   (or by entering `ext install rust` at the command palette).
 * (Skip this step if you already have Rust projects that you'd like to work on.)
-  Create a new Rust project by following [these instructions](https://doc.rust-lang.org/book/second-edition/ch01-02-hello-world.html#creating-a-project-with-cargo).
+  Create a new Rust project by following [these instructions](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html).
 * Open a Rust project (`File > Add Folder to Workspace...`). Open the folder for the whole
   project (i.e., the folder containing 'Cargo.toml'), not the 'src' folder.
 * You'll be prompted to install the RLS. Once installed, the RLS should start

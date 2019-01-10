@@ -22,26 +22,6 @@ export interface ExecChildProcessResult<TOut = string> {
     readonly stderr: TOut;
 }
 
-export async function execChildProcess(command: string): Promise<ExecChildProcessResult> {
-    const r: Promise<ExecChildProcessResult> = new Promise((resolve, reject) => {
-        child_process.exec(command, {
-            encoding: 'utf8',
-        }, (error, stdout, stderr) => {
-            if (!!error) {
-                reject(error);
-                return;
-            }
-
-            resolve({
-                stdout,
-                stderr,
-            });
-        });
-    });
-    return r;
-}
-
-
 export async function execFile(command: string, args: string[], options: child_process.ExecFileOptions): Promise<ExecChildProcessResult> {
     return new Promise<ExecChildProcessResult>((resolve, reject) => {
         child_process.execFile(command, args, {
@@ -52,12 +32,49 @@ export async function execFile(command: string, args: string[], options: child_p
                 reject(error);
                 return;
             }
-
             resolve({
                 stdout,
                 stderr,
             });
         });
-
     });
+}
+
+export async function run_rustup(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Promise<ExecChildProcessResult> {
+    let command: string = rustup;
+
+    if (useWSL == true) {
+        ({ command: command, args: args } = modifyParametersForWSL(command, args));
+    }
+
+    return execFile(command, args, options);
+}
+
+export function run_rustup_sync(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Buffer {
+    let command: string = rustup;
+
+    if (useWSL == true) {
+        ({ command: command, args: args } = modifyParametersForWSL(command, args));
+    }
+
+    return child_process.execFileSync(command, args, { ...options });
+}
+
+export function run_rustup_process(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): child_process.ChildProcess {
+    let command: string = rustup;
+
+    if (useWSL == true) {
+        ({ command: command, args: args } = modifyParametersForWSL(command, args));
+    }
+    
+    return child_process.spawn(command, args, options);
+}
+
+function modifyParametersForWSL(originalCommand: string, originalArgs: string[]): { command: string, args: string[] } {
+    // When using Windows Subsystem for Linux call bash.exe in interactive mode
+    // Necessary, because on default rustup path is set in '.profile'
+    return {
+        command: 'bash.exe',
+        args: ['-i', '-c', originalArgs.reduce((p, c) => `${p} ${c}`, originalCommand)]
+    };
 }

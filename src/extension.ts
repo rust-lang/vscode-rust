@@ -28,10 +28,12 @@ import {
     LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions, ImplementationRequest
 } from 'vscode-languageclient';
-import { execFile, ExecChildProcessResult } from './utils/child_process';
+import { execFile, ExecChildProcessResult, run_rustup } from './utils/child_process';
+
 
 export async function activate(context: ExtensionContext) {
     configureLanguage(context);
+
 
     workspace.onDidOpenTextDocument((doc) => didOpenTextDocument(doc, context));
     workspace.textDocuments.forEach((doc) => didOpenTextDocument(doc, context));
@@ -218,6 +220,14 @@ class ClientWorkspace {
                 cmdRun: true,
             },
             workspaceFolder: this.folder,
+            // Changes pathes between Windows and Windows Subsystem for Linux
+            uriConverters: !this.config.useWSL
+                ?
+                undefined :
+                {
+                    code2Protocol: (uri: Uri) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath '${uri.fsPath}'`], {}).toString().trim()).toString(),
+                    protocol2Code: (wslPath: string) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath -w ${Uri.parse(wslPath).path}`], {}).toString().trim())
+                }
         };
 
         // Create the language client and start the client.
@@ -355,8 +365,8 @@ class ClientWorkspace {
                     'rustc', ['--print', 'sysroot'], { env }
                 );
             } else {
-                output = await execFile(
-                    this.config.rustupPath, ['run', this.config.channel, 'rustc', '--print', 'sysroot'], { env }
+                output = await run_rustup(
+                    this.config.rustupPath, ['run', await (this.config.channel), 'rustc', '--print', 'sysroot'], { env }, this.config.useWSL
                 );
             }
         } catch (e) {

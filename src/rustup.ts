@@ -29,12 +29,6 @@ export class RustupConfig {
 // This module handles running the RLS via rustup, including checking that rustup
 // is installed and installing any required components/toolchains.
 
-export async function runRlsViaRustup(env: any, config: RustupConfig): Promise<child_process.ChildProcess> {
-    await ensureToolchain(config);
-    await checkForRls(config);
-    return child_process.spawn(config.path, ['run', config.channel, 'rls'], { env });
-}
-
 export async function rustupUpdate(config: RustupConfig) {
     startSpinner('RLS', 'Updating…');
 
@@ -55,7 +49,7 @@ export async function rustupUpdate(config: RustupConfig) {
 }
 
 // Check for the nightly toolchain (and that rustup exists)
-async function ensureToolchain(config: RustupConfig): Promise<void> {
+export async function ensureToolchain(config: RustupConfig): Promise<void> {
     const toolchainInstalled = await hasToolchain(config);
     if (toolchainInstalled) {
         return;
@@ -64,6 +58,23 @@ async function ensureToolchain(config: RustupConfig): Promise<void> {
     const clicked = await window.showInformationMessage(config.channel + ' toolchain not installed. Install?', 'Yes');
     if (clicked === 'Yes') {
         await tryToInstallToolchain(config);
+    }
+    else {
+        throw new Error();
+    }
+}
+
+// Check for rls components.
+export async function checkForRls(config: RustupConfig): Promise<void> {
+    const hasRls = await hasRlsComponents(config);
+    if (hasRls) {
+        return;
+    }
+
+    // missing component
+    const clicked = await Promise.resolve(window.showInformationMessage('RLS not installed. Install?', 'Yes'));
+    if (clicked === 'Yes') {
+        await installRls(config);
     }
     else {
         throw new Error();
@@ -97,23 +108,6 @@ async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
         window.showErrorMessage('Could not install ' + config.channel + ' toolchain');
         stopSpinner('Could not install ' + config.channel + ' toolchain');
         throw e;
-    }
-}
-
-// Check for rls components.
-async function checkForRls(config: RustupConfig): Promise<void> {
-    const hasRls = await hasRlsComponents(config);
-    if (hasRls) {
-        return;
-    }
-
-    // missing component
-    const clicked = await Promise.resolve(window.showInformationMessage('RLS not installed. Install?', 'Yes'));
-    if (clicked === 'Yes') {
-        await installRls(config);
-    }
-    else {
-        throw new Error();
     }
 }
 

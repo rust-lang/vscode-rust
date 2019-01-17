@@ -172,7 +172,7 @@
                 "rust-client.rustupPath": {
                     "type": "string",
                     "default": "rustup",
-                    "description": "Path to rustup executable"
+                    "description": "Path to rustup executable. Ignored if rustup is disabled."
                 },
                 "rust-client.rlsPath": {
                     "type": [
@@ -180,7 +180,7 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Path to rls executable (only required for rls developers)"
+                    "description": "Override RLS path. Only required for RLS developers. If you set this and use rustup, you should also set `rust-client.channel` to ensure your RLS sees the right libraries. If you don't use rustup, make sure to set `rust-client.disableRustup`."
                 },
                 "rust-client.revealOutputChannelOn": {
                     "type": "string",
@@ -214,7 +214,7 @@
                         "nightly"
                     ],
                     "default": null,
-                    "description": "Rust channel to install RLS from. By default it will use the same channel as your currently open project"
+                    "description": "Rust channel to invoke rustup with. Ignored if rustup is disabled. By default, uses the same channel as your currently open project."
                 },
                 "rust.sysroot": {
                     "type": [

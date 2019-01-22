@@ -30,7 +30,6 @@ function fromStringToRevealOutputChannelOn(value: string): RevealOutputChannelOn
 }
 
 export class RLSConfiguration {
-
     public get rustupPath(): string {
         return this.configuration.get('rust-client.rustupPath', 'rustup');
     }
@@ -47,7 +46,7 @@ export class RLSConfiguration {
         return this.configuration.get<boolean>('rust-client.disableRustup', false);
     }
 
-    public get  revealOutputChannelOn(): RevealOutputChannelOn {
+    public get revealOutputChannelOn(): RevealOutputChannelOn {
         return RLSConfiguration.readRevealOutputChannelOn(this.configuration);
     }
 
@@ -90,7 +89,6 @@ export class RLSConfiguration {
     private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
         this.configuration = configuration;
         this.wsPath = wsPath;
-
     }
 
     // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop. 

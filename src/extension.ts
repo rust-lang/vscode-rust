@@ -220,15 +220,15 @@ class ClientWorkspace {
                 cmdRun: true,
             },
             workspaceFolder: this.folder,
-            // Changes pathes between Windows and Windows Subsystem for Linux
-            uriConverters: !this.config.useWSL
-                ?
-                undefined :
-                {
-                    code2Protocol: (uri: Uri) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath '${uri.fsPath}'`], {}).toString().trim()).toString(),
-                    protocol2Code: (wslPath: string) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath -w ${Uri.parse(wslPath).path}`], {}).toString().trim())
-                }
         };
+
+        // Changes pathes between Windows and Windows Subsystem for Linux
+        if (this.config.useWSL) {
+            clientOptions.uriConverters = {
+                code2Protocol: (uri: Uri) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath '${uri.fsPath}'`], {}).toString().trim()).toString(),
+                protocol2Code: (wslPath: string) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath -w ${Uri.parse(wslPath).path}`], {}).toString().trim())
+            };
+        }
 
         // Create the language client and start the client.
         this.lc = new LanguageClient('rust', 'Rust Language Server', serverOptions, clientOptions);

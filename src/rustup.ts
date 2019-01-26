@@ -10,10 +10,9 @@
 
 'use strict';
 
-import * as child_process from 'child_process';
 import { window } from 'vscode';
 
-import { run_rustup, run_rustup_process, run_rustup_sync } from './utils/child_process';
+import { run_rustup, run_rustup_sync } from './utils/child_process';
 import { startSpinner, stopSpinner } from './spinner';
 
 export class RustupConfig {

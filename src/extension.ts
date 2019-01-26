@@ -28,7 +28,7 @@ import {
     LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions, ImplementationRequest
 } from 'vscode-languageclient';
-import { execFile, ExecChildProcessResult, run_rustup } from './utils/child_process';
+import { execFile, ExecChildProcessResult, run_rustup, run_rustup_process } from './utils/child_process';
 
 
 export async function activate(context: ExtensionContext) {
@@ -443,7 +443,7 @@ class ClientWorkspace {
                 await checkForRls(config);
             }
 
-            childProcess = child_process.spawn(config.path, ['run', config.channel, rls_path], { env });
+            childProcess = run_rustup_process(config.path, ['run', config.channel, rls_path], { env }, config.useWSL);
         }
         try {
             childProcess.on('error', err => {

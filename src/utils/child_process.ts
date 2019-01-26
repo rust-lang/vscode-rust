@@ -70,11 +70,10 @@ export function run_rustup_process(rustup: string, args: string[], options: chil
     return child_process.spawn(command, args, options);
 }
 
-function modifyParametersForWSL(originalCommand: string, originalArgs: string[]): { command: string, args: string[] } {
-    // When using Windows Subsystem for Linux call bash.exe in interactive mode
-    // Necessary, because on default rustup path is set in '.profile'
+function modifyParametersForWSL(command: string, args: string[]) {
+    args.unshift(command);
     return {
-        command: 'bash.exe',
-        args: ['-i', '-c', originalArgs.reduce((p, c) => `${p} ${c}`, originalCommand)]
+        command: 'wsl',
+        args: args
     };
 }

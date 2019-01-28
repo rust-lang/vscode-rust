@@ -216,6 +216,11 @@
                     "default": null,
                     "description": "Rust channel to invoke rustup with. Ignored if rustup is disabled. By default, uses the same channel as your currently open project."
                 },
+                "rust-client.nestedMultiRootConfigInOutermost": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "If one root workspace folder is nested in another root folder, look for the Rust config in the outermost root."
+                },
                 "rust.sysroot": {
                     "type": [
                         "string",

@@ -79,7 +79,9 @@ function didOpenTextDocument(
   if (!folder) {
     return;
   }
-  folder = getOuterMostWorkspaceFolder(folder);
+  if (workspace.getConfiguration().get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true)) {
+    folder = getOuterMostWorkspaceFolder(folder);
+  }
   // folder = getCargoTomlWorkspace(folder, document.uri.fsPath);
   if (!folder) {
     stopSpinner(`RLS: Cargo.toml missing`);

@@ -102,7 +102,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
     startSpinner('RLS', 'Installing toolchain…');
     try {
-        const { stdout, stderr } = await runRustup(config.path, ['toolchain', 'install'], {}, config.useWSL);
+        const { stdout, stderr } = await runRustup(config.path, ['toolchain', 'install', config.channel], {}, config.useWSL);
         console.log(stdout);
         console.log(stderr);
         stopSpinner(config.channel + ' toolchain installed successfully');

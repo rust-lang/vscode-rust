@@ -34,7 +34,6 @@ import { execFile, ExecChildProcessResult } from './utils/child_process';
 export async function activate(context: ExtensionContext) {
     configureLanguage(context);
 
-
     workspace.onDidOpenTextDocument((doc) => didOpenTextDocument(doc, context));
     workspace.textDocuments.forEach((doc) => didOpenTextDocument(doc, context));
     workspace.onDidChangeWorkspaceFolders((e) => didChangeWorkspaceFolders(e, context));

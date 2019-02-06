@@ -10,9 +10,9 @@
 
 'use strict';
 
+import * as child_process from 'child_process';
 import { window } from 'vscode';
 
-import * as child_process from 'child_process';
 import { execFile, ExecChildProcessResult } from './utils/child_process';
 
 import { startSpinner, stopSpinner } from './spinner';
@@ -36,7 +36,7 @@ export async function rustupUpdate(config: RustupConfig) {
     startSpinner('RLS', 'Updating…');
 
     try {
-        const { stdout } = await run_rustup(config.path, ['update'], {}, config.useWSL);
+        const { stdout } = await runRustup(config.path, ['update'], {}, config.useWSL);
 
         // This test is imperfect because if the user has multiple toolchains installed, they
         // might have one updated and one unchanged. But I don't want to go too far down the
@@ -87,7 +87,7 @@ export async function checkForRls(config: RustupConfig): Promise<void> {
 
 async function hasToolchain(config: RustupConfig): Promise<boolean> {
     try {
-        const { stdout } = await run_rustup(config.path, ['toolchain', 'list'], {}, config.useWSL);
+        const { stdout } = await runRustup(config.path, ['toolchain', 'list'], {}, config.useWSL);
         const hasToolchain = stdout.indexOf(config.channel) > -1;
         return hasToolchain;
     }
@@ -102,7 +102,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
     startSpinner('RLS', 'Installing toolchain…');
     try {
-        const { stdout, stderr } = await run_rustup(config.path, ['toolchain', 'install'], {}, config.useWSL);
+        const { stdout, stderr } = await runRustup(config.path, ['toolchain', 'install'], {}, config.useWSL);
         console.log(stdout);
         console.log(stderr);
         stopSpinner(config.channel + ' toolchain installed successfully');
@@ -117,7 +117,7 @@ async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
 
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
     try {
-        const { stdout } = await run_rustup(config.path, ['component', 'list', '--toolchain', config.channel], {}, config.useWSL);
+        const { stdout } = await runRustup(config.path, ['component', 'list', '--toolchain', config.channel], {}, config.useWSL);
         const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
 
         if (
@@ -143,7 +143,7 @@ async function installRls(config: RustupConfig): Promise<void> {
 
     const tryFn: (component: string) => Promise<(Error | null)> = async (component: string) => {
         try {
-            const { stdout, stderr } = await run_rustup(config.path, ['component', 'add', component, '--toolchain', config.channel], {}, config.useWSL);
+            const { stdout, stderr } = await runRustup(config.path, ['component', 'add', component, '--toolchain', config.channel], {}, config.useWSL);
             console.log(stdout);
             console.log(stderr);
             return null;
@@ -226,10 +226,10 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     let activeChannel;
     try {
         // `rustup show active-toolchain` is available since rustup 1.12.0
-        activeChannel = run_rustup_sync(config.path, ['show', 'active-toolchain'], { cwd: wsPath }, config.useWSL).toString().trim();
+        activeChannel = runRustupSync(config.path, ['show', 'active-toolchain'], { cwd: wsPath }, config.useWSL).toString().trim();
     } catch (e) {
         // Possibly an old rustup version, so try rustup show
-        const showOutput = run_rustup_sync(config.path, ['show'], { cwd: wsPath }, config.useWSL).toString();
+        const showOutput = runRustupSync(config.path, ['show'], { cwd: wsPath }, config.useWSL).toString();
         activeChannel = parseActiveToolchain(showOutput);
     }
 
@@ -237,7 +237,7 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     return activeChannel;
 }
 
-export async function run_rustup(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Promise<ExecChildProcessResult> {
+export async function runRustup(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Promise<ExecChildProcessResult> {
     let command: string = rustup;
 
     if (useWSL == true) {
@@ -247,7 +247,7 @@ export async function run_rustup(rustup: string, args: string[], options: child_
     return execFile(command, args, options);
 }
 
-export function run_rustup_sync(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Buffer {
+export function runRustupSync(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Buffer {
     let command: string = rustup;
 
     if (useWSL == true) {
@@ -257,7 +257,7 @@ export function run_rustup_sync(rustup: string, args: string[], options: child_p
     return child_process.execFileSync(command, args, { ...options });
 }
 
-export function run_rustup_process(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): child_process.ChildProcess {
+export function runRustupProcess(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): child_process.ChildProcess {
     let command: string = rustup;
 
     if (useWSL == true) {

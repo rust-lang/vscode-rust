@@ -10,7 +10,7 @@
 
 'use strict';
 
-import { rustupUpdate, ensureToolchain, checkForRls, run_rustup, run_rustup_process } from './rustup';
+import { rustupUpdate, ensureToolchain, checkForRls, runRustup, runRustupProcess } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, runCommand } from './tasks';
@@ -222,7 +222,7 @@ class ClientWorkspace {
             workspaceFolder: this.folder,
         };
 
-        // Changes pathes between Windows and Windows Subsystem for Linux
+        // Changes paths between Windows and Windows Subsystem for Linux
         if (this.config.useWSL) {
             clientOptions.uriConverters = {
                 code2Protocol: (uri: Uri) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath '${uri.fsPath}'`], {}).toString().trim()).toString(),
@@ -365,7 +365,7 @@ class ClientWorkspace {
                     'rustc', ['--print', 'sysroot'], { env }
                 );
             } else {
-                output = await run_rustup(
+                output = await runRustup(
                     this.config.rustupPath, ['run', await (this.config.channel), 'rustc', '--print', 'sysroot'], { env }, this.config.useWSL
                 );
             }
@@ -443,7 +443,7 @@ class ClientWorkspace {
                 await checkForRls(config);
             }
 
-            childProcess = run_rustup_process(config.path, ['run', config.channel, rls_path], { env }, config.useWSL);
+            childProcess = runRustupProcess(config.path, ['run', config.channel, rls_path], { env }, config.useWSL);
         }
         try {
             childProcess.on('error', err => {

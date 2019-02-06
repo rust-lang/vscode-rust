@@ -32,48 +32,12 @@ export async function execFile(command: string, args: string[], options: child_p
                 reject(error);
                 return;
             }
+
             resolve({
                 stdout,
                 stderr,
             });
         });
+
     });
-}
-
-export async function run_rustup(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Promise<ExecChildProcessResult> {
-    let command: string = rustup;
-
-    if (useWSL == true) {
-        ({ command: command, args: args } = modifyParametersForWSL(command, args));
-    }
-
-    return execFile(command, args, options);
-}
-
-export function run_rustup_sync(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Buffer {
-    let command: string = rustup;
-
-    if (useWSL == true) {
-        ({ command: command, args: args } = modifyParametersForWSL(command, args));
-    }
-
-    return child_process.execFileSync(command, args, { ...options });
-}
-
-export function run_rustup_process(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): child_process.ChildProcess {
-    let command: string = rustup;
-
-    if (useWSL == true) {
-        ({ command: command, args: args } = modifyParametersForWSL(command, args));
-    }
-    
-    return child_process.spawn(command, args, options);
-}
-
-function modifyParametersForWSL(command: string, args: string[]) {
-    args.unshift(command);
-    return {
-        command: 'wsl',
-        args: args
-    };
 }

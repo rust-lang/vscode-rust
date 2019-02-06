@@ -12,7 +12,9 @@
 
 import { window } from 'vscode';
 
-import { run_rustup, run_rustup_sync } from './utils/child_process';
+import * as child_process from 'child_process';
+import { execFile, ExecChildProcessResult } from './utils/child_process';
+
 import { startSpinner, stopSpinner } from './spinner';
 
 export class RustupConfig {
@@ -33,7 +35,7 @@ export class RustupConfig {
 export async function rustupUpdate(config: RustupConfig) {
     startSpinner('RLS', 'Updating…');
 
-    try {    
+    try {
         const { stdout } = await run_rustup(config.path, ['update'], {}, config.useWSL);
 
         // This test is imperfect because if the user has multiple toolchains installed, they
@@ -99,7 +101,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 
 async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
     startSpinner('RLS', 'Installing toolchain…');
-    try {        
+    try {
         const { stdout, stderr } = await run_rustup(config.path, ['toolchain', 'install'], {}, config.useWSL);
         console.log(stdout);
         console.log(stderr);
@@ -114,7 +116,7 @@ async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
 }
 
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
-    try {    
+    try {
         const { stdout } = await run_rustup(config.path, ['component', 'list', '--toolchain', config.channel], {}, config.useWSL);
         const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
 
@@ -233,4 +235,42 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
 
     console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);
     return activeChannel;
+}
+
+export async function run_rustup(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Promise<ExecChildProcessResult> {
+    let command: string = rustup;
+
+    if (useWSL == true) {
+        ({ command: command, args: args } = modifyParametersForWSL(command, args));
+    }
+
+    return execFile(command, args, options);
+}
+
+export function run_rustup_sync(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): Buffer {
+    let command: string = rustup;
+
+    if (useWSL == true) {
+        ({ command: command, args: args } = modifyParametersForWSL(command, args));
+    }
+
+    return child_process.execFileSync(command, args, { ...options });
+}
+
+export function run_rustup_process(rustup: string, args: string[], options: child_process.ExecFileOptions, useWSL?: boolean): child_process.ChildProcess {
+    let command: string = rustup;
+
+    if (useWSL == true) {
+        ({ command: command, args: args } = modifyParametersForWSL(command, args));
+    }
+
+    return child_process.spawn(command, args, options);
+}
+
+function modifyParametersForWSL(command: string, args: string[]) {
+    args.unshift(command);
+    return {
+        command: 'wsl',
+        args: args
+    };
 }

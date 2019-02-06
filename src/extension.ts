@@ -10,7 +10,7 @@
 
 'use strict';
 
-import { rustupUpdate, ensureToolchain, checkForRls } from './rustup';
+import { rustupUpdate, ensureToolchain, checkForRls, run_rustup, run_rustup_process } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, runCommand } from './tasks';
@@ -28,7 +28,7 @@ import {
     LanguageClient, LanguageClientOptions, Location, NotificationType,
     ServerOptions, ImplementationRequest
 } from 'vscode-languageclient';
-import { execFile, ExecChildProcessResult, run_rustup, run_rustup_process } from './utils/child_process';
+import { execFile, ExecChildProcessResult } from './utils/child_process';
 
 
 export async function activate(context: ExtensionContext) {

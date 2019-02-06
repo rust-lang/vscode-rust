@@ -91,7 +91,7 @@ export class RLSConfiguration {
         this.wsPath = wsPath;
     }
 
-    // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop. 
+    // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.
     public rustupConfig(ignoreChannel: boolean = false): RustupConfig {
         return new RustupConfig(ignoreChannel ? '' : this.channel, this.rustupPath, this.useWSL);
     }

@@ -1,6 +1,49 @@
 ### Unreleased
 
+### 0.5.3 - 2018-12-08
+
+* Revert Cargo.toml changes
+
+### 0.5.2 - 2018-12-07
+
+* Prefer workspace Cargo.toml to local ones
+
+### 0.5.1 - 2018-12-06
+
+* Try harder to find Cargo.toml
+* Account for the `rls-preview` to `rls` component name change (and remove the `rust-client.rls-name` option)
+
+### 0.5.0 - 2018-12-04
+
+* Added `build_command` setting
+* Work better without Rustup
+* Fix some bugs with VSCode workspaces
+
+
+### 0.4.10 - 2018-08-29
+
+* Can use an external Rustfmt using `rust.rustfmt_path` option
+* snippets for test, derive, and cfg
+* fix a bug where the Rust sysroot was set to an invalid value
+
+### 0.4.9 - 2018-07-20
+
+* Fix a bug in the `rust.clippy_preference` setting.
+
+### 0.4.8 - 2018-07-20
+
+* Fix some Windows bugs
+* add the `rust.clippy_preference` setting.
+* Fix some Rustup/installation bugs
+
+### 0.4.7 - 2018-07-08
+
+* Fix missing tasks in recent versions of VSCode
+
+### 0.4.6 - 2018-07-05
+
 * Support VSCode workspaces
+* Code lens for running unit tests
 
 ### 0.4.5 - 2018-06-03
 

@@ -10,19 +10,24 @@
 
 'use strict';
 
-import { runRlsViaRustup, rustupUpdate } from './rustup';
+import { rustupUpdate, ensureToolchain, checkForRls } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, runCommand } from './tasks';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+//import path = require('path');
 
-import { commands, ExtensionContext, IndentAction, languages, TextEditor,
+import {
+    commands, ExtensionContext, IndentAction, languages, TextEditor,
     TextEditorEdit, window, workspace, TextDocument, WorkspaceFolder, Disposable, Uri,
-    WorkspaceFoldersChangeEvent } from 'vscode';
-import { LanguageClient, LanguageClientOptions, Location, NotificationType,
-    ServerOptions } from 'vscode-languageclient';
+    WorkspaceFoldersChangeEvent
+} from 'vscode';
+import {
+    LanguageClient, LanguageClientOptions, Location, NotificationType,
+    ServerOptions, ImplementationRequest
+} from 'vscode-languageclient';
 import { execFile, ExecChildProcessResult } from './utils/child_process';
 
 export async function activate(context: ExtensionContext) {
@@ -53,6 +58,11 @@ function didOpenTextDocument(document: TextDocument, context: ExtensionContext):
         return;
     }
     folder = getOuterMostWorkspaceFolder(folder);
+    // folder = getCargoTomlWorkspace(folder, document.uri.fsPath);
+    if (!folder) {
+        stopSpinner(`RLS: Cargo.toml missing`);
+        return;
+    }
 
     if (!workspaces.has(folder.uri.toString())) {
         const workspace = new ClientWorkspace(folder);
@@ -82,6 +92,38 @@ function sortedWorkspaceFolders(): string[] {
     return _sortedWorkspaceFolders || [];
 }
 
+// function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder {
+//     if (!cur_workspace) {
+//         return cur_workspace;
+//     }
+
+//     const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
+//     const root_manifest = path.join(workspace_root, 'Cargo.toml');
+//     if (fs.existsSync(root_manifest)) {
+//         return cur_workspace;
+//     }
+
+//     let current = file_path;
+
+//     while (true) {
+//         const old = current;
+//         current = path.dirname(current);
+//         if (old == current) {
+//             break;
+//         }
+//         if (workspace_root == path.parse(current).dir) {
+//             break;
+//         }
+
+//         const cargo_path = path.join(current, 'Cargo.toml');
+//         if (fs.existsSync(cargo_path)) {
+//             return { ...cur_workspace, uri: Uri.parse(current) };
+//         }
+//     }
+
+//     return cur_workspace;
+// }
+
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
     const sorted = sortedWorkspaceFolders();
     for (const element of sorted) {
@@ -109,6 +151,7 @@ function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent, context: Exte
         for (const f of fs.readdirSync(folder.uri.fsPath)) {
             if (f === 'Cargo.toml') {
                 const workspace = new ClientWorkspace(folder);
+                workspaces.set(folder.uri.toString(), workspace);
                 workspace.start(context);
                 break;
             }
@@ -136,15 +179,15 @@ class ClientWorkspace {
     readonly config: RLSConfiguration;
     lc: LanguageClient | null = null;
     readonly folder: WorkspaceFolder;
-    taskProvider: Disposable | null = null;
+    disposables: Disposable[];
 
     constructor(folder: WorkspaceFolder) {
         this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
         this.folder = folder;
+        this.disposables = [];
     }
 
     async start(context: ExtensionContext) {
-        // These methods cannot throw an error, so we can drop it.
         warnOnMissingCargoToml();
 
         startSpinner('RLS', 'Starting');
@@ -178,14 +221,14 @@ class ClientWorkspace {
         };
 
         // Create the language client and start the client.
-        this.lc = new LanguageClient('Rust Language Server', serverOptions, clientOptions);
+        this.lc = new LanguageClient('rust', 'Rust Language Server', serverOptions, clientOptions);
 
         const promise = this.progressCounter();
 
         const disposable = this.lc.start();
-        context.subscriptions.push(disposable);
+        this.disposables.push(disposable);
 
-        this.taskProvider = activateTaskProvider(this.folder);
+        this.disposables.push(activateTaskProvider(this.folder));
         this.registerCommands(context);
 
         return promise;
@@ -204,6 +247,11 @@ class ClientWorkspace {
                         return;
                     }
                     await this.lc.onReady();
+                    // Prior to https://github.com/rust-lang-nursery/rls/pull/936 we used a custom
+                    // LSP message - if the implementation provider is specified this means we can use the 3.6 one.
+                    const useLSPRequest = this.lc.initializeResult &&
+                        this.lc.initializeResult.capabilities.implementationProvider === true;
+                    const request = useLSPRequest ? ImplementationRequest.type.method : 'rustDocument/implementations';
 
                     const params =
                         this.lc
@@ -211,7 +259,7 @@ class ClientWorkspace {
                             .asTextDocumentPositionParams(textEditor.document, textEditor.selection.active);
                     let locations: Location[];
                     try {
-                        locations = await this.lc.sendRequest<Location[]>('rustDocument/implementations', params);
+                        locations = await this.lc.sendRequest<Location[]>(request, params);
                     } catch (reason) {
                         window.showWarningMessage('find implementations failed: ' + reason);
                         return;
@@ -225,22 +273,20 @@ class ClientWorkspace {
                     );
                 }
             );
-        context.subscriptions.push(findImplsDisposable);
+        this.disposables.push(findImplsDisposable);
 
         const rustupUpdateDisposable = commands.registerCommand('rls.update', () => {
             return rustupUpdate(this.config.rustupConfig());
         });
-        context.subscriptions.push(rustupUpdateDisposable);
+        this.disposables.push(rustupUpdateDisposable);
 
         const restartServer = commands.registerCommand('rls.restart', async () => {
-            if (this.lc) {
-                await this.lc.stop();
-            }
+            await this.stop();
             return this.start(context);
         });
-        context.subscriptions.push(restartServer);
+        this.disposables.push(restartServer);
 
-        context.subscriptions.push(
+        this.disposables.push(
             commands.registerCommand('rls.run', (cmd) => runCommand(this.folder, cmd))
         );
     }
@@ -297,18 +343,22 @@ class ClientWorkspace {
             promise = this.lc.stop();
         }
         return promise.then(() => {
-            if (this.taskProvider) {
-                this.taskProvider.dispose();
-            }
+            this.disposables.forEach(d => d.dispose());
         });
     }
 
     async getSysroot(env: Object): Promise<string> {
         let output: ExecChildProcessResult;
         try {
-            output = await execFile(
-                this.config.rustupPath, ['run', this.config.channel, 'rustc', '--print', 'sysroot'], { env }
-            );
+            if (this.config.rustupDisabled) {
+                output = await execFile(
+                    'rustc', ['--print', 'sysroot'], { env }
+                );
+            } else {
+                output = await execFile(
+                    this.config.rustupPath, ['run', this.config.channel, 'rustc', '--print', 'sysroot'], { env }
+                );
+            }
         } catch (e) {
             throw new Error(`Error getting sysroot from \`rustc\`: ${e}`);
         }
@@ -339,6 +389,7 @@ class ClientWorkspace {
                 window.showWarningMessage(
                     'RLS could not set RUST_SRC_PATH for Racer because it could not read the Rust sysroot.'
                 );
+                return env;
             }
         }
 
@@ -359,22 +410,32 @@ class ClientWorkspace {
     }
 
     async makeRlsProcess(): Promise<child_process.ChildProcess> {
-        // Allow to override how RLS is started up.
-        const rls_path = this.config.rlsPath;
+        // Run "rls" from the PATH unless there's an override.
+        const rls_path = this.config.rlsPath || 'rls';
 
-        let childProcessPromise: Promise<child_process.ChildProcess>;
-        if (rls_path) {
-            const env = await this.makeRlsEnv(true);
-            console.info('running ' + rls_path);
-            childProcessPromise = Promise.resolve(child_process.spawn(rls_path, [], { env }));
+        // We don't need to set [DY]LD_LIBRARY_PATH if we're using rustup,
+        // as rustup will set it for us when it chooses a toolchain.
+        const env = await this.makeRlsEnv(/*setLibPath*/ this.config.rustupDisabled);
+
+        let childProcess: child_process.ChildProcess;
+        if (this.config.rustupDisabled) {
+            console.info('running without rustup: ' + rls_path);
+            childProcess = child_process.spawn(rls_path, [], { env });
         } else {
-            const env = await this.makeRlsEnv();
-            console.info('running with rustup');
-            childProcessPromise = runRlsViaRustup(env, this.config.rustupConfig());
+            console.info('running with rustup: ' + rls_path);
+            const config = this.config.rustupConfig();
+
+            await ensureToolchain(config);
+            if (!this.config.rlsPath) {
+                // We only need a rustup-installed RLS if we weren't given a
+                // custom RLS path.
+                console.info('will use a rustup-installed RLS; ensuring present');
+                await checkForRls(config);
+            }
+
+            childProcess = child_process.spawn(config.path, ['run', config.channel, rls_path], { env });
         }
         try {
-            const childProcess = await childProcessPromise;
-
             childProcess.on('error', err => {
                 if ((<any>err).code == 'ENOENT') {
                     console.error('Could not spawn RLS process: ', err.message);
@@ -405,7 +466,7 @@ class ClientWorkspace {
     }
 
     async autoUpdate() {
-        if (this.config.updateOnStartup) {
+        if (this.config.updateOnStartup && !this.config.rustupDisabled) {
             await rustupUpdate(this.config.rustupConfig());
         }
     }
@@ -431,7 +492,6 @@ async function warnOnMissingCargoToml() {
         );
     }
 }
-
 
 function configureLanguage(context: ExtensionContext) {
     const disposable = languages.setLanguageConfiguration('rust', {

@@ -19,23 +19,15 @@ import { startSpinner, stopSpinner } from './spinner';
 export class RustupConfig {
     channel: string;
     path: string;
-    componentName: string;
 
-    constructor(channel: string, path: string, componentName: string) {
+    constructor(channel: string, path: string) {
         this.channel = channel;
         this.path = path;
-        this.componentName = componentName;
     }
 }
 
 // This module handles running the RLS via rustup, including checking that rustup
 // is installed and installing any required components/toolchains.
-
-export async function runRlsViaRustup(env: any, config: RustupConfig): Promise<child_process.ChildProcess> {
-    await ensureToolchain(config);
-    await checkForRls(config);
-    return child_process.spawn(config.path, ['run', config.channel, 'rls'], { env });
-}
 
 export async function rustupUpdate(config: RustupConfig) {
     startSpinner('RLS', 'Updating…');
@@ -57,7 +49,7 @@ export async function rustupUpdate(config: RustupConfig) {
 }
 
 // Check for the nightly toolchain (and that rustup exists)
-async function ensureToolchain(config: RustupConfig): Promise<void> {
+export async function ensureToolchain(config: RustupConfig): Promise<void> {
     const toolchainInstalled = await hasToolchain(config);
     if (toolchainInstalled) {
         return;
@@ -66,6 +58,23 @@ async function ensureToolchain(config: RustupConfig): Promise<void> {
     const clicked = await window.showInformationMessage(config.channel + ' toolchain not installed. Install?', 'Yes');
     if (clicked === 'Yes') {
         await tryToInstallToolchain(config);
+    }
+    else {
+        throw new Error();
+    }
+}
+
+// Check for rls components.
+export async function checkForRls(config: RustupConfig): Promise<void> {
+    const hasRls = await hasRlsComponents(config);
+    if (hasRls) {
+        return;
+    }
+
+    // missing component
+    const clicked = await Promise.resolve(window.showInformationMessage('RLS not installed. Install?', 'Yes'));
+    if (clicked === 'Yes') {
+        await installRls(config);
     }
     else {
         throw new Error();
@@ -102,27 +111,10 @@ async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
     }
 }
 
-// Check for rls components.
-async function checkForRls(config: RustupConfig): Promise<void> {
-    const hasRls = await hasRlsComponents(config);
-    if (hasRls) {
-        return;
-    }
-
-    // missing component
-    const clicked = await Promise.resolve(window.showInformationMessage('RLS not installed. Install?', 'Yes'));
-    if (clicked === 'Yes') {
-        await installRls(config);
-    }
-    else {
-        throw new Error();
-    }
-}
-
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
     try {
         const { stdout } = await execChildProcess(config.path + ' component list --toolchain ' + config.channel);
-        const componentName = new RegExp('^' + config.componentName + '.* \\((default|installed)\\)$', 'm');
+        const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
         if (
             stdout.search(componentName) === -1 ||
             stdout.search(/^rust-analysis.* \((default|installed)\)$/m) === -1 ||
@@ -177,7 +169,7 @@ async function installRls(config: RustupConfig): Promise<void> {
     console.log('install rls');
 
     {
-        const e = await tryFn(config.componentName);
+        const e = await tryFn('rls-preview');
         if (e !== null) {
             stopSpinner('Could not install RLS');
             throw e;
@@ -194,21 +186,27 @@ export function parseActiveToolchain(rustupOutput: string): string {
     // There may a default entry under 'installed toolchains' section, so search
     // for currently active/overridden one only under 'active toolchain' section
     const activeToolchainsIndex = rustupOutput.search('active toolchain');
-    if (activeToolchainsIndex === -1) {
-        throw new Error(`couldn't find active toolchains`);
+    if (activeToolchainsIndex !== -1) {
+        rustupOutput = rustupOutput.substr(activeToolchainsIndex);
+
+        const matchActiveChannel = /^(\S*) \((?:default|overridden)/gm;
+        const match = matchActiveChannel.exec(rustupOutput);
+        if (match === null) {
+            throw new Error(`couldn't find active toolchain under 'active toolchains'`);
+        } else if (matchActiveChannel.exec(rustupOutput) !== null) {
+            throw new Error(`multiple active toolchains found under 'active toolchains'`);
+        }
+
+        return match[1];
     }
 
-    rustupOutput = rustupOutput.substr(activeToolchainsIndex);
-
-    const matchActiveChannel = new RegExp(/^(\S*) \((?:default|overridden)/gm);
-    const match = matchActiveChannel.exec(rustupOutput);
-    if (match === null) {
-        throw new Error(`couldn't find active toolchain under 'active toolchains'`);
-    } else if (match.length > 2) {
-        throw new Error(`multiple active toolchains found under 'active toolchains'`);
+    // Try matching the third line as the active toolchain
+    const match = /^(?:.*\r?\n){2}(\S*) \((?:default|overridden)/.exec(rustupOutput);
+    if (match !== null) {
+        return match[1];
     }
 
-    return match[1];
+    throw new Error(`couldn't find active toolchains`);
 }
 
 /**
@@ -219,9 +217,17 @@ export function getActiveChannel(rustupPath: string, wsPath: string): string {
     // rustup info might differ depending on where it's executed
     // (e.g. when a toolchain is locally overriden), so executing it
     // under our current workspace root should give us close enough result
-    const output = child_process.execSync(`${rustupPath} show`, { cwd: wsPath }).toString();
 
-    const activeChannel = parseActiveToolchain(output);
+    let activeChannel;
+    try {
+        // `rustup show active-toolchain` is available since rustup 1.12.0
+        activeChannel = child_process.execSync(`${rustupPath} show active-toolchain`, { cwd: wsPath }).toString().trim();
+    } catch (e) {
+        // Possibly an old rustup version, so try rustup show
+        const showOutput = child_process.execSync(`${rustupPath} show`, { cwd: wsPath }).toString();
+        activeChannel = parseActiveToolchain(showOutput);
+    }
+
     console.info(`Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`);
     return activeChannel;
 }

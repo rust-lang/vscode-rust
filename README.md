@@ -1,7 +1,7 @@
 # Rust support for Visual Studio Code
 
 [![](https://vsmarketplacebadge.apphb.com/version/rust-lang.rust.svg)](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
-[![Build Status](https://travis-ci.org/rust-lang-nursery/rls-vscode.svg?branch=master)](https://travis-ci.org/rust-lang-nursery/rls-vscode)
+[![Build Status](https://travis-ci.org/rust-lang/rls-vscode.svg?branch=master)](https://travis-ci.org/rust-lang/rls-vscode)
 
 Adds language support for Rust to Visual Studio Code. Supports:
 
@@ -14,7 +14,8 @@ Adds language support for Rust to Visual Studio Code. Supports:
 * snippets
 * build tasks
 
-Rust support is powered by the [Rust Language Server](https://github.com/rust-lang-nursery/rls)
+
+Rust support is powered by the [Rust Language Server](https://github.com/rust-lang/rls)
 (RLS). If you don't have it installed, the extension will install it for you.
 
 This extension is built and maintained by the RLS team, part of the Rust
@@ -24,10 +25,9 @@ a stable, high quality extension that makes best use of the RLS. We aim to
 support as many features as possible, but our priority is supporting the
 essential features as well as possible.
 
-For support, please file an [issue on the repo](https://github.com/rust-lang-nursery/rls-vscode/issues/new)
-or talk to us [on Gitter](https://gitter.im/rust-lang/IDEs) or in #rust-dev-tools
-on IRC ([Mozilla servers](https://wiki.mozilla.org/IRC)). There is also some
-[troubleshooting and debugging](https://github.com/rust-lang-nursery/rls/blob/master/debugging.md)
+For support, please file an [issue on the repo](https://github.com/rust-lang/rls-vscode/issues/new)
+or talk to us [on Discord](https://discordapp.com/invite/rust-lang). There is also some
+[troubleshooting and debugging](https://github.com/rust-lang/rls/blob/master/debugging.md)
 advice.
 
 Contributing code, tests, documentation, and bug reports is appreciated! For
@@ -40,7 +40,7 @@ more details on building and debugging, etc., see [contributing.md](contributing
 * Install this extension from [the VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
   (or by entering `ext install rust` at the command palette).
 * (Skip this step if you already have Rust projects that you'd like to work on.)
-  Create a new Rust project by following [these instructions](https://doc.rust-lang.org/book/second-edition/ch01-02-hello-world.html#creating-a-project-with-cargo).
+  Create a new Rust project by following [these instructions](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html).
 * Open a Rust project (`File > Add Folder to Workspace...`). Open the folder for the whole
   project (i.e., the folder containing 'Cargo.toml'), not the 'src' folder.
 * You'll be prompted to install the RLS. Once installed, the RLS should start
@@ -92,7 +92,11 @@ the following snippets:
 * `if let Option` - an `if let` statement for executing code only in the `Some`
   case.
 * `spawn` - spawn a thread
+* `extern crate` - insert an `extern crate` statement
 
+This extension is deliberately conservative about snippets and doesn't include
+too many. If you want more, check out
+[Trusty Rusty Snippets](https://marketplace.visualstudio.com/items?itemName=polypus74.trusty-rusty-snippets).
 
 ### Tasks
 
@@ -116,7 +120,7 @@ to `true`. Find it under `File > Preferences > Settings`.
 * [Rustup](https://www.rustup.rs/),
 * A Rust toolchain (the extension will configure this for you, with
   permission),
-* RLS (currently `rls-preview`), `rust-src`, and `rust-analysis` components (the
+* `rls`, `rust-src`, and `rust-analysis` components (the
   extension will install these for you, with permission).
 
 

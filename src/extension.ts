@@ -14,6 +14,7 @@ import { rustupUpdate, ensureToolchain, checkForRls, runRustup, runRustupProcess
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, runCommand } from './tasks';
+import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -224,8 +225,8 @@ class ClientWorkspace {
         // Changes paths between Windows and Windows Subsystem for Linux
         if (this.config.useWSL) {
             clientOptions.uriConverters = {
-                code2Protocol: (uri: Uri) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath '${uri.fsPath}'`], {}).toString().trim()).toString(),
-                protocol2Code: (wslPath: string) => Uri.file(child_process.execFileSync('bash.exe', ['-i', '-c', `wslpath -w ${Uri.parse(wslPath).path}`], {}).toString().trim())
+                code2Protocol: (uri: Uri) => Uri.file(uriWindowsToWsl(uri.fsPath)).toString(),
+                protocol2Code: (wslPath: string) => Uri.file(uriWslToWindows(wslPath)),
             };
         }
 

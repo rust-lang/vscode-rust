@@ -321,12 +321,6 @@
                     "description": "Do not enable default Cargo features.",
                     "scope": "resource"
                 },
-                "rust.goto_def_racer_fallback": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Use racer as a fallback for goto def.",
-                    "scope": "resource"
-                },
                 "rust.racer_completion": {
                     "type": "boolean",
                     "default": true,

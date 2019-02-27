@@ -226,7 +226,7 @@ class ClientWorkspace {
         if (this.config.useWSL) {
             clientOptions.uriConverters = {
                 code2Protocol: (uri: Uri) => {
-                    let res = Uri.file(uriWindowsToWsl(uri.fsPath)).toString();
+                    const res = Uri.file(uriWindowsToWsl(uri.fsPath)).toString();
                     console.log(`code2Protocol for path ${uri.fsPath} -> ${res}`);
                     return res;
                 },
@@ -235,7 +235,7 @@ class ClientWorkspace {
                         wslPath = wslPath.substr('file://'.length);
                     }
 
-                    let res = Uri.file(uriWslToWindows(wslPath));
+                    const res = Uri.file(uriWslToWindows(wslPath));
                     console.log(`protocol2Code for path ${wslPath} -> ${res.fsPath}`);
                     return res;
                 },

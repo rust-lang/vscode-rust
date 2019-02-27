@@ -1,5 +1,5 @@
 export function uriWslToWindows(wslUri: string): string {
-    let uriSegments = wslUri.split('/');
+    const uriSegments = wslUri.split('/');
     if (uriSegments.length < 3 || uriSegments[0].length != 0 || uriSegments[1] != 'mnt') {
       return '';
     }
@@ -8,7 +8,7 @@ export function uriWslToWindows(wslUri: string): string {
       uriSegments.pop();
     }
   
-    let disc_letter = uriSegments[1].toUpperCase();
+    const disc_letter = uriSegments[1].toUpperCase();
     if (!/^[A-Z]+$/.test(disc_letter)) {
       return '';
     }
@@ -24,14 +24,15 @@ export function uriWslToWindows(wslUri: string): string {
       uriWindows += '\\'; // case where we have C: in result but we want C:\
     }
   
-    if (wslUri[wslUri.length - 1] == '/')
+    if (wslUri[wslUri.length - 1] == '/') {
       uriWindows += '\\';
+    }
   
     return uriWindows;
   }
   
   export function uriWindowsToWsl(windowsUri: string): string {
-    let uriSegments = windowsUri.split('\\');
+    const uriSegments = windowsUri.split('\\');
     if (uriSegments.length < 2) {
       return '';
     }
@@ -40,7 +41,7 @@ export function uriWslToWindows(wslUri: string): string {
       uriSegments.pop();
     }
   
-    let disc_letter = uriSegments[0][0].toLowerCase();
+    const disc_letter = uriSegments[0][0].toLowerCase();
     if (!/^[a-zA-Z]+$/.test(disc_letter)) {
       return '';
     }
@@ -51,8 +52,9 @@ export function uriWslToWindows(wslUri: string): string {
       uriWsl += '/' + pathPart;
     });
   
-    if (windowsUri[windowsUri.length - 1] == '\\')
+    if (windowsUri[windowsUri.length - 1] == '\\') {
       uriWsl += '/';
+    }
   
     return uriWsl;
   }

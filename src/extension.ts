@@ -225,8 +225,20 @@ class ClientWorkspace {
         // Changes paths between Windows and Windows Subsystem for Linux
         if (this.config.useWSL) {
             clientOptions.uriConverters = {
-                code2Protocol: (uri: Uri) => Uri.file(uriWindowsToWsl(uri.fsPath)).toString(),
-                protocol2Code: (wslPath: string) => Uri.file(uriWslToWindows(wslPath)),
+                code2Protocol: (uri: Uri) => {
+                    let res = Uri.file(uriWindowsToWsl(uri.fsPath)).toString();
+                    console.log(`code2Protocol for path ${uri.fsPath} -> ${res}`);
+                    return res;
+                },
+                protocol2Code: (wslPath: string) => {
+                    if (wslPath.startsWith('file://')) {
+                        wslPath = wslPath.substr('file://'.length);
+                    }
+
+                    let res = Uri.file(uriWslToWindows(wslPath));
+                    console.log(`protocol2Code for path ${wslPath} -> ${res.fsPath}`);
+                    return res;
+                },
             };
         }
 

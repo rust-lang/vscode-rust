@@ -8,14 +8,14 @@ export function uriWslToWindows(wslUri: string): string {
       uriSegments.pop();
     }
   
-    const disc_letter = uriSegments[1].toUpperCase();
-    if (!/^[A-Z]+$/.test(disc_letter)) {
+    const disk_letter = uriSegments[1].toUpperCase();
+    if (!/^[A-Z]+$/.test(disk_letter)) {
       return '';
     }
     uriSegments.shift(); // remove mnt
-    uriSegments.shift(); // remove disc letter
+    uriSegments.shift(); // remove disk letter
   
-    let uriWindows = disc_letter + ':';
+    let uriWindows = disk_letter + ':';
     uriSegments.forEach(pathPart => {
       uriWindows += '\\' + pathPart;
     });
@@ -41,13 +41,13 @@ export function uriWslToWindows(wslUri: string): string {
       uriSegments.pop();
     }
   
-    const disc_letter = uriSegments[0][0].toLowerCase();
-    if (!/^[a-zA-Z]+$/.test(disc_letter)) {
+    const disk_letter = uriSegments[0][0].toLowerCase();
+    if (!/^[a-zA-Z]+$/.test(disk_letter)) {
       return '';
     }
     uriSegments.shift();
   
-    let uriWsl = '/mnt/' + disc_letter;
+    let uriWsl = '/mnt/' + disk_letter;
     uriSegments.forEach(pathPart => {
       uriWsl += '/' + pathPart;
     });

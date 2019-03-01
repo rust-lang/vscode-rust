@@ -10,7 +10,7 @@
 
 'use strict';
 
-import { rustupUpdate, ensureToolchain, checkForRls, runRustup, runRustupProcess } from './rustup';
+import { rustupUpdate, ensureToolchain, checkForRls, execCmd, spawnProcess } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, runCommand } from './tasks';
@@ -30,7 +30,6 @@ import {
     ServerOptions, ImplementationRequest
 } from 'vscode-languageclient';
 import { execFile, ExecChildProcessResult } from './utils/child_process';
-
 
 export async function activate(context: ExtensionContext) {
     configureLanguage(context);
@@ -377,7 +376,7 @@ class ClientWorkspace {
                     'rustc', ['--print', 'sysroot'], { env }
                 );
             } else {
-                output = await runRustup(
+                output = await execCmd(
                     this.config.rustupPath, ['run', await (this.config.channel), 'rustc', '--print', 'sysroot'], { env }, this.config.useWSL
                 );
             }
@@ -455,7 +454,7 @@ class ClientWorkspace {
                 await checkForRls(config);
             }
 
-            childProcess = runRustupProcess(config.path, ['run', config.channel, rls_path], { env }, config.useWSL);
+            childProcess = spawnProcess(config.path, ['run', config.channel, rls_path], { env }, config.useWSL);
         }
         try {
             childProcess.on('error', err => {

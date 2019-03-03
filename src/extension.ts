@@ -10,10 +10,11 @@
 
 'use strict';
 
-import { rustupUpdate, ensureToolchain, checkForRls } from './rustup';
+import { rustupUpdate, ensureToolchain, checkForRls, execCmd, spawnProcess } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, runCommand } from './tasks';
+import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -220,6 +221,26 @@ class ClientWorkspace {
             workspaceFolder: this.folder,
         };
 
+        // Changes paths between Windows and Windows Subsystem for Linux
+        if (this.config.useWSL) {
+            clientOptions.uriConverters = {
+                code2Protocol: (uri: Uri) => {
+                    const res = Uri.file(uriWindowsToWsl(uri.fsPath)).toString();
+                    console.log(`code2Protocol for path ${uri.fsPath} -> ${res}`);
+                    return res;
+                },
+                protocol2Code: (wslPath: string) => {
+                    if (wslPath.startsWith('file://')) {
+                        wslPath = wslPath.substr('file://'.length);
+                    }
+
+                    const res = Uri.file(uriWslToWindows(wslPath));
+                    console.log(`protocol2Code for path ${wslPath} -> ${res.fsPath}`);
+                    return res;
+                },
+            };
+        }
+
         // Create the language client and start the client.
         this.lc = new LanguageClient('rust', 'Rust Language Server', serverOptions, clientOptions);
 
@@ -355,8 +376,8 @@ class ClientWorkspace {
                     'rustc', ['--print', 'sysroot'], { env }
                 );
             } else {
-                output = await execFile(
-                    this.config.rustupPath, ['run', this.config.channel, 'rustc', '--print', 'sysroot'], { env }
+                output = await execCmd(
+                    this.config.rustupPath, ['run', await (this.config.channel), 'rustc', '--print', 'sysroot'], { env }, this.config.useWSL
                 );
             }
         } catch (e) {
@@ -433,7 +454,7 @@ class ClientWorkspace {
                 await checkForRls(config);
             }
 
-            childProcess = child_process.spawn(config.path, ['run', config.channel, rls_path], { env });
+            childProcess = spawnProcess(config.path, ['run', config.channel, rls_path], { env }, config.useWSL);
         }
         try {
             childProcess.on('error', err => {

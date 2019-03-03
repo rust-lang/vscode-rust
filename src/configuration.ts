@@ -34,6 +34,10 @@ export class RLSConfiguration {
         return this.configuration.get('rust-client.rustupPath', 'rustup');
     }
 
+    public get useWSL(): boolean {
+        return this.configuration.get<boolean>('rust-client.useWSL', false);
+    }
+
     public get logToFile(): boolean {
         return this.configuration.get<boolean>('rust-client.logToFile', false);
     }
@@ -50,8 +54,9 @@ export class RLSConfiguration {
         return this.configuration.get<boolean>('rust-client.updateOnStartup', true);
     }
 
+
     public get channel(): string {
-        return RLSConfiguration.readChannel(this.rustupPath, this.configuration, this.wsPath);
+        return RLSConfiguration.readChannel(this.wsPath, this.rustupConfig(true), this.configuration);
     }
 
     /**
@@ -86,8 +91,9 @@ export class RLSConfiguration {
         this.wsPath = wsPath;
     }
 
-    public rustupConfig(): RustupConfig {
-        return new RustupConfig(this.channel, this.rustupPath);
+    // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.
+    public rustupConfig(ignoreChannel: boolean = false): RustupConfig {
+        return new RustupConfig(ignoreChannel ? '' : this.channel, this.rustupPath, this.useWSL);
     }
 
     private static readRevealOutputChannelOn(configuration: WorkspaceConfiguration) {
@@ -100,13 +106,13 @@ export class RLSConfiguration {
      * falls back on active toolchain specified by rustup (at `rustupPath`),
      * finally defaulting to `nightly` if all fails.
      */
-    private static readChannel(rustupPath: string, configuration: WorkspaceConfiguration, wsPath: string): string {
+    private static readChannel(wsPath: string, rustupConfiguration: RustupConfig, configuration: WorkspaceConfiguration): string {
         const channel = configuration.get<string | null>('rust-client.channel', null);
         if (channel !== null) {
             return channel;
         } else {
             try {
-                return getActiveChannel(rustupPath, wsPath);
+                return getActiveChannel(wsPath, rustupConfiguration);
             }
             // rustup might not be installed at the time the configuration is
             // initially loaded, so silently ignore the error and return a default value

@@ -227,6 +227,11 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     try {
         // `rustup show active-toolchain` is available since rustup 1.12.0
         activeChannel = execCmdSync(config.path, ['show', 'active-toolchain'], { cwd: wsPath }, config.useWSL).toString().trim();
+        // Since rustup 1.17.0 if the active toolchain is the default, we're told
+        // by means of a " (default)" suffix, so strip that off if it's present
+        // If on the other hand there's an override active, we'll get an
+        // " (overridden by ...)" message instead.
+        activeChannel = activeChannel.replace(/ \(.*\)$/, '');
     } catch (e) {
         // Possibly an old rustup version, so try rustup show
         const showOutput = execCmdSync(config.path, ['show'], { cwd: wsPath }, config.useWSL).toString();

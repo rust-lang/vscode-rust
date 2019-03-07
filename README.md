@@ -37,7 +37,7 @@ more details on building and debugging, etc., see [contributing.md](contributing
 
 * Install [rustup](https://www.rustup.rs/) (Rust toolchain manager).
 * Install this extension from [the VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
-  (or by entering `ext install rust` at the command palette).
+  (or by entering `ext install rust` at the command palette (ctrl + p)).
 * (Skip this step if you already have Rust projects that you'd like to work on.)
   Create a new Rust project by following [these instructions](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html).
 * Open a Rust project (`File > Add Folder to Workspace...`). Open the folder for the whole
@@ -101,7 +101,7 @@ too many. If you want more, check out
 
 The plugin provides tasks for building, running, and testing using the relevant
 cargo commands. You can build using `ctrl + shift + b`. Access other tasks via
-`Run tasks` in the command palette.
+`Run Task` in the command palette.
 
 The plugin writes these into `tasks.json`. The plugin will not overwrite
 existing tasks, so you can customise these tasks. To refresh back to the

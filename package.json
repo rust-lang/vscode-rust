@@ -2,7 +2,7 @@
     "name": "rust",
     "displayName": "Rust (rls)",
     "description": "Rust language support - code completion, Intellisense, refactoring, reformatting, errors, snippets. A client for the Rust Language Server, built by the RLS team.",
-    "version": "0.5.3",
+    "version": "0.5.4",
     "publisher": "rust-lang",
     "icon": "rust-icon.png",
     "galleryBanner": {
@@ -57,8 +57,8 @@
         "mocha": "^5.2.0",
         "tslint": "^5.7.0",
         "typescript": "^2.5.2",
-        "vsce": "^1.42.0",
-        "vscode": "^1.1.21"
+        "vsce": "^1.57.1",
+        "vscode": "^1.1.30"
     },
     "contributes": {
         "languages": [

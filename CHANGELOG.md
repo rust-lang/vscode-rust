@@ -1,5 +1,11 @@
 ### Unreleased
 
+### 0.5.4 - 2019-03-09
+
+* Fix bug due to Rustup changes in 1.17
+* Remove `goto_def_racer_fallback` (replaced with `racer_completion`)
+* Add WSL support
+
 ### 0.5.3 - 2018-12-08
 
 * Revert Cargo.toml changes

@@ -211,6 +211,7 @@ class ClientWorkspace {
                 { language: 'rust', scheme: 'file', pattern: `${this.folder.uri.fsPath}/**/*` },
                 { language: 'rust', scheme: 'untitled', pattern: `${this.folder.uri.fsPath}/**/*` }
             ],
+            diagnosticCollectionName: 'rust',
             synchronize: { configurationSection: 'rust' },
             // Controls when to focus the channel rather than when to reveal it in the drop-down list
             revealOutputChannelOn: this.config.revealOutputChannelOn,

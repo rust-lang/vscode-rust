@@ -437,11 +437,12 @@ class ClientWorkspace {
         // We don't need to set [DY]LD_LIBRARY_PATH if we're using rustup,
         // as rustup will set it for us when it chooses a toolchain.
         const env = await this.makeRlsEnv(/*setLibPath*/ this.config.rustupDisabled);
+        const cwd = this.folder.uri.fsPath;
 
         let childProcess: child_process.ChildProcess;
         if (this.config.rustupDisabled) {
             console.info('running without rustup: ' + rls_path);
-            childProcess = child_process.spawn(rls_path, [], { env });
+            childProcess = child_process.spawn(rls_path, [], { env, cwd });
         } else {
             console.info('running with rustup: ' + rls_path);
             const config = this.config.rustupConfig();
@@ -454,7 +455,7 @@ class ClientWorkspace {
                 await checkForRls(config);
             }
 
-            childProcess = spawnProcess(config.path, ['run', config.channel, rls_path], { env }, config.useWSL);
+            childProcess = spawnProcess(config.path, ['run', config.channel, rls_path], { env, cwd }, config.useWSL);
         }
         try {
             childProcess.on('error', err => {

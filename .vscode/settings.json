@@ -1,4 +1,5 @@
 {
+    "editor.formatOnSave": true,
     "files.exclude": {
         "out": false
     },

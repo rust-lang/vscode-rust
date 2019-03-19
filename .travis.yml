@@ -1,5 +1,4 @@
-dist: trusty
-sudo: false
+dist: xenial
 
 notifications:
   email: false
@@ -7,20 +6,9 @@ notifications:
 language: node_js
 
 node_js:
-  - 8.9 # Lock to the version shipped with VSCode 1.26+
-
-env:
-  matrix:
-    - CI_MATRIX_BUILD=true
-    - CI_MATRIX_LINT=true
+  - 10.2 # Lock to the version shipped with VSCode 1.31+
 
 script:
-  - |
-    if [ "$CI_MATRIX_BUILD" = "true" ]; then
-      npm run compile
-    elif [ "$CI_MATRIX_LINT" = "true" ]; then
-      npm run lint
-    else
-      echo "This code path is run unexpectedly" 1>&2
-      exit 1
-    fi
+  - npm run compile
+  - npm run lint
+  - npm run prettier -- --list-different

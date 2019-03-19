@@ -220,11 +220,11 @@ export function parseActiveToolchain(rustupOutput: string): string {
 
     const matchActiveChannel = /^(\S*) \((?:default|overridden)/gm;
     const match = matchActiveChannel.exec(rustupOutput);
-    if (match === null) {
+    if (!match) {
       throw new Error(
         `couldn't find active toolchain under 'active toolchains'`,
       );
-    } else if (matchActiveChannel.exec(rustupOutput) !== null) {
+    } else if (matchActiveChannel.exec(rustupOutput)) {
       throw new Error(
         `multiple active toolchains found under 'active toolchains'`,
       );
@@ -237,7 +237,7 @@ export function parseActiveToolchain(rustupOutput: string): string {
   const match = /^(?:.*\r?\n){2}(\S*) \((?:default|overridden)/.exec(
     rustupOutput,
   );
-  if (match !== null) {
+  if (match) {
     return match[1];
   }
 

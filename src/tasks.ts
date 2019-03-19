@@ -71,24 +71,18 @@ function createTask(
   };
   const exec = new ShellExecution(execCmd, execOption);
 
-  const t = new Task(
-    definition,
-    target,
-    definition.label,
-    TASK_SOURCE,
-    exec,
-    problemMatcher,
-  );
-
-  if (group !== undefined) {
-    t.group = group;
-  }
-
-  if (presentationOptions !== undefined) {
-    t.presentationOptions = presentationOptions;
-  }
-
-  return t;
+  return {
+    ...new Task(
+      definition,
+      target,
+      definition.label,
+      TASK_SOURCE,
+      exec,
+      problemMatcher,
+    ),
+    ...(group ? { group } : {}),
+    ...(presentationOptions ? { presentationOptions } : {}),
+  };
 }
 
 function createTaskConfigItem(): TaskConfigItem[] {

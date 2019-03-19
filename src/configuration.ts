@@ -53,11 +53,8 @@ export class RLSConfiguration {
     rustupConfiguration: RustupConfig,
     configuration: WorkspaceConfiguration,
   ): string {
-    const channel = configuration.get<string | null>(
-      'rust-client.channel',
-      null,
-    );
-    if (channel !== null) {
+    const channel = configuration.get<string>('rust-client.channel');
+    if (channel) {
       return channel;
     } else {
       try {
@@ -109,25 +106,8 @@ export class RLSConfiguration {
   /**
    * If specified, RLS will be spawned by executing a file at the given path.
    */
-  public get rlsPath(): string | null {
-    // Path to the rls. Prefer `rust-client.rlsPath` if present, otherwise consider
-    // the depreacted `rls.path` setting.
-    const rlsPath = this.configuration.get('rls.path', null);
-    if (rlsPath) {
-      console.warn(
-        '`rls.path` has been deprecated; prefer `rust-client.rlsPath`',
-      );
-    }
-
-    const rustClientRlsPath = this.configuration.get(
-      'rust-client.rlsPath',
-      null,
-    );
-    if (!rustClientRlsPath) {
-      return rlsPath;
-    }
-
-    return rustClientRlsPath;
+  public get rlsPath(): string | undefined {
+    return this.configuration.get<string>('rust-client.rlsPath');
   }
 
   // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.

@@ -12,7 +12,7 @@ export function startSpinner(prefix: string, postfix: string) {
 }
 
 export function stopSpinner(message: string) {
-  if (spinnerTimer !== null) {
+  if (spinnerTimer) {
     clearInterval(spinnerTimer);
   }
   spinnerTimer = null;

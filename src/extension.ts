@@ -60,12 +60,8 @@ export async function activate(context: ExtensionContext) {
   );
 }
 
-export function deactivate(): Promise<void> {
-  const promises: Array<Thenable<void>> = [];
-  for (const ws of workspaces.values()) {
-    promises.push(ws.stop());
-  }
-  return Promise.all(promises).then(() => undefined);
+export async function deactivate() {
+  return Promise.all([...workspaces.values()].map(ws => ws.stop()));
 }
 
 // Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
@@ -285,25 +281,18 @@ class ClientWorkspace {
       clientOptions,
     );
 
-    const promise = this.progressCounter();
-
-    const disposable = this.lc.start();
-    this.disposables.push(disposable);
-
-    this.disposables.push(activateTaskProvider(this.folder));
+    this.setupProgressCounter();
     this.registerCommands(context);
-
-    return promise;
+    this.disposables.push(activateTaskProvider(this.folder));
+    this.disposables.push(this.lc.start());
   }
 
   public async stop() {
-    let promise: Thenable<void> = Promise.resolve(void 0);
     if (this.lc) {
-      promise = this.lc.stop();
+      await this.lc.stop();
     }
-    return promise.then(() => {
-      this.disposables.forEach(d => d.dispose());
-    });
+
+    this.disposables.forEach(d => d.dispose());
   }
 
   private registerCommands(context: ExtensionContext) {
@@ -368,14 +357,12 @@ class ClientWorkspace {
     );
   }
 
-  private async progressCounter() {
+  private async setupProgressCounter() {
     if (!this.lc) {
       return;
     }
 
     const runningProgress: Set<string> = new Set();
-    const asPercent = (fraction: number): string =>
-      `${Math.round(fraction * 100)}%`;
     let runningDiagnostics = 0;
     await this.lc.onReady();
     stopSpinner('RLS');
@@ -391,7 +378,7 @@ class ClientWorkspace {
         if (runningProgress.size) {
           let status = '';
           if (typeof progress.percentage === 'number') {
-            status = asPercent(progress.percentage);
+            status = `${Math.round(progress.percentage * 100)}%`;
           } else if (progress.message) {
             status = progress.message;
           } else if (progress.title) {
@@ -450,7 +437,11 @@ class ClientWorkspace {
 
   // Make an evironment to run the RLS.
   // Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
-  private async makeRlsEnv(setLibPath = false): Promise<typeof process.env> {
+  private async makeRlsEnv(
+    args = {
+      setLibPath: false,
+    },
+  ): Promise<typeof process.env> {
     const env = process.env;
 
     let sysroot: string | undefined;
@@ -475,7 +466,7 @@ class ClientWorkspace {
     if (!process.env.RUST_SRC_PATH) {
       env.RUST_SRC_PATH = sysroot + '/lib/rustlib/src/rust/src';
     }
-    if (setLibPath) {
+    if (args.setLibPath) {
       function appendEnv(envVar: string, newComponent: string) {
         const old = process.env[envVar];
         return old ? `${newComponent}:${old}` : newComponent;
@@ -493,9 +484,9 @@ class ClientWorkspace {
 
     // We don't need to set [DY]LD_LIBRARY_PATH if we're using rustup,
     // as rustup will set it for us when it chooses a toolchain.
-    const env = await this.makeRlsEnv(
-      /*setLibPath*/ this.config.rustupDisabled,
-    );
+    const env = await this.makeRlsEnv({
+      setLibPath: this.config.rustupDisabled,
+    });
     const cwd = this.folder.uri.fsPath;
 
     let childProcess: child_process.ChildProcess;
@@ -523,8 +514,7 @@ class ClientWorkspace {
     }
     try {
       childProcess.on('error', err => {
-        // TODO: Make sure err.message is okay
-        if (err.message === 'ENOENT') {
+        if (err.message.includes('ENOENT')) {
           console.error('Could not spawn RLS process: ', err.message);
           window.showWarningMessage('Could not start RLS');
         } else {

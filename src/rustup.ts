@@ -1,14 +1,14 @@
 import * as child_process from 'child_process';
 import { window } from 'vscode';
 
-import { execFile, ExecChildProcessResult } from './utils/child_process';
+import { ExecChildProcessResult, execFile } from './utils/child_process';
 
 import { startSpinner, stopSpinner } from './spinner';
 
 export class RustupConfig {
-  channel: string;
-  path: string;
-  useWSL: boolean;
+  public channel: string;
+  public path: string;
+  public useWSL: boolean;
 
   constructor(channel: string, path: string, useWSL: boolean) {
     this.channel = channel;
@@ -329,6 +329,6 @@ function modifyParametersForWSL(command: string, args: string[]) {
   args.unshift(command);
   return {
     rustup: 'wsl',
-    args: args,
+    args,
   };
 }

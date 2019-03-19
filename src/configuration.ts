@@ -20,6 +20,56 @@ function fromStringToRevealOutputChannelOn(
 }
 
 export class RLSConfiguration {
+  private readonly configuration: WorkspaceConfiguration;
+  private readonly wsPath: string;
+
+  private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
+    this.configuration = configuration;
+    this.wsPath = wsPath;
+  }
+
+  public static loadFromWorkspace(wsPath: string): RLSConfiguration {
+    const configuration = workspace.getConfiguration();
+    return new RLSConfiguration(configuration, wsPath);
+  }
+
+  private static readRevealOutputChannelOn(
+    configuration: WorkspaceConfiguration,
+  ) {
+    const setting = configuration.get<string>(
+      'rust-client.revealOutputChannelOn',
+      'never',
+    );
+    return fromStringToRevealOutputChannelOn(setting);
+  }
+
+  /**
+   * Tries to fetch the `rust-client.channel` configuration value. If missing,
+   * falls back on active toolchain specified by rustup (at `rustupPath`),
+   * finally defaulting to `nightly` if all fails.
+   */
+  private static readChannel(
+    wsPath: string,
+    rustupConfiguration: RustupConfig,
+    configuration: WorkspaceConfiguration,
+  ): string {
+    const channel = configuration.get<string | null>(
+      'rust-client.channel',
+      null,
+    );
+    if (channel !== null) {
+      return channel;
+    } else {
+      try {
+        return getActiveChannel(wsPath, rustupConfiguration);
+      } catch (e) {
+        // rustup might not be installed at the time the configuration is
+        // initially loaded, so silently ignore the error and return a default value
+        return 'nightly';
+      }
+    }
+  }
+
   public get rustupPath(): string {
     return this.configuration.get('rust-client.rustupPath', 'rustup');
   }
@@ -80,19 +130,6 @@ export class RLSConfiguration {
     return rustClientRlsPath;
   }
 
-  private readonly configuration: WorkspaceConfiguration;
-  private readonly wsPath: string;
-
-  public static loadFromWorkspace(wsPath: string): RLSConfiguration {
-    const configuration = workspace.getConfiguration();
-    return new RLSConfiguration(configuration, wsPath);
-  }
-
-  private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
-    this.configuration = configuration;
-    this.wsPath = wsPath;
-  }
-
   // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.
   public rustupConfig(ignoreChannel: boolean = false): RustupConfig {
     return new RustupConfig(
@@ -100,42 +137,5 @@ export class RLSConfiguration {
       this.rustupPath,
       this.useWSL,
     );
-  }
-
-  private static readRevealOutputChannelOn(
-    configuration: WorkspaceConfiguration,
-  ) {
-    const setting = configuration.get<string>(
-      'rust-client.revealOutputChannelOn',
-      'never',
-    );
-    return fromStringToRevealOutputChannelOn(setting);
-  }
-
-  /**
-   * Tries to fetch the `rust-client.channel` configuration value. If missing,
-   * falls back on active toolchain specified by rustup (at `rustupPath`),
-   * finally defaulting to `nightly` if all fails.
-   */
-  private static readChannel(
-    wsPath: string,
-    rustupConfiguration: RustupConfig,
-    configuration: WorkspaceConfiguration,
-  ): string {
-    const channel = configuration.get<string | null>(
-      'rust-client.channel',
-      null,
-    );
-    if (channel !== null) {
-      return channel;
-    } else {
-      try {
-        return getActiveChannel(wsPath, rustupConfiguration);
-      } catch (e) {
-        // rustup might not be installed at the time the configuration is
-        // initially loaded, so silently ignore the error and return a default value
-        return 'nightly';
-      }
-    }
   }
 }

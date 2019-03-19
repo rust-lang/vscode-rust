@@ -4,28 +4,26 @@ import {
   ShellExecutionOptions,
   Task,
   TaskDefinition,
+  TaskExecution,
   TaskGroup,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskProvider,
   TaskRevealKind,
-  WorkspaceFolder,
   tasks,
-  TaskExecution,
+  WorkspaceFolder,
 } from 'vscode';
 
 export function activateTaskProvider(target: WorkspaceFolder): Disposable {
   const provider: TaskProvider = {
-    provideTasks: function() {
+    provideTasks: () => {
       // npm or others parse their task definitions. So they need to provide 'autoDetect' feature.
       //  e,g, https://github.com/Microsoft/vscode/blob/de7e216e9ebcad74f918a025fc5fe7bdbe0d75b2/extensions/npm/src/main.ts
       // However, cargo.toml does not support to define a new task like them.
       // So we are not 'autoDetect' feature and the setting for it.
       return getCargoTasks(target);
     },
-    resolveTask(_task: Task): Task | undefined {
-      return undefined;
-    },
+    resolveTask: () => undefined,
   };
 
   return tasks.registerTaskProvider('cargo', provider);
@@ -35,18 +33,18 @@ interface CargoTaskDefinition extends TaskDefinition {
   type: 'cargo';
   label: string;
   command: string;
-  args: Array<string>;
+  args: string[];
   env?: { [key: string]: string };
 }
 
 interface TaskConfigItem {
   definition: CargoTaskDefinition;
-  problemMatcher: Array<string>;
+  problemMatcher: string[];
   group?: TaskGroup;
   presentationOptions?: TaskPresentationOptions;
 }
 
-function getCargoTasks(target: WorkspaceFolder): Array<Task> {
+function getCargoTasks(target: WorkspaceFolder): Task[] {
   const taskList = createTaskConfigItem();
 
   const list = taskList.map(def => {
@@ -66,6 +64,9 @@ function createTask(
   const execCmd = `${definition.command} ${definition.args.join(' ')}`;
   const execOption: ShellExecutionOptions = {
     cwd: target.uri.fsPath,
+    // Innocuous type error - values of `process.env` can be undefined instead
+    // of explicitly missing (spread doesn't work); this doesn't affect the behaviour.
+    // tslint:disable-next-line: prefer-object-spread
     env: Object.assign({}, process.env, definition.env),
   };
   const exec = new ShellExecution(execCmd, execOption);
@@ -90,7 +91,7 @@ function createTask(
   return t;
 }
 
-function createTaskConfigItem(): Array<TaskConfigItem> {
+function createTaskConfigItem(): TaskConfigItem[] {
   const problemMatcher = ['$rustc'];
 
   const presentationOptions: TaskPresentationOptions = {
@@ -98,7 +99,7 @@ function createTaskConfigItem(): Array<TaskConfigItem> {
     panel: TaskPanelKind.Dedicated,
   };
 
-  const taskList: Array<TaskConfigItem> = [
+  const taskList: TaskConfigItem[] = [
     {
       definition: {
         label: 'cargo build',

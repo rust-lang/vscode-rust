@@ -1,23 +1,23 @@
 import { window } from 'vscode';
 
 export function startSpinner(prefix: string, postfix: string) {
-    if (spinnerTimer != null) {
-        clearInterval(spinnerTimer);
-    }
-    let state = 0;
-    spinnerTimer = setInterval(function() {
-        window.setStatusBarMessage(prefix + ' ' + spinner[state] + ' ' + postfix);
-        state = (state + 1) % spinner.length;
-    }, 100);
+  if (spinnerTimer != null) {
+    clearInterval(spinnerTimer);
+  }
+  let state = 0;
+  spinnerTimer = setInterval(function() {
+    window.setStatusBarMessage(prefix + ' ' + spinner[state] + ' ' + postfix);
+    state = (state + 1) % spinner.length;
+  }, 100);
 }
 
 export function stopSpinner(message: string) {
-    if (spinnerTimer !== null) {
-        clearInterval(spinnerTimer);
-    }
-    spinnerTimer = null;
+  if (spinnerTimer !== null) {
+    clearInterval(spinnerTimer);
+  }
+  spinnerTimer = null;
 
-    window.setStatusBarMessage(message);
+  window.setStatusBarMessage(message);
 }
 
 let spinnerTimer: NodeJS.Timer | null = null;

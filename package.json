@@ -10,7 +10,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.24.0"
+        "vscode": "^1.31.0"
     },
     "license": "(MIT OR Apache-2.0)",
     "repository": {
@@ -53,7 +53,7 @@
     },
     "devDependencies": {
         "@types/mocha": "^2.2.43",
-        "@types/node": "^7.0.56",
+        "@types/node": "~10.1.0",
         "mocha": "^5.2.0",
         "tslint": "^5.7.0",
         "typescript": "^2.5.2",

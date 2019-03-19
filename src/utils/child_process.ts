@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  *  Ideally, this module should be replaced with `utils.promisefy()` introduced Node.js 8.
  *  But we might not replace these properly if it is not well typed.

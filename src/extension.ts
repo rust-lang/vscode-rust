@@ -1,5 +1,3 @@
-'use strict';
-
 import { rustupUpdate, ensureToolchain, checkForRls, execCmd, spawnProcess } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { RLSConfiguration } from './configuration';

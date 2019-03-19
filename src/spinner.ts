@@ -1,5 +1,3 @@
-'use strict';
-
 import { window } from 'vscode';
 
 export function startSpinner(prefix: string, postfix: string) {

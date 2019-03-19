@@ -1,5 +1,3 @@
-'use strict';
-
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
 

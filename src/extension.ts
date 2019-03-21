@@ -520,7 +520,7 @@ class ClientWorkspace {
       });
 
       if (this.config.logToFile) {
-        const logPath = this.folder.uri.path + '/rls' + Date.now() + '.log';
+        const logPath = this.folder.uri.fsPath + '/rls' + Date.now() + '.log';
         const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
         logStream
           .on('open', function(_f) {

@@ -436,7 +436,6 @@ class ClientWorkspace {
   }
 
   // Make an evironment to run the RLS.
-  // Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
   private async makeRlsEnv(
     args = {
       setLibPath: false,
@@ -455,17 +454,12 @@ class ClientWorkspace {
         sysroot = await this.getSysroot(env);
       } catch (e) {
         console.warn('Error reading sysroot (second try)', e);
-        window.showWarningMessage(
-          'RLS could not set RUST_SRC_PATH for Racer because it could not read the Rust sysroot.',
-        );
+        window.showWarningMessage(`Error reading sysroot: ${e.message}`);
         return env;
       }
     }
 
     console.info(`Setting sysroot to`, sysroot);
-    if (!process.env.RUST_SRC_PATH) {
-      env.RUST_SRC_PATH = sysroot + '/lib/rustlib/src/rust/src';
-    }
     if (args.setLibPath) {
       function appendEnv(envVar: string, newComponent: string) {
         const old = process.env[envVar];

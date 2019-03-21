@@ -548,7 +548,7 @@ class ClientWorkspace {
   }
 
   warnOnRlsToml() {
-    const tomlPath = this.folder.uri.path + '/rls.toml';
+    const tomlPath = this.folder.uri.fsPath + '/rls.toml';
     fs.access(tomlPath, fs.constants.F_OK, err => {
       if (!err) {
         window.showWarningMessage(

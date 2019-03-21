@@ -363,7 +363,6 @@ class ClientWorkspace {
     }
 
     const runningProgress: Set<string> = new Set();
-    let runningDiagnostics = 0;
     await this.lc.onReady();
     stopSpinner('RLS');
 
@@ -386,25 +385,6 @@ class ClientWorkspace {
           }
           startSpinner('RLS', status);
         } else {
-          stopSpinner('RLS');
-        }
-      },
-    );
-
-    // FIXME these are legacy notifications used by RLS ca jan 2018.
-    // remove once we're certain we've progress on.
-    this.lc.onNotification(
-      new NotificationType('rustDocument/beginBuild'),
-      () => {
-        runningDiagnostics++;
-        startSpinner('RLS', 'working');
-      },
-    );
-    this.lc.onNotification(
-      new NotificationType('rustDocument/diagnosticsEnd'),
-      () => {
-        runningDiagnostics--;
-        if (runningDiagnostics <= 0) {
           stopSpinner('RLS');
         }
       },

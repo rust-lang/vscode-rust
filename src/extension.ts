@@ -79,7 +79,11 @@ function didOpenTextDocument(
   if (!folder) {
     return;
   }
-  if (workspace.getConfiguration().get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true)) {
+  if (
+    workspace
+      .getConfiguration()
+      .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true)
+  ) {
     folder = getOuterMostWorkspaceFolder(folder);
   }
   // folder = getCargoTomlWorkspace(folder, document.uri.fsPath);

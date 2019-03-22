@@ -1,3 +1,11 @@
+export function modifyParametersForWSL(command: string, args: string[]) {
+  args.unshift(command);
+  return {
+    rustup: 'wsl',
+    args,
+  };
+}
+
 export function uriWslToWindows(wslUri: string): string {
   const uriSegments = wslUri.split('/');
   if (

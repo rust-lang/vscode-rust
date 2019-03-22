@@ -4,6 +4,7 @@ import { window } from 'vscode';
 import { execFile } from './utils/child_process';
 
 import { startSpinner, stopSpinner } from './spinner';
+import { modifyParametersForWSL } from './utils/wslpath';
 
 export class RustupConfig {
   public channel: string;
@@ -321,12 +322,4 @@ export function spawnProcess(
   }
 
   return child_process.spawn(rustup, args, options);
-}
-
-function modifyParametersForWSL(command: string, args: string[]) {
-  args.unshift(command);
-  return {
-    rustup: 'wsl',
-    args,
-  };
 }

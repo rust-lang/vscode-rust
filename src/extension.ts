@@ -530,6 +530,12 @@ async function warnOnMissingCargoToml() {
   }
 }
 
+/**
+ * Sets up additional language configuration that's impossible to do via a
+ * separate language-configuration.json file. See [1] for more information.
+ *
+ * [1]: https://github.com/Microsoft/vscode/issues/11514#issuecomment-244707076
+ */
 function configureLanguage(): Disposable {
   return languages.setLanguageConfiguration('rust', {
     onEnterRules: [

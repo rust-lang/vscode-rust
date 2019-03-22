@@ -325,7 +325,7 @@ class ClientWorkspace {
         try {
           locations = await this.lc.sendRequest<Location[]>(request, params);
         } catch (reason) {
-          window.showWarningMessage('find implementations failed: ' + reason);
+          window.showWarningMessage(`find implementations failed: ${reason}`);
           return;
         }
 
@@ -467,10 +467,10 @@ class ClientWorkspace {
 
     let childProcess: child_process.ChildProcess;
     if (this.config.rustupDisabled) {
-      console.info('running without rustup: ' + rlsPath);
+      console.info(`running without rustup: ${rlsPath}`);
       childProcess = child_process.spawn(rlsPath, [], { env, cwd });
     } else {
-      console.info('running with rustup: ' + rlsPath);
+      console.info(`running with rustup: ${rlsPath}`);
       const config = this.config.rustupConfig();
 
       await ensureToolchain(config);
@@ -499,7 +499,10 @@ class ClientWorkspace {
       });
 
       if (this.config.logToFile) {
-        const logPath = this.folder.uri.fsPath + '/rls' + Date.now() + '.log';
+        const logPath = path.join(
+          this.folder.uri.fsPath,
+          `rls-${Date.now()}.log`,
+        );
         const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
         logStream
           .on('open', () => {
@@ -508,7 +511,7 @@ class ClientWorkspace {
             });
           })
           .on('error', err => {
-            console.error("Couldn't write to " + logPath + ' (' + err + ')');
+            console.error(`Couldn't write to ${logPath} (${err})`);
             logStream.end();
           });
       }

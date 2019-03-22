@@ -6,7 +6,7 @@ export function startSpinner(prefix: string, postfix: string) {
   }
   let state = 0;
   spinnerTimer = setInterval(() => {
-    window.setStatusBarMessage(prefix + ' ' + spinner[state] + ' ' + postfix);
+    window.setStatusBarMessage(`${prefix} ${spinner[state]} ${postfix}`);
     state = (state + 1) % spinner.length;
   }, 100);
 }

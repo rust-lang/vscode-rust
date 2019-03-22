@@ -53,7 +53,7 @@ export async function ensureToolchain(config: RustupConfig) {
   }
 
   const clicked = await window.showInformationMessage(
-    config.channel + ' toolchain not installed. Install?',
+    `${config.channel} toolchain not installed. Install?`,
     'Yes',
   );
   if (clicked === 'Yes') {
@@ -112,13 +112,11 @@ async function tryToInstallToolchain(config: RustupConfig) {
     );
     console.log(stdout);
     console.log(stderr);
-    stopSpinner(config.channel + ' toolchain installed successfully');
+    stopSpinner(`${config.channel} toolchain installed successfully`);
   } catch (e) {
     console.log(e);
-    window.showErrorMessage(
-      'Could not install ' + config.channel + ' toolchain',
-    );
-    stopSpinner('Could not install ' + config.channel + ' toolchain');
+    window.showErrorMessage(`Could not install ${config.channel} toolchain`);
+    stopSpinner(`Could not install ${config.channel} toolchain`);
     throw e;
   }
 }

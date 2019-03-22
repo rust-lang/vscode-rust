@@ -46,7 +46,7 @@ export async function rustupUpdate(config: RustupConfig) {
 }
 
 // Check for the nightly toolchain (and that rustup exists)
-export async function ensureToolchain(config: RustupConfig): Promise<void> {
+export async function ensureToolchain(config: RustupConfig) {
   const toolchainInstalled = await hasToolchain(config);
   if (toolchainInstalled) {
     return;
@@ -64,7 +64,7 @@ export async function ensureToolchain(config: RustupConfig): Promise<void> {
 }
 
 // Check for rls components.
-export async function checkForRls(config: RustupConfig): Promise<void> {
+export async function checkForRls(config: RustupConfig) {
   const hasRls = await hasRlsComponents(config);
   if (hasRls) {
     return;
@@ -101,7 +101,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
   }
 }
 
-async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
+async function tryToInstallToolchain(config: RustupConfig) {
   startSpinner('RLS', 'Installing toolchain…');
   try {
     const { stdout, stderr } = await execCmd(
@@ -152,7 +152,7 @@ async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   }
 }
 
-async function installRls(config: RustupConfig): Promise<void> {
+async function installRls(config: RustupConfig) {
   startSpinner('RLS', 'Installing components…');
 
   const tryFn: (component: string) => Promise<Error | null> = async (

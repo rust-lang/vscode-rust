@@ -68,7 +68,7 @@ export async function deactivate() {
 function didOpenTextDocument(
   document: TextDocument,
   context: ExtensionContext,
-): void {
+) {
   if (document.languageId !== 'rust' && document.languageId !== 'toml') {
     return;
   }
@@ -162,7 +162,7 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
 function didChangeWorkspaceFolders(
   e: WorkspaceFoldersChangeEvent,
   context: ExtensionContext,
-): void {
+) {
   _sortedWorkspaceFolders = undefined;
 
   // If a VSCode workspace has been added, check to see if it is part of an existing one, and

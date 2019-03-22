@@ -268,7 +268,7 @@ class ClientWorkspace {
 
     // Create the language client and start the client.
     this.lc = new LanguageClient(
-      'rust',
+      'rust-client',
       'Rust Language Server',
       serverOptions,
       clientOptions,

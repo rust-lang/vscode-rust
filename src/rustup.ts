@@ -1,21 +1,16 @@
+/**
+ * @file This module handles running the RLS via rustup, including checking that
+ * rustup is installed and installing any required components/toolchains.
+ */
 import { window } from 'vscode';
 
 import { startSpinner, stopSpinner } from './spinner';
 import { withWsl } from './utils/child_process';
-export class RustupConfig {
-  public channel: string;
-  public path: string;
-  public useWSL: boolean;
-
-  constructor(channel: string, path: string, useWSL: boolean) {
-    this.channel = channel;
-    this.path = path;
-    this.useWSL = useWSL;
-  }
+export interface RustupConfig {
+  channel: string;
+  path: string;
+  useWSL: boolean;
 }
-
-// This module handles running the RLS via rustup, including checking that rustup
-// is installed and installing any required components/toolchains.
 
 export async function rustupUpdate(config: RustupConfig) {
   startSpinner('RLS', 'Updating…');

@@ -45,7 +45,7 @@ interface ProgressParams {
 }
 
 export async function activate(context: ExtensionContext) {
-  configureLanguage(context);
+  context.subscriptions.push(configureLanguage());
 
   workspace.onDidOpenTextDocument(doc => didOpenTextDocument(doc, context));
   workspace.textDocuments.forEach(doc => didOpenTextDocument(doc, context));
@@ -530,8 +530,8 @@ async function warnOnMissingCargoToml() {
   }
 }
 
-function configureLanguage(context: ExtensionContext) {
-  const disposable = languages.setLanguageConfiguration('rust', {
+function configureLanguage(): Disposable {
+  return languages.setLanguageConfiguration('rust', {
     onEnterRules: [
       {
         // Doc single-line comment
@@ -572,5 +572,4 @@ function configureLanguage(context: ExtensionContext) {
       },
     ],
   });
-  context.subscriptions.push(disposable);
 }

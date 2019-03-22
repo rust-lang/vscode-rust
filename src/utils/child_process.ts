@@ -27,7 +27,7 @@ export function withWsl(withWsl: boolean): SpawnFunctions {
 
 function withWslModifiedParameters(
   // tslint:disable-next-line: no-any
-  func: (command: string, ...rest: any) => any,
+  func: (command: string, arg1?: any, ...rest: any) => any,
 ): typeof func {
   // tslint:disable-next-line: no-any
   return (command: string, arg1?: any, ...rest: any) => {

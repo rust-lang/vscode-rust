@@ -503,16 +503,7 @@ class ClientWorkspace {
     if (this.config.logToFile) {
       const logPath = path.join(this.folder.uri.fsPath, `rls${Date.now()}.log`);
       const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
-      logStream
-        .on('open', () => {
-          childProcess.stderr.addListener('data', chunk => {
-            logStream.write(chunk.toString());
-          });
-        })
-        .on('error', err => {
-          console.error(`Couldn't write to ${logPath} (${err})`);
-          logStream.end();
-        });
+      childProcess.stderr.pipe(logStream);
     }
 
     return childProcess;

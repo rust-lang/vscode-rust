@@ -28,7 +28,7 @@ import {
 import { RLSConfiguration } from './configuration';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
-import { activateTaskProvider, runCommand } from './tasks';
+import { activateTaskProvider, Execution, runCargoCommand } from './tasks';
 import { withWsl } from './utils/child_process';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
@@ -345,7 +345,9 @@ class ClientWorkspace {
     this.disposables.push(restartServer);
 
     this.disposables.push(
-      commands.registerCommand('rls.run', cmd => runCommand(this.folder, cmd)),
+      commands.registerCommand('rls.run', (cmd: Execution) =>
+        runCargoCommand(this.folder, cmd),
+      ),
     );
   }
 

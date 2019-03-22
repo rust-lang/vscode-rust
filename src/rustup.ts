@@ -1,7 +1,7 @@
 import * as child_process from 'child_process';
 import { window } from 'vscode';
 
-import { ExecChildProcessResult, execFile } from './utils/child_process';
+import { execFile } from './utils/child_process';
 
 import { startSpinner, stopSpinner } from './spinner';
 
@@ -123,12 +123,12 @@ async function tryToInstallToolchain(config: RustupConfig) {
 
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   try {
-    const { stdout } = await execCmd(
+    const stdout = await execCmd(
       config.path,
       ['component', 'list', '--toolchain', config.channel],
       {},
       config.useWSL,
-    );
+    ).then(({ stdout }) => stdout.toString());
     const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
 
     if (
@@ -289,7 +289,7 @@ export async function execCmd(
   args: string[],
   options: child_process.ExecFileOptions,
   useWSL?: boolean,
-): Promise<ExecChildProcessResult> {
+): ReturnType<typeof execFile> {
   if (useWSL) {
     ({ rustup, args } = modifyParametersForWSL(rustup, args));
   }
@@ -302,7 +302,7 @@ export function execCmdSync(
   args: string[],
   options: child_process.ExecFileOptions,
   useWSL?: boolean,
-): Buffer {
+): ReturnType<typeof child_process.execFileSync> {
   if (useWSL) {
     ({ rustup, args } = modifyParametersForWSL(rustup, args));
   }

@@ -37,7 +37,7 @@ import {
   NotificationType,
   ServerOptions,
 } from 'vscode-languageclient';
-import { ExecChildProcessResult, execFile } from './utils/child_process';
+import { execFile } from './utils/child_process';
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.
@@ -398,28 +398,26 @@ class ClientWorkspace {
     );
   }
 
-  private async getSysroot(env: object): Promise<string> {
-    let output: ExecChildProcessResult;
+  private async getSysroot(env: typeof process.env): Promise<string> {
+    const execCommand = () =>
+      this.config.rustupDisabled
+        ? execFile('rustc', ['--print', 'sysroot'], { env })
+        : execCmd(
+            this.config.rustupPath,
+            ['run', this.config.channel, 'rustc', '--print', 'sysroot'],
+            { env },
+            this.config.useWSL,
+          );
+
     try {
-      if (this.config.rustupDisabled) {
-        output = await execFile('rustc', ['--print', 'sysroot'], { env });
-      } else {
-        output = await execCmd(
-          this.config.rustupPath,
-          ['run', await this.config.channel, 'rustc', '--print', 'sysroot'],
-          { env },
-          this.config.useWSL,
-        );
-      }
+      const { stdout } = await execCommand();
+      return stdout
+        .toString()
+        .replace('\n', '')
+        .replace('\r', '');
     } catch (e) {
       throw new Error(`Error getting sysroot from \`rustc\`: ${e}`);
     }
-
-    if (!output.stdout) {
-      throw new Error(`Couldn't get sysroot from \`rustc\`: Got no ouput`);
-    }
-
-    return output.stdout.replace('\n', '').replace('\r', '');
   }
 
   // Make an evironment to run the RLS.

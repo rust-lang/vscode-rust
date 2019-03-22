@@ -1,10 +1,8 @@
-import * as child_process from 'child_process';
 import { window } from 'vscode';
 
-import { execFile } from './utils/child_process';
+import { execCmd, execCmdSync } from './utils/child_process';
 
 import { startSpinner, stopSpinner } from './spinner';
-import { modifyParametersForWSL } from './utils/wslpath';
 
 export class RustupConfig {
   public channel: string;
@@ -283,43 +281,4 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     `Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`,
   );
   return activeChannel;
-}
-
-export async function execCmd(
-  command: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): ReturnType<typeof execFile> {
-  if (useWSL) {
-    ({ command, args } = modifyParametersForWSL(command, args));
-  }
-
-  return execFile(command, args, options);
-}
-
-export function execCmdSync(
-  command: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): ReturnType<typeof child_process.execFileSync> {
-  if (useWSL) {
-    ({ command, args } = modifyParametersForWSL(command, args));
-  }
-
-  return child_process.execFileSync(command, args, { ...options });
-}
-
-export function spawnProcess(
-  command: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): child_process.ChildProcess {
-  if (useWSL) {
-    ({ command, args } = modifyParametersForWSL(command, args));
-  }
-
-  return child_process.spawn(command, args, options);
 }

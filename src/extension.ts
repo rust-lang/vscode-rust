@@ -1,13 +1,8 @@
 import { RLSConfiguration } from './configuration';
-import {
-  checkForRls,
-  ensureToolchain,
-  execCmd,
-  rustupUpdate,
-  spawnProcess,
-} from './rustup';
+import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, runCommand } from './tasks';
+import { execCmd, execFile, spawnProcess } from './utils/child_process';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 import * as child_process from 'child_process';
@@ -37,7 +32,6 @@ import {
   NotificationType,
   ServerOptions,
 } from 'vscode-languageclient';
-import { execFile } from './utils/child_process';
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.

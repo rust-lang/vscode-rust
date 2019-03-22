@@ -224,6 +224,17 @@
                     "default": null,
                     "description": "Rust channel to invoke rustup with. Ignored if rustup is disabled. By default, uses the same channel as your currently open project."
                 },
+                "rust-client.trace.server": {
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "default": "off",
+                    "description": "Traces the communication between VS Code and the Rust language server.",
+                    "scope": "window"
+                },
                 "rust.sysroot": {
                     "type": [
                         "string",
@@ -402,17 +413,6 @@
                     "default": true,
                     "description": "Show additional context in hover tooltips when available. This is often the type local variable declaration.",
                     "scope": "resource"
-                },
-                "rust.trace.server": {
-                    "type": "string",
-                    "enum": [
-                        "off",
-                        "messages",
-                        "verbose"
-                    ],
-                    "default": "off",
-                    "description": "Traces the communication between VS Code and the Rust language server.",
-                    "scope": "window"
                 }
             }
         }

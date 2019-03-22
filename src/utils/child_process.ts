@@ -1,5 +1,6 @@
 import * as child_process from 'child_process';
 import * as util from 'util';
+
 import { modifyParametersForWSL } from './wslpath';
 
 export const execFile = util.promisify(child_process.execFile);

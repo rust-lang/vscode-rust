@@ -1,9 +1,7 @@
 import { window } from 'vscode';
 
-import { execCmd, execCmdSync } from './utils/child_process';
-
 import { startSpinner, stopSpinner } from './spinner';
-
+import { execCmd, execCmdSync } from './utils/child_process';
 export class RustupConfig {
   public channel: string;
   public path: string;

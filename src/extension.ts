@@ -386,7 +386,7 @@ class ClientWorkspace {
   }
 
   private async getSysroot(env: typeof process.env): Promise<string> {
-    const execCommand = () =>
+    const rustcPrintSysroot = () =>
       this.config.rustupDisabled
         ? withWsl(false).execFile('rustc', ['--print', 'sysroot'], { env })
         : withWsl(this.config.useWSL).execFile(
@@ -395,15 +395,11 @@ class ClientWorkspace {
             { env },
           );
 
-    try {
-      const { stdout } = await execCommand();
-      return stdout
-        .toString()
-        .replace('\n', '')
-        .replace('\r', '');
-    } catch (e) {
-      throw new Error(`Error getting sysroot from \`rustc\`: ${e}`);
-    }
+    const { stdout } = await rustcPrintSysroot();
+    return stdout
+      .toString()
+      .replace('\n', '')
+      .replace('\r', '');
   }
 
   // Make an evironment to run the RLS.

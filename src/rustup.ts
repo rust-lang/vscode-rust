@@ -5,6 +5,7 @@
 import { window } from 'vscode';
 
 import { startSpinner, stopSpinner } from './spinner';
+import { runTaskCommand } from './tasks';
 import { withWsl } from './utils/child_process';
 export interface RustupConfig {
   channel: string;
@@ -36,10 +37,9 @@ export async function rustupUpdate(config: RustupConfig) {
   }
 }
 
-// Check for the nightly toolchain (and that rustup exists)
+// Check for the user-specified toolchain (and that rustup exists)
 export async function ensureToolchain(config: RustupConfig) {
-  const toolchainInstalled = await hasToolchain(config);
-  if (toolchainInstalled) {
+  if (await hasToolchain(config)) {
     return;
   }
 
@@ -79,8 +79,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
       ['toolchain', 'list'],
       {},
     );
-    const hasToolchain = stdout.indexOf(config.channel) > -1;
-    return hasToolchain;
+    return stdout.includes(config.channel);
   } catch (e) {
     console.log(e);
     // rustup not present
@@ -92,20 +91,20 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 }
 
 async function tryToInstallToolchain(config: RustupConfig) {
-  startSpinner('RLS', 'Installing toolchain…');
   try {
-    const { stdout, stderr } = await withWsl(config.useWSL).execFile(
-      config.path,
-      ['toolchain', 'install', config.channel],
-      {},
-    );
-    console.log(stdout);
-    console.log(stderr);
-    stopSpinner(`${config.channel} toolchain installed successfully`);
+    const { command, args } = withWsl(config.useWSL).modifyArgs(config.path, [
+      'toolchain',
+      'install',
+      config.channel,
+    ]);
+    await runTaskCommand({ command, args }, 'Installing toolchain…');
+    if (!(await hasToolchain(config))) {
+      throw new Error();
+    }
   } catch (e) {
     console.log(e);
     window.showErrorMessage(`Could not install ${config.channel} toolchain`);
-    stopSpinner(`Could not install ${config.channel} toolchain`);
+    stopSpinner(`Could not install toolchain`);
     throw e;
   }
 }

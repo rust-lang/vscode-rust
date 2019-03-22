@@ -10,6 +10,7 @@ import {
   TaskProvider,
   TaskRevealKind,
   tasks,
+  workspace,
   WorkspaceFolder,
 } from 'vscode';
 
@@ -153,18 +154,18 @@ export function runCargoCommand(folder: WorkspaceFolder, execution: Execution) {
  */
 export async function runTaskCommand(
   { command, args, env, cwd }: Execution,
-  folder: WorkspaceFolder,
   displayName: string,
+  folder?: WorkspaceFolder,
 ) {
   const uniqueId = crypto.randomBytes(20).toString();
 
   const task = new Task(
     { label: uniqueId, type: 'setup' },
-    folder,
+    folder ? folder : workspace.workspaceFolders![0],
     displayName,
     TASK_SOURCE,
     new ShellExecution(`${command} ${args.join(' ')}`, {
-      cwd: cwd || folder.uri.fsPath,
+      cwd: cwd || (folder && folder.uri.fsPath),
       env,
     }),
   );

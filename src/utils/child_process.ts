@@ -9,6 +9,10 @@ export interface SpawnFunctions {
   execFile: typeof execFileAsync;
   execFileSync: typeof child_process.execFileSync;
   spawn: typeof child_process.spawn;
+  modifyArgs: (
+    command: string,
+    args: string[],
+  ) => { command: string; args: string[] };
 }
 
 export function withWsl(withWsl: boolean): SpawnFunctions {
@@ -17,11 +21,13 @@ export function withWsl(withWsl: boolean): SpawnFunctions {
         execFile: withWslModifiedParameters(execFileAsync),
         execFileSync: withWslModifiedParameters(child_process.execFileSync),
         spawn: withWslModifiedParameters(child_process.spawn),
+        modifyArgs: modifyParametersForWSL,
       }
     : {
         execFile: execFileAsync,
         execFileSync: child_process.execFileSync,
         spawn: child_process.spawn,
+        modifyArgs: (command: string, args: string[]) => ({ command, args }),
       };
 }
 

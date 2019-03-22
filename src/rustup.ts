@@ -286,40 +286,40 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
 }
 
 export async function execCmd(
-  rustup: string,
+  command: string,
   args: string[],
   options: child_process.ExecFileOptions,
   useWSL?: boolean,
 ): ReturnType<typeof execFile> {
   if (useWSL) {
-    ({ rustup, args } = modifyParametersForWSL(rustup, args));
+    ({ command, args } = modifyParametersForWSL(command, args));
   }
 
-  return execFile(rustup, args, options);
+  return execFile(command, args, options);
 }
 
 export function execCmdSync(
-  rustup: string,
+  command: string,
   args: string[],
   options: child_process.ExecFileOptions,
   useWSL?: boolean,
 ): ReturnType<typeof child_process.execFileSync> {
   if (useWSL) {
-    ({ rustup, args } = modifyParametersForWSL(rustup, args));
+    ({ command, args } = modifyParametersForWSL(command, args));
   }
 
-  return child_process.execFileSync(rustup, args, { ...options });
+  return child_process.execFileSync(command, args, { ...options });
 }
 
 export function spawnProcess(
-  rustup: string,
+  command: string,
   args: string[],
   options: child_process.ExecFileOptions,
   useWSL?: boolean,
 ): child_process.ChildProcess {
   if (useWSL) {
-    ({ rustup, args } = modifyParametersForWSL(rustup, args));
+    ({ command, args } = modifyParametersForWSL(command, args));
   }
 
-  return child_process.spawn(rustup, args, options);
+  return child_process.spawn(command, args, options);
 }

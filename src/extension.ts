@@ -410,7 +410,9 @@ class ClientWorkspace {
       setLibPath: false,
     },
   ): Promise<typeof process.env> {
-    const env = process.env;
+    // Shallow clone, we don't want to modify this process' $PATH or
+    // $(DY)LD_LIBRARY_PATH
+    const env = { ...process.env };
 
     let sysroot: string | undefined;
     try {

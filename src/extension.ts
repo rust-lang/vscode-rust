@@ -217,12 +217,6 @@ class ClientWorkspace {
     startSpinner('RLS', 'Starting');
 
     this.warnOnRlsToml();
-    // Check for deprecated env vars.
-    if (process.env.RLS_PATH || process.env.RLS_ROOT) {
-      window.showWarningMessage(
-        'Found deprecated environment variables (RLS_PATH or RLS_ROOT). Use `rls.path` or `rls.root` settings.',
-      );
-    }
 
     const serverOptions: ServerOptions = async () => {
       await this.autoUpdate();

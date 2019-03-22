@@ -487,10 +487,10 @@ class ClientWorkspace {
       );
     }
     try {
-      childProcess.on('error', err => {
-        if (err.message.includes('ENOENT')) {
-          console.error('Could not spawn RLS process: ', err.message);
-          window.showWarningMessage('Could not start RLS');
+      childProcess.on('error', (err: { code?: string; message: string }) => {
+        if (err.code === 'ENOENT') {
+          console.error(`Could not spawn RLS: ${err.message}`);
+          window.showWarningMessage(`Could not spawn RLS: \`${err.message}\``);
         } else {
           throw err;
         }

@@ -488,39 +488,30 @@ class ClientWorkspace {
         config.useWSL,
       );
     }
-    try {
-      childProcess.on('error', (err: { code?: string; message: string }) => {
-        if (err.code === 'ENOENT') {
-          console.error(`Could not spawn RLS: ${err.message}`);
-          window.showWarningMessage(`Could not spawn RLS: \`${err.message}\``);
-        } else {
-          throw err;
-        }
-      });
 
-      if (this.config.logToFile) {
-        const logPath = path.join(
-          this.folder.uri.fsPath,
-          `rls-${Date.now()}.log`,
-        );
-        const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
-        logStream
-          .on('open', () => {
-            childProcess.stderr.addListener('data', chunk => {
-              logStream.write(chunk.toString());
-            });
-          })
-          .on('error', err => {
-            console.error(`Couldn't write to ${logPath} (${err})`);
-            logStream.end();
-          });
+    childProcess.on('error', (err: { code?: string; message: string }) => {
+      if (err.code === 'ENOENT') {
+        console.error(`Could not spawn RLS: ${err.message}`);
+        window.showWarningMessage(`Could not spawn RLS: \`${err.message}\``);
       }
+    });
 
-      return childProcess;
-    } catch (e) {
-      stopSpinner('RLS could not be started');
-      throw new Error('Error starting up rls.');
+    if (this.config.logToFile) {
+      const logPath = path.join(this.folder.uri.fsPath, `rls${Date.now()}.log`);
+      const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
+      logStream
+        .on('open', () => {
+          childProcess.stderr.addListener('data', chunk => {
+            logStream.write(chunk.toString());
+          });
+        })
+        .on('error', err => {
+          console.error(`Couldn't write to ${logPath} (${err})`);
+          logStream.end();
+        });
     }
+
+    return childProcess;
   }
 
   private async autoUpdate() {

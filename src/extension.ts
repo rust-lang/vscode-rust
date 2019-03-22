@@ -1,43 +1,55 @@
+import { RLSConfiguration } from './configuration';
 import {
-  rustupUpdate,
-  ensureToolchain,
   checkForRls,
+  ensureToolchain,
   execCmd,
+  rustupUpdate,
   spawnProcess,
 } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
-import { RLSConfiguration } from './configuration';
 import { activateTaskProvider, runCommand } from './tasks';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
-//import path = require('path');
+import * as path from 'path';
 
 import {
   commands,
+  Disposable,
   ExtensionContext,
   IndentAction,
   languages,
+  TextDocument,
   TextEditor,
   TextEditorEdit,
+  Uri,
   window,
   workspace,
-  TextDocument,
   WorkspaceFolder,
-  Disposable,
-  Uri,
   WorkspaceFoldersChangeEvent,
 } from 'vscode';
 import {
+  ImplementationRequest,
   LanguageClient,
   LanguageClientOptions,
   Location,
   NotificationType,
   ServerOptions,
-  ImplementationRequest,
 } from 'vscode-languageclient';
-import { execFile, ExecChildProcessResult } from './utils/child_process';
+import { ExecChildProcessResult, execFile } from './utils/child_process';
+
+/**
+ * Parameter type to `window/progress` request as issued by the RLS.
+ * https://github.com/rust-lang/rls/blob/17a439440e6b00b1f014a49c6cf47752ecae5bb7/rls/src/lsp_data.rs#L395-L419
+ */
+interface ProgressParams {
+  id: string;
+  title?: string;
+  message?: string;
+  percentage?: number;
+  done?: boolean;
+}
 
 export async function activate(context: ExtensionContext) {
   configureLanguage(context);
@@ -49,19 +61,15 @@ export async function activate(context: ExtensionContext) {
   );
 }
 
-export function deactivate(): Promise<void> {
-  const promises: Thenable<void>[] = [];
-  for (const ws of workspaces.values()) {
-    promises.push(ws.stop());
-  }
-  return Promise.all(promises).then(() => undefined);
+export async function deactivate() {
+  return Promise.all([...workspaces.values()].map(ws => ws.stop()));
 }
 
 // Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
 function didOpenTextDocument(
   document: TextDocument,
   context: ExtensionContext,
-): void {
+) {
   if (document.languageId !== 'rust' && document.languageId !== 'toml') {
     return;
   }
@@ -78,9 +86,9 @@ function didOpenTextDocument(
     return;
   }
 
-  if (!workspaces.has(folder.uri.toString())) {
+  if (!workspaces.has(folder.uri)) {
     const workspace = new ClientWorkspace(folder);
-    workspaces.set(folder.uri.toString(), workspace);
+    workspaces.set(folder.uri, workspace);
     workspace.start(context);
   }
 }
@@ -155,20 +163,20 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
 function didChangeWorkspaceFolders(
   e: WorkspaceFoldersChangeEvent,
   context: ExtensionContext,
-): void {
+) {
   _sortedWorkspaceFolders = undefined;
 
   // If a VSCode workspace has been added, check to see if it is part of an existing one, and
   // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
   for (let folder of e.added) {
     folder = getOuterMostWorkspaceFolder(folder);
-    if (workspaces.has(folder.uri.toString())) {
+    if (workspaces.has(folder.uri)) {
       continue;
     }
     for (const f of fs.readdirSync(folder.uri.fsPath)) {
       if (f === 'Cargo.toml') {
         const workspace = new ClientWorkspace(folder);
-        workspaces.set(folder.uri.toString(), workspace);
+        workspaces.set(folder.uri, workspace);
         workspace.start(context);
         break;
       }
@@ -177,15 +185,15 @@ function didChangeWorkspaceFolders(
 
   // If a workspace is removed which is a Rust workspace, kill the client.
   for (const folder of e.removed) {
-    const ws = workspaces.get(folder.uri.toString());
+    const ws = workspaces.get(folder.uri);
     if (ws) {
-      workspaces.delete(folder.uri.toString());
+      workspaces.delete(folder.uri);
       ws.stop();
     }
   }
 }
 
-const workspaces: Map<string, ClientWorkspace> = new Map();
+const workspaces: Map<Uri, ClientWorkspace> = new Map();
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
@@ -193,10 +201,10 @@ const workspaces: Map<string, ClientWorkspace> = new Map();
 class ClientWorkspace {
   // FIXME(#233): Don't only rely on lazily initializing it once on startup,
   // handle possible `rust-client.*` value changes while extension is running
-  readonly config: RLSConfiguration;
-  lc: LanguageClient | null = null;
-  readonly folder: WorkspaceFolder;
-  disposables: Disposable[];
+  private readonly config: RLSConfiguration;
+  private lc: LanguageClient | null = null;
+  private readonly folder: WorkspaceFolder;
+  private disposables: Disposable[];
 
   constructor(folder: WorkspaceFolder) {
     this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
@@ -204,7 +212,7 @@ class ClientWorkspace {
     this.disposables = [];
   }
 
-  async start(context: ExtensionContext) {
+  public async start(context: ExtensionContext) {
     warnOnMissingCargoToml();
 
     startSpinner('RLS', 'Starting');
@@ -274,18 +282,21 @@ class ClientWorkspace {
       clientOptions,
     );
 
-    const promise = this.progressCounter();
-
-    const disposable = this.lc.start();
-    this.disposables.push(disposable);
-
-    this.disposables.push(activateTaskProvider(this.folder));
+    this.setupProgressCounter();
     this.registerCommands(context);
-
-    return promise;
+    this.disposables.push(activateTaskProvider(this.folder));
+    this.disposables.push(this.lc.start());
   }
 
-  registerCommands(context: ExtensionContext) {
+  public async stop() {
+    if (this.lc) {
+      await this.lc.stop();
+    }
+
+    this.disposables.forEach(d => d.dispose());
+  }
+
+  private registerCommands(context: ExtensionContext) {
     if (!this.lc) {
       return;
     }
@@ -314,7 +325,7 @@ class ClientWorkspace {
         try {
           locations = await this.lc.sendRequest<Location[]>(request, params);
         } catch (reason) {
-          window.showWarningMessage('find implementations failed: ' + reason);
+          window.showWarningMessage(`find implementations failed: ${reason}`);
           return;
         }
 
@@ -347,72 +358,41 @@ class ClientWorkspace {
     );
   }
 
-  async progressCounter() {
+  private async setupProgressCounter() {
     if (!this.lc) {
       return;
     }
 
     const runningProgress: Set<string> = new Set();
-    const asPercent = (fraction: number): string =>
-      `${Math.round(fraction * 100)}%`;
-    let runningDiagnostics = 0;
     await this.lc.onReady();
     stopSpinner('RLS');
 
-    this.lc.onNotification(new NotificationType('window/progress'), function(
-      progress: any,
-    ) {
-      if (progress.done) {
-        runningProgress.delete(progress.id);
-      } else {
-        runningProgress.add(progress.id);
-      }
-      if (runningProgress.size) {
-        let status = '';
-        if (typeof progress.percentage === 'number') {
-          status = asPercent(progress.percentage);
-        } else if (progress.message) {
-          status = progress.message;
-        } else if (progress.title) {
-          status = `[${progress.title.toLowerCase()}]`;
+    this.lc.onNotification(
+      new NotificationType<ProgressParams, void>('window/progress'),
+      progress => {
+        if (progress.done) {
+          runningProgress.delete(progress.id);
+        } else {
+          runningProgress.add(progress.id);
         }
-        startSpinner('RLS', status);
-      } else {
-        stopSpinner('RLS');
-      }
-    });
-
-    // FIXME these are legacy notifications used by RLS ca jan 2018.
-    // remove once we're certain we've progress on.
-    this.lc.onNotification(
-      new NotificationType('rustDocument/beginBuild'),
-      function(_f: any) {
-        runningDiagnostics++;
-        startSpinner('RLS', 'working');
-      },
-    );
-    this.lc.onNotification(
-      new NotificationType('rustDocument/diagnosticsEnd'),
-      function(_f: any) {
-        runningDiagnostics--;
-        if (runningDiagnostics <= 0) {
+        if (runningProgress.size) {
+          let status = '';
+          if (typeof progress.percentage === 'number') {
+            status = `${Math.round(progress.percentage * 100)}%`;
+          } else if (progress.message) {
+            status = progress.message;
+          } else if (progress.title) {
+            status = `[${progress.title.toLowerCase()}]`;
+          }
+          startSpinner('RLS', status);
+        } else {
           stopSpinner('RLS');
         }
       },
     );
   }
 
-  async stop() {
-    let promise: Thenable<void> = Promise.resolve(void 0);
-    if (this.lc) {
-      promise = this.lc.stop();
-    }
-    return promise.then(() => {
-      this.disposables.forEach(d => d.dispose());
-    });
-  }
-
-  async getSysroot(env: Object): Promise<string> {
+  private async getSysroot(env: object): Promise<string> {
     let output: ExecChildProcessResult;
     try {
       if (this.config.rustupDisabled) {
@@ -437,8 +417,11 @@ class ClientWorkspace {
   }
 
   // Make an evironment to run the RLS.
-  // Tries to synthesise RUST_SRC_PATH for Racer, if one is not already set.
-  async makeRlsEnv(setLibPath = false): Promise<any> {
+  private async makeRlsEnv(
+    args = {
+      setLibPath: false,
+    },
+  ): Promise<typeof process.env> {
     const env = process.env;
 
     let sysroot: string | undefined;
@@ -452,46 +435,42 @@ class ClientWorkspace {
         sysroot = await this.getSysroot(env);
       } catch (e) {
         console.warn('Error reading sysroot (second try)', e);
-        window.showWarningMessage(
-          'RLS could not set RUST_SRC_PATH for Racer because it could not read the Rust sysroot.',
-        );
+        window.showWarningMessage(`Error reading sysroot: ${e.message}`);
         return env;
       }
     }
 
     console.info(`Setting sysroot to`, sysroot);
-    if (!process.env.RUST_SRC_PATH) {
-      env.RUST_SRC_PATH = sysroot + '/lib/rustlib/src/rust/src';
-    }
-    if (setLibPath) {
+    if (args.setLibPath) {
       function appendEnv(envVar: string, newComponent: string) {
         const old = process.env[envVar];
         return old ? `${newComponent}:${old}` : newComponent;
       }
-      env.DYLD_LIBRARY_PATH = appendEnv('DYLD_LIBRARY_PATH', sysroot + '/lib');
-      env.LD_LIBRARY_PATH = appendEnv('LD_LIBRARY_PATH', sysroot + '/lib');
+      const newComponent = path.join(sysroot, 'lib');
+      env.DYLD_LIBRARY_PATH = appendEnv('DYLD_LIBRARY_PATH', newComponent);
+      env.LD_LIBRARY_PATH = appendEnv('LD_LIBRARY_PATH', newComponent);
     }
 
     return env;
   }
 
-  async makeRlsProcess(): Promise<child_process.ChildProcess> {
+  private async makeRlsProcess(): Promise<child_process.ChildProcess> {
     // Run "rls" from the PATH unless there's an override.
-    const rls_path = this.config.rlsPath || 'rls';
+    const rlsPath = this.config.rlsPath || 'rls';
 
     // We don't need to set [DY]LD_LIBRARY_PATH if we're using rustup,
     // as rustup will set it for us when it chooses a toolchain.
-    const env = await this.makeRlsEnv(
-      /*setLibPath*/ this.config.rustupDisabled,
-    );
+    const env = await this.makeRlsEnv({
+      setLibPath: this.config.rustupDisabled,
+    });
     const cwd = this.folder.uri.fsPath;
 
     let childProcess: child_process.ChildProcess;
     if (this.config.rustupDisabled) {
-      console.info('running without rustup: ' + rls_path);
-      childProcess = child_process.spawn(rls_path, [], { env, cwd });
+      console.info(`running without rustup: ${rlsPath}`);
+      childProcess = child_process.spawn(rlsPath, [], { env, cwd });
     } else {
-      console.info('running with rustup: ' + rls_path);
+      console.info(`running with rustup: ${rlsPath}`);
       const config = this.config.rustupConfig();
 
       await ensureToolchain(config);
@@ -504,51 +483,45 @@ class ClientWorkspace {
 
       childProcess = spawnProcess(
         config.path,
-        ['run', config.channel, rls_path],
+        ['run', config.channel, rlsPath],
         { env, cwd },
         config.useWSL,
       );
     }
-    try {
-      childProcess.on('error', err => {
-        if ((<any>err).code == 'ENOENT') {
-          console.error('Could not spawn RLS process: ', err.message);
-          window.showWarningMessage('Could not start RLS');
-        } else {
-          throw err;
-        }
-      });
 
-      if (this.config.logToFile) {
-        const logPath = this.folder.uri.fsPath + '/rls' + Date.now() + '.log';
-        const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
-        logStream
-          .on('open', function(_f) {
-            childProcess.stderr.addListener('data', function(chunk) {
-              logStream.write(chunk.toString());
-            });
-          })
-          .on('error', function(err: any) {
-            console.error("Couldn't write to " + logPath + ' (' + err + ')');
-            logStream.end();
-          });
+    childProcess.on('error', (err: { code?: string; message: string }) => {
+      if (err.code === 'ENOENT') {
+        console.error(`Could not spawn RLS: ${err.message}`);
+        window.showWarningMessage(`Could not spawn RLS: \`${err.message}\``);
       }
+    });
 
-      return childProcess;
-    } catch (e) {
-      stopSpinner('RLS could not be started');
-      throw new Error('Error starting up rls.');
+    if (this.config.logToFile) {
+      const logPath = path.join(this.folder.uri.fsPath, `rls${Date.now()}.log`);
+      const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
+      logStream
+        .on('open', () => {
+          childProcess.stderr.addListener('data', chunk => {
+            logStream.write(chunk.toString());
+          });
+        })
+        .on('error', err => {
+          console.error(`Couldn't write to ${logPath} (${err})`);
+          logStream.end();
+        });
     }
+
+    return childProcess;
   }
 
-  async autoUpdate() {
+  private async autoUpdate() {
     if (this.config.updateOnStartup && !this.config.rustupDisabled) {
       await rustupUpdate(this.config.rustupConfig());
     }
   }
 
-  warnOnRlsToml() {
-    const tomlPath = this.folder.uri.fsPath + '/rls.toml';
+  private warnOnRlsToml() {
+    const tomlPath = path.join(this.folder.uri.fsPath, 'rls.toml');
     fs.access(tomlPath, fs.constants.F_OK, err => {
       if (!err) {
         window.showWarningMessage(

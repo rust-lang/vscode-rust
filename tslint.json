@@ -1,14 +1,18 @@
 {
     "defaultSeverity": "error",
+
+    "extends": ["tslint:latest", "tslint-config-prettier"],
+    "linterOptions": {
+        "exclude": ["node_modules/**"]
+    },
     "rules": {
-        "curly": true,
-        "indent": [true, "spaces", 4],
-        "no-invalid-this": true,
-        "no-non-null-assertion": true,
-        "no-var-keyword": true,
-        "prefer-const": true,
-        "quotemark": [true, "single", "avoid-escape"],
-        "semicolon": [true, "always"]
+        "no-any": true,
+        "interface-name": [true, "never-prefix"],
+        "variable-name": [true, "allow-leading-underscore"],
+        "member-ordering": [true, {"order": "fields-first"}],
+
+        "object-literal-sort-keys": false,
+        "no-console": false,
+        "no-shadowed-variable": false
     }
 }
-  

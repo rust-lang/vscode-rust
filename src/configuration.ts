@@ -20,6 +20,53 @@ function fromStringToRevealOutputChannelOn(
 }
 
 export class RLSConfiguration {
+  private readonly configuration: WorkspaceConfiguration;
+  private readonly wsPath: string;
+
+  private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
+    this.configuration = configuration;
+    this.wsPath = wsPath;
+  }
+
+  public static loadFromWorkspace(wsPath: string): RLSConfiguration {
+    const configuration = workspace.getConfiguration();
+    return new RLSConfiguration(configuration, wsPath);
+  }
+
+  private static readRevealOutputChannelOn(
+    configuration: WorkspaceConfiguration,
+  ) {
+    const setting = configuration.get<string>(
+      'rust-client.revealOutputChannelOn',
+      'never',
+    );
+    return fromStringToRevealOutputChannelOn(setting);
+  }
+
+  /**
+   * Tries to fetch the `rust-client.channel` configuration value. If missing,
+   * falls back on active toolchain specified by rustup (at `rustupPath`),
+   * finally defaulting to `nightly` if all fails.
+   */
+  private static readChannel(
+    wsPath: string,
+    rustupConfiguration: RustupConfig,
+    configuration: WorkspaceConfiguration,
+  ): string {
+    const channel = configuration.get<string>('rust-client.channel');
+    if (channel) {
+      return channel;
+    } else {
+      try {
+        return getActiveChannel(wsPath, rustupConfiguration);
+      } catch (e) {
+        // rustup might not be installed at the time the configuration is
+        // initially loaded, so silently ignore the error and return a default value
+        return 'nightly';
+      }
+    }
+  }
+
   public get rustupPath(): string {
     return this.configuration.get('rust-client.rustupPath', 'rustup');
   }
@@ -59,38 +106,8 @@ export class RLSConfiguration {
   /**
    * If specified, RLS will be spawned by executing a file at the given path.
    */
-  public get rlsPath(): string | null {
-    // Path to the rls. Prefer `rust-client.rlsPath` if present, otherwise consider
-    // the depreacted `rls.path` setting.
-    const rlsPath = this.configuration.get('rls.path', null);
-    if (rlsPath) {
-      console.warn(
-        '`rls.path` has been deprecated; prefer `rust-client.rlsPath`',
-      );
-    }
-
-    const rustClientRlsPath = this.configuration.get(
-      'rust-client.rlsPath',
-      null,
-    );
-    if (!rustClientRlsPath) {
-      return rlsPath;
-    }
-
-    return rustClientRlsPath;
-  }
-
-  private readonly configuration: WorkspaceConfiguration;
-  private readonly wsPath: string;
-
-  public static loadFromWorkspace(wsPath: string): RLSConfiguration {
-    const configuration = workspace.getConfiguration();
-    return new RLSConfiguration(configuration, wsPath);
-  }
-
-  private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
-    this.configuration = configuration;
-    this.wsPath = wsPath;
+  public get rlsPath(): string | undefined {
+    return this.configuration.get<string>('rust-client.rlsPath');
   }
 
   // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.
@@ -100,42 +117,5 @@ export class RLSConfiguration {
       this.rustupPath,
       this.useWSL,
     );
-  }
-
-  private static readRevealOutputChannelOn(
-    configuration: WorkspaceConfiguration,
-  ) {
-    const setting = configuration.get<string>(
-      'rust-client.revealOutputChannelOn',
-      'never',
-    );
-    return fromStringToRevealOutputChannelOn(setting);
-  }
-
-  /**
-   * Tries to fetch the `rust-client.channel` configuration value. If missing,
-   * falls back on active toolchain specified by rustup (at `rustupPath`),
-   * finally defaulting to `nightly` if all fails.
-   */
-  private static readChannel(
-    wsPath: string,
-    rustupConfiguration: RustupConfig,
-    configuration: WorkspaceConfiguration,
-  ): string {
-    const channel = configuration.get<string | null>(
-      'rust-client.channel',
-      null,
-    );
-    if (channel !== null) {
-      return channel;
-    } else {
-      try {
-        return getActiveChannel(wsPath, rustupConfiguration);
-      } catch (e) {
-        // rustup might not be installed at the time the configuration is
-        // initially loaded, so silently ignore the error and return a default value
-        return 'nightly';
-      }
-    }
   }
 }

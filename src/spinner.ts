@@ -5,14 +5,14 @@ export function startSpinner(prefix: string, postfix: string) {
     clearInterval(spinnerTimer);
   }
   let state = 0;
-  spinnerTimer = setInterval(function() {
-    window.setStatusBarMessage(prefix + ' ' + spinner[state] + ' ' + postfix);
+  spinnerTimer = setInterval(() => {
+    window.setStatusBarMessage(`${prefix} ${spinner[state]} ${postfix}`);
     state = (state + 1) % spinner.length;
   }, 100);
 }
 
 export function stopSpinner(message: string) {
-  if (spinnerTimer !== null) {
+  if (spinnerTimer) {
     clearInterval(spinnerTimer);
   }
   spinnerTimer = null;

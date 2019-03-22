@@ -1,14 +1,14 @@
 import * as child_process from 'child_process';
 import { window } from 'vscode';
 
-import { execFile, ExecChildProcessResult } from './utils/child_process';
+import { ExecChildProcessResult, execFile } from './utils/child_process';
 
 import { startSpinner, stopSpinner } from './spinner';
 
 export class RustupConfig {
-  channel: string;
-  path: string;
-  useWSL: boolean;
+  public channel: string;
+  public path: string;
+  public useWSL: boolean;
 
   constructor(channel: string, path: string, useWSL: boolean) {
     this.channel = channel;
@@ -46,14 +46,14 @@ export async function rustupUpdate(config: RustupConfig) {
 }
 
 // Check for the nightly toolchain (and that rustup exists)
-export async function ensureToolchain(config: RustupConfig): Promise<void> {
+export async function ensureToolchain(config: RustupConfig) {
   const toolchainInstalled = await hasToolchain(config);
   if (toolchainInstalled) {
     return;
   }
 
   const clicked = await window.showInformationMessage(
-    config.channel + ' toolchain not installed. Install?',
+    `${config.channel} toolchain not installed. Install?`,
     'Yes',
   );
   if (clicked === 'Yes') {
@@ -64,7 +64,7 @@ export async function ensureToolchain(config: RustupConfig): Promise<void> {
 }
 
 // Check for rls components.
-export async function checkForRls(config: RustupConfig): Promise<void> {
+export async function checkForRls(config: RustupConfig) {
   const hasRls = await hasRlsComponents(config);
   if (hasRls) {
     return;
@@ -101,7 +101,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
   }
 }
 
-async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
+async function tryToInstallToolchain(config: RustupConfig) {
   startSpinner('RLS', 'Installing toolchain…');
   try {
     const { stdout, stderr } = await execCmd(
@@ -112,13 +112,11 @@ async function tryToInstallToolchain(config: RustupConfig): Promise<void> {
     );
     console.log(stdout);
     console.log(stderr);
-    stopSpinner(config.channel + ' toolchain installed successfully');
+    stopSpinner(`${config.channel} toolchain installed successfully`);
   } catch (e) {
     console.log(e);
-    window.showErrorMessage(
-      'Could not install ' + config.channel + ' toolchain',
-    );
-    stopSpinner('Could not install ' + config.channel + ' toolchain');
+    window.showErrorMessage(`Could not install ${config.channel} toolchain`);
+    stopSpinner(`Could not install ${config.channel} toolchain`);
     throw e;
   }
 }
@@ -152,7 +150,7 @@ async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   }
 }
 
-async function installRls(config: RustupConfig): Promise<void> {
+async function installRls(config: RustupConfig) {
   startSpinner('RLS', 'Installing components…');
 
   const tryFn: (component: string) => Promise<Error | null> = async (
@@ -220,11 +218,11 @@ export function parseActiveToolchain(rustupOutput: string): string {
 
     const matchActiveChannel = /^(\S*) \((?:default|overridden)/gm;
     const match = matchActiveChannel.exec(rustupOutput);
-    if (match === null) {
+    if (!match) {
       throw new Error(
         `couldn't find active toolchain under 'active toolchains'`,
       );
-    } else if (matchActiveChannel.exec(rustupOutput) !== null) {
+    } else if (matchActiveChannel.exec(rustupOutput)) {
       throw new Error(
         `multiple active toolchains found under 'active toolchains'`,
       );
@@ -237,7 +235,7 @@ export function parseActiveToolchain(rustupOutput: string): string {
   const match = /^(?:.*\r?\n){2}(\S*) \((?:default|overridden)/.exec(
     rustupOutput,
   );
-  if (match !== null) {
+  if (match) {
     return match[1];
   }
 
@@ -329,6 +327,6 @@ function modifyParametersForWSL(command: string, args: string[]) {
   args.unshift(command);
   return {
     rustup: 'wsl',
-    args: args,
+    args,
   };
 }

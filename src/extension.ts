@@ -216,8 +216,6 @@ class ClientWorkspace {
 
     startSpinner('RLS', 'Starting');
 
-    this.warnOnRlsToml();
-
     const serverOptions: ServerOptions = async () => {
       await this.autoUpdate();
       return this.makeRlsProcess();
@@ -500,17 +498,6 @@ class ClientWorkspace {
     if (this.config.updateOnStartup && !this.config.rustupDisabled) {
       await rustupUpdate(this.config.rustupConfig());
     }
-  }
-
-  private warnOnRlsToml() {
-    const tomlPath = path.join(this.folder.uri.fsPath, 'rls.toml');
-    fs.access(tomlPath, fs.constants.F_OK, err => {
-      if (!err) {
-        window.showWarningMessage(
-          'Found deprecated rls.toml. Use VSCode user settings instead (File > Preferences > Settings)',
-        );
-      }
-    });
   }
 }
 

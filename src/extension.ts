@@ -85,9 +85,9 @@ function didOpenTextDocument(
     return;
   }
 
-  if (!workspaces.has(folder.uri.toString())) {
+  if (!workspaces.has(folder.uri)) {
     const workspace = new ClientWorkspace(folder);
-    workspaces.set(folder.uri.toString(), workspace);
+    workspaces.set(folder.uri, workspace);
     workspace.start(context);
   }
 }
@@ -169,13 +169,13 @@ function didChangeWorkspaceFolders(
   // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
   for (let folder of e.added) {
     folder = getOuterMostWorkspaceFolder(folder);
-    if (workspaces.has(folder.uri.toString())) {
+    if (workspaces.has(folder.uri)) {
       continue;
     }
     for (const f of fs.readdirSync(folder.uri.fsPath)) {
       if (f === 'Cargo.toml') {
         const workspace = new ClientWorkspace(folder);
-        workspaces.set(folder.uri.toString(), workspace);
+        workspaces.set(folder.uri, workspace);
         workspace.start(context);
         break;
       }
@@ -184,15 +184,15 @@ function didChangeWorkspaceFolders(
 
   // If a workspace is removed which is a Rust workspace, kill the client.
   for (const folder of e.removed) {
-    const ws = workspaces.get(folder.uri.toString());
+    const ws = workspaces.get(folder.uri);
     if (ws) {
-      workspaces.delete(folder.uri.toString());
+      workspaces.delete(folder.uri);
       ws.stop();
     }
   }
 }
 
-const workspaces: Map<string, ClientWorkspace> = new Map();
+const workspaces: Map<Uri, ClientWorkspace> = new Map();
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client

@@ -3,43 +3,38 @@ import * as util from 'util';
 
 import { modifyParametersForWSL } from './wslpath';
 
-export const execFile = util.promisify(child_process.execFile);
+const execFileAsync = util.promisify(child_process.execFile);
 
-export async function execCmd(
-  command: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): ReturnType<typeof execFile> {
-  if (useWSL) {
-    ({ command, args } = modifyParametersForWSL(command, args));
-  }
-
-  return execFile(command, args, options);
+export interface SpawnFunctions {
+  execFile: typeof execFileAsync;
+  execFileSync: typeof child_process.execFileSync;
+  spawn: typeof child_process.spawn;
 }
 
-export function execCmdSync(
-  command: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): ReturnType<typeof child_process.execFileSync> {
-  if (useWSL) {
-    ({ command, args } = modifyParametersForWSL(command, args));
-  }
-
-  return child_process.execFileSync(command, args, { ...options });
+export function withWsl(withWsl: boolean): SpawnFunctions {
+  return withWsl
+    ? {
+        execFile: withWslModifiedParameters(execFileAsync),
+        execFileSync: withWslModifiedParameters(child_process.execFileSync),
+        spawn: withWslModifiedParameters(child_process.spawn),
+      }
+    : {
+        execFile: execFileAsync,
+        execFileSync: child_process.execFileSync,
+        spawn: child_process.spawn,
+      };
 }
 
-export function spawnProcess(
-  command: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): child_process.ChildProcess {
-  if (useWSL) {
-    ({ command, args } = modifyParametersForWSL(command, args));
-  }
+function withWslModifiedParameters(
+  // tslint:disable-next-line: no-any
+  func: (command: string, ...rest: any) => any,
+): typeof func {
+  // tslint:disable-next-line: no-any
+  return (command: string, arg1?: any, ...rest: any) => {
+    if (arg1 instanceof Array) {
+      ({ command, args: arg1 } = modifyParametersForWSL(command, arg1));
+    }
 
-  return child_process.spawn(command, args, options);
+    return func(command, ...[arg1, ...rest]);
+  };
 }

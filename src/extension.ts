@@ -29,7 +29,7 @@ import { RLSConfiguration } from './configuration';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, runCommand } from './tasks';
-import { execCmd, execFile, spawnProcess } from './utils/child_process';
+import { withWsl } from './utils/child_process';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 /**
@@ -386,12 +386,11 @@ class ClientWorkspace {
   private async getSysroot(env: typeof process.env): Promise<string> {
     const execCommand = () =>
       this.config.rustupDisabled
-        ? execFile('rustc', ['--print', 'sysroot'], { env })
-        : execCmd(
+        ? withWsl(false).execFile('rustc', ['--print', 'sysroot'], { env })
+        : withWsl(this.config.useWSL).execFile(
             this.config.rustupPath,
             ['run', this.config.channel, 'rustc', '--print', 'sysroot'],
             { env },
-            this.config.useWSL,
           );
 
     try {
@@ -470,11 +469,10 @@ class ClientWorkspace {
         await checkForRls(config);
       }
 
-      childProcess = spawnProcess(
+      childProcess = withWsl(config.useWSL).spawn(
         config.path,
         ['run', config.channel, rlsPath],
         { env, cwd },
-        config.useWSL,
       );
     }
 

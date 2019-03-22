@@ -1,7 +1,7 @@
 import { window } from 'vscode';
 
 import { startSpinner, stopSpinner } from './spinner';
-import { execCmd, execCmdSync } from './utils/child_process';
+import { withWsl } from './utils/child_process';
 export class RustupConfig {
   public channel: string;
   public path: string;
@@ -21,11 +21,10 @@ export async function rustupUpdate(config: RustupConfig) {
   startSpinner('RLS', 'Updating…');
 
   try {
-    const { stdout } = await execCmd(
+    const { stdout } = await withWsl(config.useWSL).execFile(
       config.path,
       ['update'],
       {},
-      config.useWSL,
     );
 
     // This test is imperfect because if the user has multiple toolchains installed, they
@@ -80,11 +79,10 @@ export async function checkForRls(config: RustupConfig) {
 
 async function hasToolchain(config: RustupConfig): Promise<boolean> {
   try {
-    const { stdout } = await execCmd(
+    const { stdout } = await withWsl(config.useWSL).execFile(
       config.path,
       ['toolchain', 'list'],
       {},
-      config.useWSL,
     );
     const hasToolchain = stdout.indexOf(config.channel) > -1;
     return hasToolchain;
@@ -101,11 +99,10 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 async function tryToInstallToolchain(config: RustupConfig) {
   startSpinner('RLS', 'Installing toolchain…');
   try {
-    const { stdout, stderr } = await execCmd(
+    const { stdout, stderr } = await withWsl(config.useWSL).execFile(
       config.path,
       ['toolchain', 'install', config.channel],
       {},
-      config.useWSL,
     );
     console.log(stdout);
     console.log(stderr);
@@ -120,12 +117,13 @@ async function tryToInstallToolchain(config: RustupConfig) {
 
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   try {
-    const stdout = await execCmd(
-      config.path,
-      ['component', 'list', '--toolchain', config.channel],
-      {},
-      config.useWSL,
-    ).then(({ stdout }) => stdout.toString());
+    const stdout = await withWsl(config.useWSL)
+      .execFile(
+        config.path,
+        ['component', 'list', '--toolchain', config.channel],
+        {},
+      )
+      .then(({ stdout }) => stdout.toString());
     const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
 
     if (
@@ -154,11 +152,10 @@ async function installRls(config: RustupConfig) {
     component: string,
   ) => {
     try {
-      const { stdout, stderr } = await execCmd(
+      const { stdout, stderr } = await withWsl(config.useWSL).execFile(
         config.path,
         ['component', 'add', component, '--toolchain', config.channel],
         {},
-        config.useWSL,
       );
       console.log(stdout);
       console.log(stderr);
@@ -251,12 +248,8 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
   let activeChannel;
   try {
     // `rustup show active-toolchain` is available since rustup 1.12.0
-    activeChannel = execCmdSync(
-      config.path,
-      ['show', 'active-toolchain'],
-      { cwd: wsPath },
-      config.useWSL,
-    )
+    activeChannel = withWsl(config.useWSL)
+      .execFileSync(config.path, ['show', 'active-toolchain'], { cwd: wsPath })
       .toString()
       .trim();
     // Since rustup 1.17.0 if the active toolchain is the default, we're told
@@ -266,12 +259,9 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     activeChannel = activeChannel.replace(/ \(.*\)$/, '');
   } catch (e) {
     // Possibly an old rustup version, so try rustup show
-    const showOutput = execCmdSync(
-      config.path,
-      ['show'],
-      { cwd: wsPath },
-      config.useWSL,
-    ).toString();
+    const showOutput = withWsl(config.useWSL)
+      .execFileSync(config.path, ['show'], { cwd: wsPath })
+      .toString();
     activeChannel = parseActiveToolchain(showOutput);
   }
 

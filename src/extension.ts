@@ -520,7 +520,7 @@ class ClientWorkspace {
       });
 
       if (this.config.logToFile) {
-        const logPath = this.folder.uri.path + '/rls' + Date.now() + '.log';
+        const logPath = this.folder.uri.fsPath + '/rls' + Date.now() + '.log';
         const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
         logStream
           .on('open', function(_f) {
@@ -548,7 +548,7 @@ class ClientWorkspace {
   }
 
   warnOnRlsToml() {
-    const tomlPath = this.folder.uri.path + '/rls.toml';
+    const tomlPath = this.folder.uri.fsPath + '/rls.toml';
     fs.access(tomlPath, fs.constants.F_OK, err => {
       if (!err) {
         window.showWarningMessage(

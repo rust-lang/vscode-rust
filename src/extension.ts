@@ -12,6 +12,7 @@ import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
 
 import {
   commands,
@@ -445,8 +446,9 @@ class ClientWorkspace {
         const old = process.env[envVar];
         return old ? `${newComponent}:${old}` : newComponent;
       }
-      env.DYLD_LIBRARY_PATH = appendEnv('DYLD_LIBRARY_PATH', sysroot + '/lib');
-      env.LD_LIBRARY_PATH = appendEnv('LD_LIBRARY_PATH', sysroot + '/lib');
+      const newComponent = path.join(sysroot, 'lib');
+      env.DYLD_LIBRARY_PATH = appendEnv('DYLD_LIBRARY_PATH', newComponent);
+      env.LD_LIBRARY_PATH = appendEnv('LD_LIBRARY_PATH', newComponent);
     }
 
     return env;
@@ -525,7 +527,7 @@ class ClientWorkspace {
   }
 
   private warnOnRlsToml() {
-    const tomlPath = this.folder.uri.fsPath + '/rls.toml';
+    const tomlPath = path.join(this.folder.uri.fsPath, 'rls.toml');
     fs.access(tomlPath, fs.constants.F_OK, err => {
       if (!err) {
         window.showWarningMessage(

@@ -26,7 +26,7 @@ export async function rustupUpdate(config: RustupConfig) {
     // This test is imperfect because if the user has multiple toolchains installed, they
     // might have one updated and one unchanged. But I don't want to go too far down the
     // rabbit hole of parsing rustup's output.
-    if (stdout.indexOf('unchanged') > -1) {
+    if (stdout.includes('unchanged')) {
       stopSpinner('Up to date.');
     } else {
       stopSpinner('Up to date. Restart extension for changes to take effect.');
@@ -37,7 +37,9 @@ export async function rustupUpdate(config: RustupConfig) {
   }
 }
 
-// Check for the user-specified toolchain (and that rustup exists)
+/**
+ * Check for the user-specified toolchain (and that rustup exists).
+ */
 export async function ensureToolchain(config: RustupConfig) {
   if (await hasToolchain(config)) {
     return;
@@ -47,26 +49,27 @@ export async function ensureToolchain(config: RustupConfig) {
     `${config.channel} toolchain not installed. Install?`,
     'Yes',
   );
-  if (clicked === 'Yes') {
+  if (clicked) {
     await tryToInstallToolchain(config);
   } else {
     throw new Error();
   }
 }
 
-// Check for rls components.
+/**
+ * Checks for required RLS components and prompts the user to install if it's
+ * not already.
+ */
 export async function checkForRls(config: RustupConfig) {
-  const hasRls = await hasRlsComponents(config);
-  if (hasRls) {
+  if (await hasRlsComponents(config)) {
     return;
   }
 
-  // missing component
   const clicked = await Promise.resolve(
     window.showInformationMessage('RLS not installed. Install?', 'Yes'),
   );
-  if (clicked === 'Yes') {
-    await installRls(config);
+  if (clicked) {
+    installRls(config);
   } else {
     throw new Error();
   }

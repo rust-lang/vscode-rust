@@ -17,11 +17,9 @@ export async function rustupUpdate(config: RustupConfig) {
   startSpinner('RLS', 'Updating…');
 
   try {
-    const { stdout } = await withWsl(config.useWSL).execFile(
-      config.path,
-      ['update'],
-      {},
-    );
+    const { stdout } = await withWsl(config.useWSL).execFile(config.path, [
+      'update',
+    ]);
 
     // This test is imperfect because if the user has multiple toolchains installed, they
     // might have one updated and one unchanged. But I don't want to go too far down the
@@ -77,11 +75,10 @@ export async function checkForRls(config: RustupConfig) {
 
 async function hasToolchain(config: RustupConfig): Promise<boolean> {
   try {
-    const { stdout } = await withWsl(config.useWSL).execFile(
-      config.path,
-      ['toolchain', 'list'],
-      {},
-    );
+    const { stdout } = await withWsl(config.useWSL).execFile(config.path, [
+      'toolchain',
+      'list',
+    ]);
     return stdout.includes(config.channel);
   } catch (e) {
     console.log(e);
@@ -115,11 +112,12 @@ async function tryToInstallToolchain(config: RustupConfig) {
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   try {
     const stdout = await withWsl(config.useWSL)
-      .execFile(
-        config.path,
-        ['component', 'list', '--toolchain', config.channel],
-        {},
-      )
+      .execFile(config.path, [
+        'component',
+        'list',
+        '--toolchain',
+        config.channel,
+      ])
       .then(({ stdout }) => stdout.toString());
     const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
 
@@ -152,7 +150,6 @@ async function installRls(config: RustupConfig) {
       const { stdout, stderr } = await withWsl(config.useWSL).execFile(
         config.path,
         ['component', 'add', component, '--toolchain', config.channel],
-        {},
       );
       console.log(stdout);
       console.log(stderr);

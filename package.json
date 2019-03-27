@@ -57,7 +57,7 @@
         "@types/mocha": "^2.2.43",
         "@types/node": "~10.1.0",
         "prettier": "^1.16.4",
-        "tslint": "^5.7.0",
+        "tslint": "^5.14.0",
         "tslint-config-prettier": "^1.18.0",
         "typescript": "^3.0.0",
         "vsce": "^1.58.0",

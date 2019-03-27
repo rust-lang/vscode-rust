@@ -1,18 +1,35 @@
+import * as crypto from 'crypto';
 import {
   Disposable,
   ShellExecution,
-  ShellExecutionOptions,
   Task,
   TaskDefinition,
-  TaskExecution,
   TaskGroup,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskProvider,
   TaskRevealKind,
   tasks,
+  workspace,
   WorkspaceFolder,
 } from 'vscode';
+
+/**
+ * Command execution parameters sent by the RLS (as of 1.35).
+ */
+export interface Execution {
+  /**
+   * @deprecated Previously, the usage was not restricted to spawning with a
+   * file, so the name is changed to reflect the more permissive usage and to be
+   * less misleading (still used by RLS 1.35). Use `command` instead.
+   */
+  binary?: string;
+  command?: string;
+  args: string[];
+  env?: { [key: string]: string };
+  // NOTE: Not actually sent by RLS but unifies a common execution definition
+  cwd?: string;
+}
 
 export function activateTaskProvider(target: WorkspaceFolder): Disposable {
   const provider: TaskProvider = {
@@ -21,7 +38,7 @@ export function activateTaskProvider(target: WorkspaceFolder): Disposable {
       //  e,g, https://github.com/Microsoft/vscode/blob/de7e216e9ebcad74f918a025fc5fe7bdbe0d75b2/extensions/npm/src/main.ts
       // However, cargo.toml does not support to define a new task like them.
       // So we are not 'autoDetect' feature and the setting for it.
-      return getCargoTasks(target);
+      return createDefaultTasks(target);
     },
     resolveTask: () => undefined,
   };
@@ -29,165 +46,138 @@ export function activateTaskProvider(target: WorkspaceFolder): Disposable {
   return tasks.registerTaskProvider('cargo', provider);
 }
 
-interface CargoTaskDefinition extends TaskDefinition {
-  type: 'cargo';
-  label: string;
-  command: string;
-  args: string[];
-  env?: { [key: string]: string };
-}
+const TASK_SOURCE = 'Rust';
 
 interface TaskConfigItem {
-  definition: CargoTaskDefinition;
-  problemMatcher: string[];
+  label: string;
+  definition: TaskDefinition;
+  execution: Execution;
+  problemMatchers: string[];
   group?: TaskGroup;
   presentationOptions?: TaskPresentationOptions;
 }
 
-function getCargoTasks(target: WorkspaceFolder): Task[] {
-  const taskList = createTaskConfigItem();
-
-  const list = taskList.map(def => {
-    const t = createTask(def, target);
-    return t;
-  });
-
-  return list;
+function createDefaultTasks(target: WorkspaceFolder): Task[] {
+  return createTaskConfigItem().map(def => createCargoTask(def, target));
 }
 
-function createTask(
-  { definition, group, presentationOptions, problemMatcher }: TaskConfigItem,
-  target: WorkspaceFolder,
-): Task {
-  const TASK_SOURCE = 'Rust';
+function createCargoTask(cfg: TaskConfigItem, target: WorkspaceFolder): Task {
+  const { binary, command, args, cwd, env } = cfg.execution;
+  const cmdLine = `${command || binary} ${args.join(' ')}`;
+  const execution = new ShellExecution(cmdLine, { cwd, env });
 
-  const execCmd = `${definition.command} ${definition.args.join(' ')}`;
-  const execOption: ShellExecutionOptions = {
-    cwd: target.uri.fsPath,
-    // Innocuous type error - values of `process.env` can be undefined instead
-    // of explicitly missing (spread doesn't work); this doesn't affect the behaviour.
-    // tslint:disable-next-line: prefer-object-spread
-    env: Object.assign({}, process.env, definition.env),
-  };
-  const exec = new ShellExecution(execCmd, execOption);
-
+  const { definition, problemMatchers, presentationOptions, group } = cfg;
   return {
-    ...new Task(
-      definition,
-      target,
-      definition.label,
-      TASK_SOURCE,
-      exec,
-      problemMatcher,
-    ),
-    ...(group ? { group } : {}),
-    ...(presentationOptions ? { presentationOptions } : {}),
+    definition,
+    scope: target,
+    name: definition.label,
+    source: TASK_SOURCE,
+    execution,
+    isBackground: false,
+    problemMatchers,
+    presentationOptions: presentationOptions || {},
+    runOptions: {},
+    ...{ group },
   };
 }
 
 function createTaskConfigItem(): TaskConfigItem[] {
-  const problemMatcher = ['$rustc'];
-
-  const presentationOptions: TaskPresentationOptions = {
-    reveal: TaskRevealKind.Always,
-    panel: TaskPanelKind.Dedicated,
+  const common = {
+    definition: { type: 'cargo' },
+    problemMatchers: ['$rustc'],
+    presentationOptions: {
+      reveal: TaskRevealKind.Always,
+      panel: TaskPanelKind.Dedicated,
+    },
   };
 
-  const taskList: TaskConfigItem[] = [
+  return [
     {
-      definition: {
-        label: 'cargo build',
-        type: 'cargo',
-        command: 'cargo',
-        args: ['build'],
-      },
-      problemMatcher,
+      label: 'cargo build',
+      execution: { command: 'cargo', args: ['build'] },
       group: TaskGroup.Build,
-      presentationOptions,
+      ...common,
     },
     {
-      definition: {
-        label: 'cargo check',
-        type: 'cargo',
-        command: 'cargo',
-        args: ['check'],
-      },
-      problemMatcher,
+      label: 'cargo check',
+      execution: { command: 'cargo', args: ['check'] },
       group: TaskGroup.Build,
-      presentationOptions,
+      ...common,
     },
     {
-      definition: {
-        label: 'cargo run',
-        type: 'cargo',
-        command: 'cargo',
-        args: ['run'],
-      },
-      problemMatcher,
-      presentationOptions,
+      label: 'cargo run',
+      execution: { command: 'cargo', args: ['run'] },
+      ...common,
     },
     {
-      definition: {
-        label: 'cargo test',
-        type: 'cargo',
-        command: 'cargo',
-        args: ['test'],
-      },
-      problemMatcher,
+      label: 'cargo test',
+      execution: { command: 'cargo', args: ['test'] },
       group: TaskGroup.Test,
-      presentationOptions,
+      ...common,
     },
     {
-      definition: {
-        label: 'cargo bench',
-        type: 'cargo',
-        command: 'cargo',
-        args: ['+nightly', 'bench'],
-      },
-      problemMatcher,
+      label: 'cargo bench',
+      execution: { command: 'cargo', args: ['+nightly', 'bench'] },
       group: TaskGroup.Test,
-      presentationOptions,
+      ...common,
     },
     {
-      definition: {
-        label: 'cargo clean',
-        type: 'cargo',
-        command: 'cargo',
-        args: ['clean'],
-      },
-      problemMatcher: [],
-      presentationOptions,
+      label: 'cargo clean',
+      execution: { command: 'cargo', args: ['clean'] },
+      ...common,
     },
   ];
-
-  return taskList;
 }
 
-export interface Cmd {
-  binary: string;
-  args: string[];
-  env: { [key: string]: string };
-}
-
-export function runCommand(
-  folder: WorkspaceFolder,
-  cmd: Cmd,
-): Thenable<TaskExecution> {
+// NOTE: `execution` parameters here are sent by the RLS.
+export function runCargoCommand(folder: WorkspaceFolder, execution: Execution) {
   const config: TaskConfigItem = {
-    definition: {
-      label: 'run Cargo command',
-      type: 'cargo',
-      command: cmd.binary,
-      args: cmd.args,
-      env: cmd.env,
-    },
-    problemMatcher: ['$rustc'],
+    label: 'run Cargo command',
+    definition: { type: 'cargo' },
+    execution,
+    problemMatchers: ['$rustc'],
     group: TaskGroup.Build,
     presentationOptions: {
       reveal: TaskRevealKind.Always,
       panel: TaskPanelKind.Dedicated,
     },
   };
-  const task = createTask(config, folder);
+  const task = createCargoTask(config, folder);
   return tasks.executeTask(task);
+}
+
+/**
+ * Starts a shell command as a VSCode task, resolves when a task is finished.
+ * Useful in tandem with setup commands, since the task window is reusable and
+ * also capable of displaying ANSI terminal colors. Exit codes are not
+ * supported, however.
+ */
+export async function runTaskCommand(
+  { command, args, env, cwd }: Execution,
+  displayName: string,
+  folder?: WorkspaceFolder,
+) {
+  const uniqueId = crypto.randomBytes(20).toString();
+
+  const task = new Task(
+    { label: uniqueId, type: 'setup' },
+    folder ? folder : workspace.workspaceFolders![0],
+    displayName,
+    TASK_SOURCE,
+    new ShellExecution(`${command} ${args.join(' ')}`, {
+      cwd: cwd || (folder && folder.uri.fsPath),
+      env,
+    }),
+  );
+
+  return new Promise(resolve => {
+    const disposable = tasks.onDidEndTask(({ execution }) => {
+      if (execution.task === task) {
+        disposable.dispose();
+        resolve();
+      }
+    });
+
+    tasks.executeTask(task);
+  });
 }

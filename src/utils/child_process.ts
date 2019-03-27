@@ -1,31 +1,46 @@
-/**
- *  Ideally, this module should be replaced with `utils.promisefy()` introduced Node.js 8.
- *  But we might not replace these properly if it is not well typed.
- */
-
 import * as child_process from 'child_process';
+import * as util from 'util';
 
-export interface ExecChildProcessResult<TOut = string> {
-    readonly stdout: TOut;
-    readonly stderr: TOut;
+import { modifyParametersForWSL } from './wslpath';
+
+const execFileAsync = util.promisify(child_process.execFile);
+
+export interface SpawnFunctions {
+  execFile: typeof execFileAsync;
+  execFileSync: typeof child_process.execFileSync;
+  spawn: typeof child_process.spawn;
+  modifyArgs: (
+    command: string,
+    args: string[],
+  ) => { command: string; args: string[] };
 }
 
-export async function execFile(command: string, args: string[], options: child_process.ExecFileOptions): Promise<ExecChildProcessResult> {
-    return new Promise<ExecChildProcessResult>((resolve, reject) => {
-        child_process.execFile(command, args, {
-            ...options,
-            encoding: 'utf8',
-        }, (error, stdout, stderr) => {
-            if (!!error) {
-                reject(error);
-                return;
-            }
+export function withWsl(withWsl: boolean): SpawnFunctions {
+  return withWsl
+    ? {
+        execFile: withWslModifiedParameters(execFileAsync),
+        execFileSync: withWslModifiedParameters(child_process.execFileSync),
+        spawn: withWslModifiedParameters(child_process.spawn),
+        modifyArgs: modifyParametersForWSL,
+      }
+    : {
+        execFile: execFileAsync,
+        execFileSync: child_process.execFileSync,
+        spawn: child_process.spawn,
+        modifyArgs: (command: string, args: string[]) => ({ command, args }),
+      };
+}
 
-            resolve({
-                stdout,
-                stderr,
-            });
-        });
+function withWslModifiedParameters(
+  // tslint:disable-next-line: no-any
+  func: (command: string, arg1?: any, ...rest: any) => any,
+): typeof func {
+  // tslint:disable-next-line: no-any
+  return (command: string, arg1?: any, ...rest: any) => {
+    if (arg1 instanceof Array) {
+      ({ command, args: arg1 } = modifyParametersForWSL(command, arg1));
+    }
 
-    });
+    return func(command, ...[arg1, ...rest]);
+  };
 }

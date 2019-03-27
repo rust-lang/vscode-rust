@@ -1,40 +1,30 @@
-import * as child_process from 'child_process';
+/**
+ * @file This module handles running the RLS via rustup, including checking that
+ * rustup is installed and installing any required components/toolchains.
+ */
 import { window } from 'vscode';
 
-import { ExecChildProcessResult, execFile } from './utils/child_process';
-
 import { startSpinner, stopSpinner } from './spinner';
-
-export class RustupConfig {
-  public channel: string;
-  public path: string;
-  public useWSL: boolean;
-
-  constructor(channel: string, path: string, useWSL: boolean) {
-    this.channel = channel;
-    this.path = path;
-    this.useWSL = useWSL;
-  }
+import { runTaskCommand } from './tasks';
+import { withWsl } from './utils/child_process';
+export interface RustupConfig {
+  channel: string;
+  path: string;
+  useWSL: boolean;
 }
-
-// This module handles running the RLS via rustup, including checking that rustup
-// is installed and installing any required components/toolchains.
 
 export async function rustupUpdate(config: RustupConfig) {
   startSpinner('RLS', 'Updating…');
 
   try {
-    const { stdout } = await execCmd(
-      config.path,
-      ['update'],
-      {},
-      config.useWSL,
-    );
+    const { stdout } = await withWsl(config.useWSL).execFile(config.path, [
+      'update',
+    ]);
 
     // This test is imperfect because if the user has multiple toolchains installed, they
     // might have one updated and one unchanged. But I don't want to go too far down the
     // rabbit hole of parsing rustup's output.
-    if (stdout.indexOf('unchanged') > -1) {
+    if (stdout.includes('unchanged')) {
       stopSpinner('Up to date.');
     } else {
       stopSpinner('Up to date. Restart extension for changes to take effect.');
@@ -45,10 +35,11 @@ export async function rustupUpdate(config: RustupConfig) {
   }
 }
 
-// Check for the nightly toolchain (and that rustup exists)
+/**
+ * Check for the user-specified toolchain (and that rustup exists).
+ */
 export async function ensureToolchain(config: RustupConfig) {
-  const toolchainInstalled = await hasToolchain(config);
-  if (toolchainInstalled) {
+  if (await hasToolchain(config)) {
     return;
   }
 
@@ -56,26 +47,27 @@ export async function ensureToolchain(config: RustupConfig) {
     `${config.channel} toolchain not installed. Install?`,
     'Yes',
   );
-  if (clicked === 'Yes') {
+  if (clicked) {
     await tryToInstallToolchain(config);
   } else {
     throw new Error();
   }
 }
 
-// Check for rls components.
+/**
+ * Checks for required RLS components and prompts the user to install if it's
+ * not already.
+ */
 export async function checkForRls(config: RustupConfig) {
-  const hasRls = await hasRlsComponents(config);
-  if (hasRls) {
+  if (await hasRlsComponents(config)) {
     return;
   }
 
-  // missing component
   const clicked = await Promise.resolve(
     window.showInformationMessage('RLS not installed. Install?', 'Yes'),
   );
-  if (clicked === 'Yes') {
-    await installRls(config);
+  if (clicked) {
+    installRls(config);
   } else {
     throw new Error();
   }
@@ -83,14 +75,11 @@ export async function checkForRls(config: RustupConfig) {
 
 async function hasToolchain(config: RustupConfig): Promise<boolean> {
   try {
-    const { stdout } = await execCmd(
-      config.path,
-      ['toolchain', 'list'],
-      {},
-      config.useWSL,
-    );
-    const hasToolchain = stdout.indexOf(config.channel) > -1;
-    return hasToolchain;
+    const { stdout } = await withWsl(config.useWSL).execFile(config.path, [
+      'toolchain',
+      'list',
+    ]);
+    return stdout.includes(config.channel);
   } catch (e) {
     console.log(e);
     // rustup not present
@@ -102,33 +91,34 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 }
 
 async function tryToInstallToolchain(config: RustupConfig) {
-  startSpinner('RLS', 'Installing toolchain…');
   try {
-    const { stdout, stderr } = await execCmd(
-      config.path,
-      ['toolchain', 'install', config.channel],
-      {},
-      config.useWSL,
-    );
-    console.log(stdout);
-    console.log(stderr);
-    stopSpinner(`${config.channel} toolchain installed successfully`);
+    const { command, args } = withWsl(config.useWSL).modifyArgs(config.path, [
+      'toolchain',
+      'install',
+      config.channel,
+    ]);
+    await runTaskCommand({ command, args }, 'Installing toolchain…');
+    if (!(await hasToolchain(config))) {
+      throw new Error();
+    }
   } catch (e) {
     console.log(e);
     window.showErrorMessage(`Could not install ${config.channel} toolchain`);
-    stopSpinner(`Could not install ${config.channel} toolchain`);
+    stopSpinner(`Could not install toolchain`);
     throw e;
   }
 }
 
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   try {
-    const { stdout } = await execCmd(
-      config.path,
-      ['component', 'list', '--toolchain', config.channel],
-      {},
-      config.useWSL,
-    );
+    const stdout = await withWsl(config.useWSL)
+      .execFile(config.path, [
+        'component',
+        'list',
+        '--toolchain',
+        config.channel,
+      ])
+      .then(({ stdout }) => stdout.toString());
     const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
 
     if (
@@ -157,11 +147,9 @@ async function installRls(config: RustupConfig) {
     component: string,
   ) => {
     try {
-      const { stdout, stderr } = await execCmd(
+      const { stdout, stderr } = await withWsl(config.useWSL).execFile(
         config.path,
         ['component', 'add', component, '--toolchain', config.channel],
-        {},
-        config.useWSL,
       );
       console.log(stdout);
       console.log(stderr);
@@ -254,12 +242,8 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
   let activeChannel;
   try {
     // `rustup show active-toolchain` is available since rustup 1.12.0
-    activeChannel = execCmdSync(
-      config.path,
-      ['show', 'active-toolchain'],
-      { cwd: wsPath },
-      config.useWSL,
-    )
+    activeChannel = withWsl(config.useWSL)
+      .execFileSync(config.path, ['show', 'active-toolchain'], { cwd: wsPath })
       .toString()
       .trim();
     // Since rustup 1.17.0 if the active toolchain is the default, we're told
@@ -269,12 +253,9 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     activeChannel = activeChannel.replace(/ \(.*\)$/, '');
   } catch (e) {
     // Possibly an old rustup version, so try rustup show
-    const showOutput = execCmdSync(
-      config.path,
-      ['show'],
-      { cwd: wsPath },
-      config.useWSL,
-    ).toString();
+    const showOutput = withWsl(config.useWSL)
+      .execFileSync(config.path, ['show'], { cwd: wsPath })
+      .toString();
     activeChannel = parseActiveToolchain(showOutput);
   }
 
@@ -282,51 +263,4 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     `Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`,
   );
   return activeChannel;
-}
-
-export async function execCmd(
-  rustup: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): Promise<ExecChildProcessResult> {
-  if (useWSL) {
-    ({ rustup, args } = modifyParametersForWSL(rustup, args));
-  }
-
-  return execFile(rustup, args, options);
-}
-
-export function execCmdSync(
-  rustup: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): Buffer {
-  if (useWSL) {
-    ({ rustup, args } = modifyParametersForWSL(rustup, args));
-  }
-
-  return child_process.execFileSync(rustup, args, { ...options });
-}
-
-export function spawnProcess(
-  rustup: string,
-  args: string[],
-  options: child_process.ExecFileOptions,
-  useWSL?: boolean,
-): child_process.ChildProcess {
-  if (useWSL) {
-    ({ rustup, args } = modifyParametersForWSL(rustup, args));
-  }
-
-  return child_process.spawn(rustup, args, options);
-}
-
-function modifyParametersForWSL(command: string, args: string[]) {
-  args.unshift(command);
-  return {
-    rustup: 'wsl',
-    args,
-  };
 }

@@ -1,19 +1,6 @@
-import { RLSConfiguration } from './configuration';
-import {
-  checkForRls,
-  ensureToolchain,
-  execCmd,
-  rustupUpdate,
-  spawnProcess,
-} from './rustup';
-import { startSpinner, stopSpinner } from './spinner';
-import { activateTaskProvider, runCommand } from './tasks';
-import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
-
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-
 import {
   commands,
   Disposable,
@@ -37,7 +24,13 @@ import {
   NotificationType,
   ServerOptions,
 } from 'vscode-languageclient';
-import { ExecChildProcessResult, execFile } from './utils/child_process';
+
+import { RLSConfiguration } from './configuration';
+import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
+import { startSpinner, stopSpinner } from './spinner';
+import { activateTaskProvider, Execution, runCargoCommand } from './tasks';
+import { withWsl } from './utils/child_process';
+import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.
@@ -52,7 +45,7 @@ interface ProgressParams {
 }
 
 export async function activate(context: ExtensionContext) {
-  configureLanguage(context);
+  context.subscriptions.push(configureLanguage());
 
   workspace.onDidOpenTextDocument(doc => didOpenTextDocument(doc, context));
   workspace.textDocuments.forEach(doc => didOpenTextDocument(doc, context));
@@ -223,14 +216,6 @@ class ClientWorkspace {
 
     startSpinner('RLS', 'Starting');
 
-    this.warnOnRlsToml();
-    // Check for deprecated env vars.
-    if (process.env.RLS_PATH || process.env.RLS_ROOT) {
-      window.showWarningMessage(
-        'Found deprecated environment variables (RLS_PATH or RLS_ROOT). Use `rls.path` or `rls.root` settings.',
-      );
-    }
-
     const serverOptions: ServerOptions = async () => {
       await this.autoUpdate();
       return this.makeRlsProcess();
@@ -360,7 +345,9 @@ class ClientWorkspace {
     this.disposables.push(restartServer);
 
     this.disposables.push(
-      commands.registerCommand('rls.run', cmd => runCommand(this.folder, cmd)),
+      commands.registerCommand('rls.run', (cmd: Execution) =>
+        runCargoCommand(this.folder, cmd),
+      ),
     );
   }
 
@@ -398,28 +385,23 @@ class ClientWorkspace {
     );
   }
 
-  private async getSysroot(env: object): Promise<string> {
-    let output: ExecChildProcessResult;
-    try {
-      if (this.config.rustupDisabled) {
-        output = await execFile('rustc', ['--print', 'sysroot'], { env });
-      } else {
-        output = await execCmd(
-          this.config.rustupPath,
-          ['run', await this.config.channel, 'rustc', '--print', 'sysroot'],
-          { env },
-          this.config.useWSL,
-        );
-      }
-    } catch (e) {
-      throw new Error(`Error getting sysroot from \`rustc\`: ${e}`);
-    }
+  private async getSysroot(env: typeof process.env): Promise<string> {
+    const wslWrapper = withWsl(this.config.useWSL);
 
-    if (!output.stdout) {
-      throw new Error(`Couldn't get sysroot from \`rustc\`: Got no ouput`);
-    }
+    const rustcPrintSysroot = () =>
+      this.config.rustupDisabled
+        ? wslWrapper.execFile('rustc', ['--print', 'sysroot'], { env })
+        : wslWrapper.execFile(
+            this.config.rustupPath,
+            ['run', this.config.channel, 'rustc', '--print', 'sysroot'],
+            { env },
+          );
 
-    return output.stdout.replace('\n', '').replace('\r', '');
+    const { stdout } = await rustcPrintSysroot();
+    return stdout
+      .toString()
+      .replace('\n', '')
+      .replace('\r', '');
   }
 
   // Make an evironment to run the RLS.
@@ -428,7 +410,9 @@ class ClientWorkspace {
       setLibPath: false,
     },
   ): Promise<typeof process.env> {
-    const env = process.env;
+    // Shallow clone, we don't want to modify this process' $PATH or
+    // $(DY)LD_LIBRARY_PATH
+    const env = { ...process.env };
 
     let sysroot: string | undefined;
     try {
@@ -487,11 +471,10 @@ class ClientWorkspace {
         await checkForRls(config);
       }
 
-      childProcess = spawnProcess(
+      childProcess = withWsl(config.useWSL).spawn(
         config.path,
         ['run', config.channel, rlsPath],
         { env, cwd },
-        config.useWSL,
       );
     }
 
@@ -505,16 +488,7 @@ class ClientWorkspace {
     if (this.config.logToFile) {
       const logPath = path.join(this.folder.uri.fsPath, `rls${Date.now()}.log`);
       const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
-      logStream
-        .on('open', () => {
-          childProcess.stderr.addListener('data', chunk => {
-            logStream.write(chunk.toString());
-          });
-        })
-        .on('error', err => {
-          console.error(`Couldn't write to ${logPath} (${err})`);
-          logStream.end();
-        });
+      childProcess.stderr.pipe(logStream);
     }
 
     return childProcess;
@@ -524,17 +498,6 @@ class ClientWorkspace {
     if (this.config.updateOnStartup && !this.config.rustupDisabled) {
       await rustupUpdate(this.config.rustupConfig());
     }
-  }
-
-  private warnOnRlsToml() {
-    const tomlPath = path.join(this.folder.uri.fsPath, 'rls.toml');
-    fs.access(tomlPath, fs.constants.F_OK, err => {
-      if (!err) {
-        window.showWarningMessage(
-          'Found deprecated rls.toml. Use VSCode user settings instead (File > Preferences > Settings)',
-        );
-      }
-    });
   }
 }
 
@@ -548,8 +511,14 @@ async function warnOnMissingCargoToml() {
   }
 }
 
-function configureLanguage(context: ExtensionContext) {
-  const disposable = languages.setLanguageConfiguration('rust', {
+/**
+ * Sets up additional language configuration that's impossible to do via a
+ * separate language-configuration.json file. See [1] for more information.
+ *
+ * [1]: https://github.com/Microsoft/vscode/issues/11514#issuecomment-244707076
+ */
+function configureLanguage(): Disposable {
+  return languages.setLanguageConfiguration('rust', {
     onEnterRules: [
       {
         // Doc single-line comment
@@ -590,5 +559,4 @@ function configureLanguage(context: ExtensionContext) {
       },
     ],
   });
-  context.subscriptions.push(disposable);
 }

@@ -386,10 +386,12 @@ class ClientWorkspace {
   }
 
   private async getSysroot(env: typeof process.env): Promise<string> {
+    const wslWrapper = withWsl(this.config.useWSL);
+
     const rustcPrintSysroot = () =>
       this.config.rustupDisabled
-        ? withWsl(false).execFile('rustc', ['--print', 'sysroot'], { env })
-        : withWsl(this.config.useWSL).execFile(
+        ? wslWrapper.execFile('rustc', ['--print', 'sysroot'], { env })
+        : wslWrapper.execFile(
             this.config.rustupPath,
             ['run', this.config.channel, 'rustc', '--print', 'sysroot'],
             { env },

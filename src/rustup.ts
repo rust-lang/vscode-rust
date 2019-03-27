@@ -7,6 +7,13 @@ import { window } from 'vscode';
 import { startSpinner, stopSpinner } from './spinner';
 import { runTaskCommand } from './tasks';
 import { withWsl } from './utils/child_process';
+
+const REQUIRED_COMPONENTS = ['rust-analysis', 'rust-src', 'rls'];
+
+function isInstalledRegex(componentName: string): RegExp {
+  return new RegExp(`^(${componentName}.*) \\((default|installed)\\)$`);
+}
+
 export interface RustupConfig {
   channel: string;
   path: string;
@@ -67,7 +74,8 @@ export async function checkForRls(config: RustupConfig) {
     window.showInformationMessage('RLS not installed. Install?', 'Yes'),
   );
   if (clicked) {
-    installRls(config);
+    await installRlsComponents(config);
+    window.showInformationMessage('RLS successfully installed! Enjoy! 🎉');
   } else {
     throw new Error();
   }
@@ -91,6 +99,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 }
 
 async function tryToInstallToolchain(config: RustupConfig) {
+  startSpinner('RLS', 'Installing toolchain…');
   try {
     const { command, args } = withWsl(config.useWSL).modifyArgs(config.path, [
       'toolchain',
@@ -109,84 +118,63 @@ async function tryToInstallToolchain(config: RustupConfig) {
   }
 }
 
+/**
+ * Returns an array of components for specified `config.channel` toolchain.
+ * These are parsed as-is, e.g. `rustc-x86_64-unknown-linux-gnu (default)` is a
+ * valid listed component name.
+ */
+async function listComponents(config: RustupConfig): Promise<string[]> {
+  return withWsl(config.useWSL)
+    .execFile(config.path, ['component', 'list', '--toolchain', config.channel])
+    .then(({ stdout }) =>
+      stdout
+        .toString()
+        .replace('\r', '')
+        .split('\n'),
+    );
+}
+
 async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   try {
-    const stdout = await withWsl(config.useWSL)
-      .execFile(config.path, [
-        'component',
-        'list',
-        '--toolchain',
-        config.channel,
-      ])
-      .then(({ stdout }) => stdout.toString());
-    const componentName = new RegExp('^rls.* \\((default|installed)\\)$', 'm');
+    const components = await listComponents(config);
 
-    if (
-      stdout.search(componentName) === -1 ||
-      stdout.search(/^rust-analysis.* \((default|installed)\)$/m) === -1 ||
-      stdout.search(/^rust-src.* \((default|installed)\)$/m) === -1
-    ) {
-      return false;
-    } else {
-      return true;
-    }
+    return REQUIRED_COMPONENTS.map(isInstalledRegex).every(isInstalledRegex =>
+      components.some(c => isInstalledRegex.test(c)),
+    );
   } catch (e) {
     console.log(e);
-    // rustup error?
-    window.showErrorMessage(
-      'Unexpected error initialising RLS - error running rustup',
-    );
+    window.showErrorMessage(`Can't detect RLS components: ${e.message}`);
     throw e;
   }
 }
 
-async function installRls(config: RustupConfig) {
+async function installRlsComponents(config: RustupConfig) {
   startSpinner('RLS', 'Installing components…');
 
-  const tryFn: (component: string) => Promise<Error | null> = async (
-    component: string,
-  ) => {
+  for (const component of REQUIRED_COMPONENTS) {
     try {
-      const { stdout, stderr } = await withWsl(config.useWSL).execFile(
-        config.path,
-        ['component', 'add', component, '--toolchain', config.channel],
-      );
-      console.log(stdout);
-      console.log(stderr);
-      return null;
-    } catch (e) {
-      let errorMessage = `Could not install RLS component (${component})`;
-      if (e.message) {
-        errorMessage += `, message: ${e.message}`;
+      const { command, args } = withWsl(config.useWSL).modifyArgs(config.path, [
+        'component',
+        'add',
+        component,
+        '--toolchain',
+        config.channel,
+      ]);
+      await runTaskCommand({ command, args }, `Installing \`${component}\``);
+
+      const isInstalled = isInstalledRegex(component);
+      const listedComponents = await listComponents(config);
+      if (!listedComponents.some(c => isInstalled.test(c))) {
+        throw new Error();
       }
-      window.showErrorMessage(errorMessage);
-      const err = new Error(`installing ${component} failed. Error: ${e}`);
-      return err;
-    }
-  };
+    } catch (e) {
+      stopSpinner(`Could not install component \`${component}\``);
 
-  {
-    const e = await tryFn('rust-analysis');
-    if (e !== null) {
-      stopSpinner('Could not install RLS');
-      throw e;
-    }
-  }
-
-  {
-    const e = await tryFn('rust-src');
-    if (e !== null) {
-      stopSpinner('Could not install RLS');
-      throw e;
-    }
-  }
-
-  console.log('install rls');
-
-  {
-    const e = await tryFn('rls-preview');
-    if (e !== null) {
-      stopSpinner('Could not install RLS');
+      window.showErrorMessage(
+        `Could not install component: \`${component}\`${
+          e.message ? `, message: ${e.message}` : ''
+        }`,
+      );
       throw e;
     }
   }

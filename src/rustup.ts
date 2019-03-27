@@ -99,6 +99,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 }
 
 async function tryToInstallToolchain(config: RustupConfig) {
+  startSpinner('RLS', 'Installing toolchain…');
   try {
     const { command, args } = withWsl(config.useWSL).modifyArgs(config.path, [
       'toolchain',

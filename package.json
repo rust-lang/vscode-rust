@@ -38,12 +38,13 @@
         "onLanguage:rust",
         "workspaceContains:Cargo.toml"
     ],
-    "main": "./out/src/extension",
+    "main": "./out/extension.js",
     "scripts": {
         "vscode:prepublish": "npm run check:version && npm run lint && npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "lint": "tslint --config ./tslint.json './src/**/*.ts'",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test",
         "prettier": "prettier **/*.ts",
         "check:version": "node cmd/check-version.js",
         "postinstall": "node ./node_modules/vscode/bin/install",
@@ -55,7 +56,6 @@
     "devDependencies": {
         "@types/mocha": "^2.2.43",
         "@types/node": "~10.1.0",
-        "mocha": "^5.2.0",
         "prettier": "^1.16.4",
         "tslint": "^5.7.0",
         "tslint-config-prettier": "^1.18.0",

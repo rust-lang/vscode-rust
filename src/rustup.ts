@@ -218,6 +218,22 @@ export function parseActiveToolchain(rustupOutput: string): string {
   throw new Error(`couldn't find active toolchains`);
 }
 
+export async function getVersion(
+  cwd: string,
+  config: RustupConfig,
+): Promise<string> {
+  const versionRegex = /rustup ([0-9]+\.[0-9]+\.[0-9]+)/;
+  const execFile = withWsl(config.useWSL).execFile;
+
+  const output = await execFile(config.path, ['--version'], { cwd });
+  const versionMatch = output.stdout.toString().match(versionRegex);
+  if (versionMatch && versionMatch.length >= 2) {
+    return versionMatch[1];
+  } else {
+    throw new Error("Couldn't parse rustup version");
+  }
+}
+
 /**
  * Returns active (including local overrides) toolchain, as specified by rustup.
  * May throw if rustup at specified path can't be executed.

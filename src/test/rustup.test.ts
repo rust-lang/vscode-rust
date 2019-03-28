@@ -3,19 +3,23 @@ import * as child_process from 'child_process';
 
 import * as rustup from '../rustup';
 
-// TODO: Detect if we're running in Windows and if wsl works?
 // We need to ensure that rustup works and is installed
-assert(child_process.execSync('rustup --version'));
+const rustupVersion = child_process.execSync('rustup --version').toString();
+assert(rustupVersion);
 
 const config: rustup.RustupConfig = {
   path: 'rustup',
   channel: 'stable',
+  // TODO: Detect if we're running in Windows and if wsl works?
   useWSL: false,
 };
 
 suite('Rustup Tests', () => {
+  test('getVersion', async () => {
+    const version = await rustup.getVersion('.', config);
+    assert(rustupVersion.includes(`rustup ${version}`));
+  });
   test('getActiveChannel', async () => {
-    const activeChannel = rustup.getActiveChannel('.', config);
-    console.log(activeChannel);
+    rustup.getActiveChannel('.', config);
   });
 });

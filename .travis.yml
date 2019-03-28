@@ -8,16 +8,8 @@ language: node_js
 node_js:
   - 10.2 # Lock to the version shipped with VSCode 1.31+
 
-# https://vscode-docs.readthedocs.io/en/latest/extensions/testing-extensions/#running-tests-automatically-on-travis-ci-build-machines
 services:
-  - xvfb
-
-# before_install:
-#   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-#       export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
-#       sh -e /etc/init.d/xvfb start;
-#       sleep 3;
-#     fi
+  - xvfb # Required for VSCode extension tests
 
 script:
   - npm run compile

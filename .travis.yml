@@ -11,7 +11,10 @@ os:
 language: node_js
 
 node_js:
-  - 10.2 # Lock to the version shipped with VSCode 1.31+
+  # - 10.2 # Lock to the version shipped with VSCode 1.31+
+  # ... except we need to work around https://github.com/nodejs/node/issues/20498
+  # and include the newer version which unbreaks our testing flow
+  - 10.5
 
 services:
   - xvfb # Required for VSCode extension tests

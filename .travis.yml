@@ -19,6 +19,10 @@ node_js:
 services:
   - xvfb # Required for VSCode extension tests
 
+before_install:
+  - curl https://sh.rustup.rs -sSf -m 60 | sh -s -- --no-modify-path -y -v --default-toolchain stable
+  - source $HOME/.cargo/env
+
 script:
   - npm run compile
   - npm run test

@@ -7,6 +7,7 @@
     },
     "rules": {
         "no-any": true,
+        "no-implicit-dependencies": [true, ["vscode"]],
         "interface-name": [true, "never-prefix"],
         "variable-name": [true, "allow-leading-underscore"],
         "member-ordering": [true, {"order": "fields-first"}],

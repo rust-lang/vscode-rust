@@ -26,6 +26,7 @@ import {
 } from 'vscode-languageclient';
 
 import { RLSConfiguration } from './configuration';
+import { SignatureHelpProvider } from './providers/signatureHelpProvider';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runCargoCommand } from './tasks';
@@ -277,6 +278,14 @@ class ClientWorkspace {
     this.registerCommands(context);
     this.disposables.push(activateTaskProvider(this.folder));
     this.disposables.push(this.lc.start());
+    this.disposables.push(
+      languages.registerSignatureHelpProvider(
+        { language: 'rust' },
+        new SignatureHelpProvider(this.lc),
+        '(',
+        ',',
+      ),
+    );
   }
 
   public async stop() {

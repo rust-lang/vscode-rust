@@ -256,7 +256,7 @@ class ClientWorkspace {
         protocol2Code: (wslPath: string) => {
           if (wslPath.startsWith('file://')) {
             wslPath = wslPath.substr('file://'.length);
-            wslPath = wslPath.replace('%20', ' ');
+            wslPath = wslPath.replace(/%20/g, ' ');
           }
 
           const res = Uri.file(uriWslToWindows(wslPath));

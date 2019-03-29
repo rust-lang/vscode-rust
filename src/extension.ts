@@ -258,6 +258,27 @@ class ClientWorkspace {
             wslPath = wslPath.substr('file://'.length);
           }
 
+          wslPath = wslPath.split('%20').join(' ');
+          wslPath = wslPath.split('%21').join('!');
+          wslPath = wslPath.split('%23').join('#');
+          wslPath = wslPath.split('%24').join('$');
+          wslPath = wslPath.split('%26').join('&');
+          wslPath = wslPath.split('%27').join('\'');
+          wslPath = wslPath.split('%28').join('(');
+          wslPath = wslPath.split('%29').join(')');
+          wslPath = wslPath.split('%2B').join('+');
+          wslPath = wslPath.split('%2C').join(',');
+          wslPath = wslPath.split('%2D').join('-');
+          wslPath = wslPath.split('%2E').join(',');
+          wslPath = wslPath.split('%3D').join('=');
+          wslPath = wslPath.split('%40').join('@');
+          wslPath = wslPath.split('%5B').join('[');
+          wslPath = wslPath.split('%5D').join(']');
+          wslPath = wslPath.split('%5E').join('^');
+          wslPath = wslPath.split('%7B').join('{');
+          wslPath = wslPath.split('%7D').join('}');
+          wslPath = wslPath.split('%7E').join('~');
+
           const res = Uri.file(uriWslToWindows(wslPath));
           console.log(`protocol2Code for path ${wslPath} -> ${res.fsPath}`);
           return res;

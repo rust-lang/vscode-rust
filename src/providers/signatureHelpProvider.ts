@@ -25,19 +25,15 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
         document,
         position,
         token,
-      ).then(hover => {
-        return this.hoverToSignatureHelp(hover);
-      });
+      ).then(hover => this.hoverToSignatureHelp(hover));
     } else if (context.triggerCharacter === ',') {
-      if (this.previousFunctionPosition) {
+      if (this.previousFunctionPosition && position.line === this.previousFunctionPosition.line) {
         return this.provideHover(
           this.languageClient,
           document,
           this.previousFunctionPosition,
           token,
-        ).then(hover => {
-          return this.hoverToSignatureHelp(hover);
-        });
+        ).then(hover => this.hoverToSignatureHelp(hover));
       } else {
         return null;
       }
@@ -64,12 +60,8 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
         ),
         token,
       ).then(
-        data => {
-          resolve(lc.protocol2CodeConverter.asHover(data));
-        },
-        error => {
-          reject(error);
-        },
+        data => resolve(lc.protocol2CodeConverter.asHover(data)),
+        error => reject(error),
       );
     });
   }
@@ -100,11 +92,11 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
         docs: Option<String>,
     ) -> Vec<MarkedString> {}
     This means the first object is the type - function signature,
-    but for the following, there is no way of certainly knowing which is the 
+    but for the following, there is no way of certainly knowing which is the
     function documentation that we want to display in the tooltip.
-    
+
     Assuming the context is never populated for a function definition (this might be wrong
-    and needs further validation, but initial tests show it to hold true in most cases), and 
+    and needs further validation, but initial tests show it to hold true in most cases), and
     we also assume that most functions contain rather documentation, than just a URL without
     any inline documentation, we check the length of contents, and we assume that if there are:
         - two objects, they are the signature and docs, and docs is contents[1]
@@ -124,22 +116,7 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
       return undefined;
     }
 
-    let doc: vscode.MarkdownString | undefined;
-    switch (hover.contents.length) {
-      case 1:
-        doc = undefined;
-        break;
-      case 2:
-        doc = hover.contents[1] as vscode.MarkdownString;
-        break;
-      case 3:
-        doc = hover.contents[2] as vscode.MarkdownString;
-        break;
-      case 4:
-        doc = hover.contents[3] as vscode.MarkdownString;
-        break;
-    }
-
+    const doc = hover.contents.length > 1 ? hover.contents.slice(-1)[0] as vscode.MarkdownString : undefined;
     const si = new vscode.SignatureInformation(label, doc);
 
     // without parsing the function definition, we don't have a way to get more info on parameters.

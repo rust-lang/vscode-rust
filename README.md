@@ -50,19 +50,18 @@ more details on building and debugging, etc., see [contributing.md](contributing
 ## Configuration
 
 This extension provides options in VSCode's configuration settings. These
-options have names which start with `rust.`. You can find the settings under
-`File > Preferences > Settings`; they all have Intellisense help.
+include `rust.*`, which are passed directly to RLS, and the `rust-client.*`
+, which mostly deal with how to spawn it or debug it.
+You can find the settings under `File > Preferences > Settings`; they all
+have Intellisense help.
 
 Some highlights:
 
 * `rust.show_warnings` - set to false to silence warnings in the editor.
 * `rust.all_targets` - build and index code for all targets (i.e., integration tests, examples, and benches)
-* `rust.build_lib` - if you have both a binary and library in your crate, set to
-  true to build only the library.
-* `rust.build_bin` - if you have multiple binaries, you can specify which to build
-  using this option.
 * `rust.cfg_test` - build and index test code (i.e., code with `#[cfg(test)]`/`#[test]`)
 
+* `rust-client.channel` - specifies from which toolchain the RLS should be spawned
 
 ## Features
 
@@ -86,8 +85,8 @@ the following snippets:
 * `for` - a for loop
 * `unimplemented`
 * `unreachable`
-* `println`
-* `assert` and `assert_eq`
+* `print(ln)`
+* `assert(_eq)`
 * `macro_rules` - declare a macro
 * `if let Option` - an `if let` statement for executing code only in the `Some`
   case.
@@ -101,7 +100,7 @@ too many. If you want more, check out
 ### Tasks
 
 The plugin provides tasks for building, running, and testing using the relevant
-cargo commands. You can build using `ctrl + shift + b`. Access other tasks via
+cargo commands. You can build using <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>b</kbd>. Access other tasks via
 `Run Task` in the command palette.
 
 The plugin writes these into `tasks.json`. The plugin will not overwrite

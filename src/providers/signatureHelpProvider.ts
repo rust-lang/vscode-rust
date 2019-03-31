@@ -27,7 +27,10 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
         token,
       ).then(hover => this.hoverToSignatureHelp(hover));
     } else if (context.triggerCharacter === ',') {
-      if (this.previousFunctionPosition && position.line === this.previousFunctionPosition.line) {
+      if (
+        this.previousFunctionPosition &&
+        position.line === this.previousFunctionPosition.line
+      ) {
         return this.provideHover(
           this.languageClient,
           document,
@@ -116,7 +119,10 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
       return undefined;
     }
 
-    const doc = hover.contents.length > 1 ? hover.contents.slice(-1)[0] as vscode.MarkdownString : undefined;
+    const doc =
+      hover.contents.length > 1
+        ? (hover.contents.slice(-1)[0] as vscode.MarkdownString)
+        : undefined;
     const si = new vscode.SignatureInformation(label, doc);
 
     // without parsing the function definition, we don't have a way to get more info on parameters.

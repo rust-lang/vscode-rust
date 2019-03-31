@@ -219,14 +219,11 @@ export function parseActiveToolchain(rustupOutput: string): string {
   throw new Error(`couldn't find active toolchains`);
 }
 
-export async function getVersion(
-  cwd: string,
-  config: RustupConfig,
-): Promise<string> {
+export async function getVersion(config: RustupConfig): Promise<string> {
   const versionRegex = /rustup ([0-9]+\.[0-9]+\.[0-9]+)/;
   const execFile = withWsl(config.useWSL).execFile;
 
-  const output = await execFile(config.path, ['--version'], { cwd });
+  const output = await execFile(config.path, ['--version']);
   const versionMatch = output.stdout.toString().match(versionRegex);
   if (versionMatch && versionMatch.length >= 2) {
     return versionMatch[1];

@@ -11,6 +11,7 @@
         "interface-name": [true, "never-prefix"],
         "variable-name": [true, "allow-leading-underscore"],
         "member-ordering": [true, {"order": "fields-first"}],
+        "arrow-return-shorthand": true,
 
         "object-literal-sort-keys": false,
         "no-console": false,

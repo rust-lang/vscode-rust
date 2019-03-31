@@ -90,9 +90,14 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
     return stdout.includes(config.channel);
   } catch (e) {
     console.log(e);
-    // rustup not present
+    const rustupFoundButNotInWSLMode =
+      config.useWSL && (await hasRustup({ useWSL: false, ...config }));
+
     window.showErrorMessage(
-      'Rustup not available. Install from https://www.rustup.rs/',
+      rustupFoundButNotInWSLMode
+        ? `Rustup is installed but can't be found under WSL. Ensure that
+        invoking \`wsl rustup\` works correctly.`
+        : 'Rustup not available. Install from https://www.rustup.rs/',
     );
     throw e;
   }
@@ -230,6 +235,15 @@ export async function getVersion(config: RustupConfig): Promise<string> {
   } else {
     throw new Error("Couldn't parse rustup version");
   }
+}
+
+/**
+ * Returns whether Rustup is invokable and available.
+ */
+export function hasRustup(config: RustupConfig): Promise<boolean> {
+  return getVersion(config)
+    .then(() => true)
+    .catch(() => false);
 }
 
 /**

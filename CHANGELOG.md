@@ -1,5 +1,40 @@
 ### Unreleased
 
+### 0.6.0 - 2019-04-01
+
+#### Features/Changes
+* Implement function signature help tooltip
+* Updat `print(ln)` macro snippets
+* Introduce `rust-client.nestedMultiRootConfigInOutermost`
+* Show Rust toolchain/RLS component installation progress with user-visible task pane
+
+#### Fixes
+* Fix overriding Rustup-enabled RLS with custom `rust-client.rlsPath` setting
+* Fix duplicated diagnostics originating from the build tasks
+* Spawn RLS at the respective workspace folder
+* Fix `rust-client.logToFile` on Windows
+* Fix ``Unknown RLS configuration: `trace``
+* Let Racer generate and use its `RUST_SRC_PATH` env var
+* Remove support for deprecated `rustDocument/{beginBuild,diagnosticsEnd}` messages
+* Surface and handle more erorrs wrt. RLS spawn error
+* Stop warning against deprecated `RLS_{PATH,ROOT}` env vars
+* Stop warning against deprecated `rls.toml`
+* Don't change `$PATH` for the VSCode process when modifying it for the RLS
+* Fix URI path conversion in Problems Pane on Windows
+
+#### Contributors
+This release was possible thanks to:
+* Bastian Köcher
+* Igor Matuszewski
+* John Feminella
+* Przemysław Pietrzkiewicz
+* Radu Matei
+* Ricardo
+* SoftwareApe
+* TheGoddessInari
+* angusgraham
+* enzovitaliy
+
 ### 0.5.4 - 2019-03-09
 
 * Fix bug due to Rustup changes in 1.17

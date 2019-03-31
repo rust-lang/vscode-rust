@@ -16,7 +16,7 @@ const config: rustup.RustupConfig = {
 
 suite('Rustup Tests', () => {
   test('getVersion', async () => {
-    const version = await rustup.getVersion('.', config);
+    const version = await rustup.getVersion(config);
     assert(rustupVersion.includes(`rustup ${version}`));
   });
   test('getActiveChannel', async () => {

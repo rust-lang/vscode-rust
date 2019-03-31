@@ -90,9 +90,14 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
     return stdout.includes(config.channel);
   } catch (e) {
     console.log(e);
-    // rustup not present
+    const rustupFoundButNotInWSLMode =
+      config.useWSL && (await hasRustup({ useWSL: false, ...config }));
+
     window.showErrorMessage(
-      'Rustup not available. Install from https://www.rustup.rs/',
+      rustupFoundButNotInWSLMode
+        ? `Rustup is installed but can't be found under WSL. Ensure that
+        invoking \`wsl rustup\` works correctly.`
+        : 'Rustup not available. Install from https://www.rustup.rs/',
     );
     throw e;
   }
@@ -144,6 +149,7 @@ async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   } catch (e) {
     console.log(e);
     window.showErrorMessage(`Can't detect RLS components: ${e.message}`);
+    stopSpinner("Can't detect RLS components");
     throw e;
   }
 }
@@ -218,20 +224,26 @@ export function parseActiveToolchain(rustupOutput: string): string {
   throw new Error(`couldn't find active toolchains`);
 }
 
-export async function getVersion(
-  cwd: string,
-  config: RustupConfig,
-): Promise<string> {
+export async function getVersion(config: RustupConfig): Promise<string> {
   const versionRegex = /rustup ([0-9]+\.[0-9]+\.[0-9]+)/;
   const execFile = withWsl(config.useWSL).execFile;
 
-  const output = await execFile(config.path, ['--version'], { cwd });
+  const output = await execFile(config.path, ['--version']);
   const versionMatch = output.stdout.toString().match(versionRegex);
   if (versionMatch && versionMatch.length >= 2) {
     return versionMatch[1];
   } else {
     throw new Error("Couldn't parse rustup version");
   }
+}
+
+/**
+ * Returns whether Rustup is invokable and available.
+ */
+export function hasRustup(config: RustupConfig): Promise<boolean> {
+  return getVersion(config)
+    .then(() => true)
+    .catch(() => false);
 }
 
 /**

@@ -254,14 +254,11 @@ class ClientWorkspace {
           console.log(`code2Protocol for path ${uri.fsPath} -> ${res}`);
           return res;
         },
-        protocol2Code: (wslPath: string) => {
-          if (wslPath.startsWith('file://')) {
-            wslPath = wslPath.substr('file://'.length);
-          }
-
-          const res = Uri.file(uriWslToWindows(wslPath));
-          console.log(`protocol2Code for path ${wslPath} -> ${res.fsPath}`);
-          return res;
+        protocol2Code: (wslUri: string) => {
+          const urlDecodedPath = Uri.parse(wslUri).path;
+          const winPath = Uri.file(uriWslToWindows(urlDecodedPath));
+          console.log(`protocol2Code for path ${wslUri} -> ${winPath.fsPath}`);
+          return winPath;
         },
       };
     }

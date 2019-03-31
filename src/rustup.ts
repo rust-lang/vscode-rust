@@ -144,6 +144,7 @@ async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   } catch (e) {
     console.log(e);
     window.showErrorMessage(`Can't detect RLS components: ${e.message}`);
+    stopSpinner("Can't detect RLS components");
     throw e;
   }
 }

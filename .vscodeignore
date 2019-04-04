@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+fixtures/**
 out/test/**
 src/**
 .gitignore

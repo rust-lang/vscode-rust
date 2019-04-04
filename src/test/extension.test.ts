@@ -35,5 +35,5 @@ suite('Extension Tests', () => {
         ),
       );
     }
-  });
+  }).timeout(0);
 });

@@ -1,5 +1,9 @@
 ### Unreleased
 
+### 0.6.1 - 2019-04-04
+
+* Fix Cargo task auto-detection
+
 ### 0.6.0 - 2019-04-01
 
 #### Features/Changes

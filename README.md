@@ -1,7 +1,7 @@
 # Rust support for Visual Studio Code
 
 [![](https://vsmarketplacebadge.apphb.com/version/rust-lang.rust.svg)](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
-[![Build Status](https://travis-ci.org/rust-lang/rls-vscode.svg?branch=master)](https://travis-ci.org/rust-lang/rls-vscode)
+[![Build Status](https://travis-ci.com/rust-lang/rls-vscode.svg?branch=master)](https://travis-ci.com/rust-lang/rls-vscode)
 
 Adds language support for Rust to Visual Studio Code. Supports:
 

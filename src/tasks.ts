@@ -73,6 +73,7 @@ function detectCargoTasks(target: WorkspaceFolder): Task[] {
     { subcommand: 'check', group: TaskGroup.Build },
     { subcommand: 'test', group: TaskGroup.Test },
     { subcommand: 'clean', group: TaskGroup.Clean },
+    { subcommand: 'run', group: undefined },
   ]
     .map(({ subcommand, group }) => ({
       definition: { subcommand, type: TASK_TYPE },

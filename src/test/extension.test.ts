@@ -21,6 +21,7 @@ suite('Extension Tests', () => {
       { subcommand: 'check', group: vscode.TaskGroup.Build },
       { subcommand: 'test', group: vscode.TaskGroup.Test },
       { subcommand: 'clean', group: vscode.TaskGroup.Clean },
+      { subcommand: 'run', group: undefined },
     ];
 
     const tasks = await vscode.tasks.fetchTasks();

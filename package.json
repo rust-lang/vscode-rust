@@ -81,12 +81,6 @@
         ],
         "commands": [
             {
-                "command": "rls.findImpls",
-                "title": "Find Implementations",
-                "description": "Show impl blocks for trait, struct, or enum",
-                "category": "Rust"
-            },
-            {
                 "command": "rls.update",
                 "title": "Update the RLS",
                 "description": "Use Rustup to update Rust, the RLS, and required data",
@@ -99,15 +93,6 @@
                 "category": "Rust"
             }
         ],
-        "menus": {
-            "editor/context": [
-                {
-                    "command": "rls.findImpls",
-                    "when": "editorLangId == rust && editorHasReferenceProvider",
-                    "group": "navigation@4"
-                }
-            ]
-        },
         "taskDefinitions": [
             {
                 "type": "cargo",

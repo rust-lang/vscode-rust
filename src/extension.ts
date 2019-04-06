@@ -8,8 +8,6 @@ import {
   IndentAction,
   languages,
   TextDocument,
-  TextEditor,
-  TextEditorEdit,
   Uri,
   window,
   workspace,
@@ -17,10 +15,8 @@ import {
   WorkspaceFoldersChangeEvent,
 } from 'vscode';
 import {
-  ImplementationRequest,
   LanguageClient,
   LanguageClientOptions,
-  Location,
   NotificationType,
   ServerOptions,
 } from 'vscode-languageclient';

@@ -224,16 +224,8 @@ class ClientWorkspace {
     const clientOptions: LanguageClientOptions = {
       // Register the server for Rust files
       documentSelector: [
-        {
-          language: 'rust',
-          scheme: 'file',
-          pattern: `${this.folder.uri.fsPath}/**/*`,
-        },
-        {
-          language: 'rust',
-          scheme: 'untitled',
-          pattern: `${this.folder.uri.fsPath}/**/*`,
-        },
+        { language: 'rust', scheme: 'file' },
+        { language: 'rust', scheme: 'untitled' },
       ],
       diagnosticCollectionName: 'rust',
       synchronize: { configurationSection: 'rust' },

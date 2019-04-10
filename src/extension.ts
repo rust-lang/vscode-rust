@@ -240,15 +240,18 @@ class ClientWorkspace {
 
     // Changes paths between Windows and Windows Subsystem for Linux
     if (this.config.useWSL) {
+      const mountPoint = this.config.wslMountPoint;
       clientOptions.uriConverters = {
         code2Protocol: (uri: Uri) => {
-          const res = Uri.file(uriWindowsToWsl(uri.fsPath)).toString();
+          const res = Uri.file(
+            uriWindowsToWsl(uri.fsPath, mountPoint),
+          ).toString();
           console.log(`code2Protocol for path ${uri.fsPath} -> ${res}`);
           return res;
         },
         protocol2Code: (wslUri: string) => {
           const urlDecodedPath = Uri.parse(wslUri).path;
-          const winPath = Uri.file(uriWslToWindows(urlDecodedPath));
+          const winPath = Uri.file(uriWslToWindows(urlDecodedPath, mountPoint));
           console.log(`protocol2Code for path ${wslUri} -> ${winPath.fsPath}`);
           return winPath;
         },
@@ -457,15 +460,19 @@ class ClientWorkspace {
     const cwd = this.folder.uri.fsPath;
 
     let childProcess: child_process.ChildProcess;
+
     if (this.config.rustupDisabled) {
       console.info(`running without rustup: ${rlsPath}`);
       const env = await makeRlsEnv();
 
-      childProcess = child_process.spawn(rlsPath, [], { env, cwd });
+      childProcess = withWsl(this.config.useWSL).spawn(rlsPath, [], {
+        env,
+        cwd,
+      });
     } else {
       console.info(`running with rustup: ${rlsPath}`);
-      const config = this.config.rustupConfig();
 
+      const config = this.config.rustupConfig();
       await ensureToolchain(config);
       if (!this.config.rlsPath) {
         // We only need a rustup-installed RLS if we weren't given a

@@ -118,4 +118,13 @@ export class RLSConfiguration {
       useWSL: this.useWSL,
     };
   }
+
+  /**
+   * Get wsl mount point when useWsl enable
+   */
+  public get wslMountPoint(): string {
+    return (
+      this.configuration.get<string>('rust-client.wslMountPoint') || '/mnt/'
+    );
+  }
 }

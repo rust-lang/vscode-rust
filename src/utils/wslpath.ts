@@ -6,25 +6,18 @@ export function modifyParametersForWSL(command: string, args: string[]) {
   };
 }
 
-export function uriWslToWindows(wslUri: string): string {
-  const uriSegments = wslUri.split('/');
-  if (
-    uriSegments.length < 3 ||
-    uriSegments[0].length !== 0 ||
-    uriSegments[1] !== 'mnt'
-  ) {
+export function uriWslToWindows(wslUri: string, mountPoint: string): string {
+  const uri = wslUri.startsWith(mountPoint)
+    ? wslUri.substring(mountPoint.length)
+    : wslUri;
+  if (uri === '') {
     return '';
   }
-  uriSegments.shift();
-  if (uriSegments[uriSegments.length - 1] === '') {
-    uriSegments.pop();
-  }
-
-  const diskLetter = uriSegments[1].toUpperCase();
+  const uriSegments = uri.split('/');
+  const diskLetter = uriSegments[0].toUpperCase();
   if (!/^[A-Z]+$/.test(diskLetter)) {
     return '';
   }
-  uriSegments.shift(); // remove mnt
   uriSegments.shift(); // remove disk letter
 
   let uriWindows = diskLetter + ':';
@@ -36,14 +29,13 @@ export function uriWslToWindows(wslUri: string): string {
     uriWindows += '\\'; // case where we have C: in result but we want C:\
   }
 
-  if (wslUri[wslUri.length - 1] === '/') {
-    uriWindows += '\\';
-  }
-
   return uriWindows;
 }
 
-export function uriWindowsToWsl(windowsUri: string): string {
+export function uriWindowsToWsl(
+  windowsUri: string,
+  mountPoint: string,
+): string {
   const uriSegments = windowsUri.split('\\');
   if (uriSegments.length < 2) {
     return '';
@@ -59,7 +51,7 @@ export function uriWindowsToWsl(windowsUri: string): string {
   }
   uriSegments.shift();
 
-  let uriWsl = '/mnt/' + diskLetter;
+  let uriWsl = mountPoint + diskLetter;
   uriSegments.forEach(pathPart => {
     uriWsl += '/' + pathPart;
   });

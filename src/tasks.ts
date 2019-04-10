@@ -10,6 +10,7 @@ import {
   WorkspaceFolder,
 } from 'vscode';
 
+import { RLSConfiguration } from './configuration';
 /**
  * Displayed identifier associated with each task.
  */
@@ -42,7 +43,9 @@ export interface Execution {
  */
 function createShellExecution(execution: Execution): ShellExecution {
   const { binary, command, args, cwd, env } = execution;
-  const cmdLine = `${command || binary} ${args.join(' ')}`;
+  const cmdLine = RLSConfiguration.loadFromWorkspace('').useWSL
+    ? `wsl.exe ${command || binary} ${args.join(' ')}`
+    : `${command || binary} ${args.join(' ')}`;
   return new ShellExecution(cmdLine, { cwd, env });
 }
 

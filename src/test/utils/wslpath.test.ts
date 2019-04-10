@@ -10,24 +10,24 @@ suite('WSL path conversion', () => {
   test('uriWindowsToWsl', () => {
     const check = mkConverterCheck(wslpath.uriWindowsToWsl);
     // Basic test
-    check('C:\\Program Files\\somedir', '/mnt/c/Program Files/somedir');
+    check('C:\\Program Files\\somedir', '/c/Program Files/somedir');
     // Trailing slash
-    check('C:\\Program Files\\somedir\\', '/mnt/c/Program Files/somedir/');
+    check('C:\\Program Files\\somedir\\', '/c/Program Files/somedir/');
     // Different disk letter
-    check('z:\\', '/mnt/z/');
-    check('C:\\', '/mnt/c/');
+    check('r:\\', '/r/');
+    check('c:\\', '/c/');
   });
   test('uriWslToWindows', () => {
     const check = mkConverterCheck(wslpath.uriWslToWindows);
 
     // Basic test
-    check('/mnt/c/Program Files/somedir', 'C:\\Program Files\\somedir');
+    check('/c/Program Files/somedir', 'C:\\Program Files\\somedir');
     // Trailing slash
-    check('/mnt/c/Program Files/somedir/', 'C:\\Program Files\\somedir\\');
-    // Uppercase drive letter
-    check('/mnt/C/Some Directory', 'C:\\Some Directory');
-    // FIXME: Should be `C:\\`? (single slash)
-    check('/mnt/C/', 'C:\\\\');
-    check('/mnt/z/', 'Z:\\\\');
+    check('/c/Program Files/somedir/', 'C:\\Program Files\\somedir\\');
+    // In windows10 1903 access the linux filesystem beyond drvfs will return \\$wsl:\Distribution_Name\...
+    check('/C/Some Directory', '\\\\wsl$\\Arch_Linux\\C\\Some Directory');
+    // Different disk letter
+    check('/c/', 'C:\\');
+    check('/r/', 'R:\\');
   });
 });

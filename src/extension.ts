@@ -460,8 +460,8 @@ class ClientWorkspace {
     if (this.config.rustupDisabled) {
       console.info(`running without rustup: ${rlsPath}`);
       const env = await makeRlsEnv();
-
-      childProcess = child_process.spawn(rlsPath, [], { env, cwd });
+      const config = this.config.rustupConfig();
+      childProcess = withWsl(config.useWSL).spawn(rlsPath, [], { env, cwd });
     } else {
       console.info(`running with rustup: ${rlsPath}`);
       const config = this.config.rustupConfig();

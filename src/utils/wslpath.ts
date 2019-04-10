@@ -9,14 +9,14 @@ export function modifyParametersForWSL(command: string, args: string[]) {
 }
 
 export function uriWslToWindows(wslUri: string): string {
-  let windowsUri = execSync(`wsl.exe wslpath -w '${wslUri}'`, {
+  const windowsUri = execSync(`wsl.exe wslpath -w '${wslUri}'`, {
     encoding: 'utf8',
   });
   return windowsUri.trim();
 }
 
 export function uriWindowsToWsl(windowsUri: string): string {
-  let wslUri = execSync(`wsl.exe wslpath -u '${windowsUri}'`, {
+  const wslUri = execSync(`wsl.exe wslpath -u '${windowsUri}'`, {
     encoding: 'utf8',
   });
   return wslUri.trim();

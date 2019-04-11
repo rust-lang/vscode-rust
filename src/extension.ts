@@ -8,8 +8,6 @@ import {
   IndentAction,
   languages,
   TextDocument,
-  TextEditor,
-  TextEditorEdit,
   Uri,
   window,
   workspace,
@@ -17,10 +15,8 @@ import {
   WorkspaceFoldersChangeEvent,
 } from 'vscode';
 import {
-  ImplementationRequest,
   LanguageClient,
   LanguageClientOptions,
-  Location,
   NotificationType,
   ServerOptions,
 } from 'vscode-languageclient';
@@ -289,44 +285,6 @@ class ClientWorkspace {
     if (!this.lc) {
       return;
     }
-
-    const findImplsDisposable = commands.registerTextEditorCommand(
-      'rls.findImpls',
-      async (textEditor: TextEditor, _edit: TextEditorEdit) => {
-        if (!this.lc) {
-          return;
-        }
-        await this.lc.onReady();
-        // Prior to https://github.com/rust-lang-nursery/rls/pull/936 we used a custom
-        // LSP message - if the implementation provider is specified this means we can use the 3.6 one.
-        const useLSPRequest =
-          this.lc.initializeResult &&
-          this.lc.initializeResult.capabilities.implementationProvider === true;
-        const request = useLSPRequest
-          ? ImplementationRequest.type.method
-          : 'rustDocument/implementations';
-
-        const params = this.lc.code2ProtocolConverter.asTextDocumentPositionParams(
-          textEditor.document,
-          textEditor.selection.active,
-        );
-        let locations: Location[];
-        try {
-          locations = await this.lc.sendRequest<Location[]>(request, params);
-        } catch (reason) {
-          window.showWarningMessage(`find implementations failed: ${reason}`);
-          return;
-        }
-
-        return commands.executeCommand(
-          'editor.action.showReferences',
-          textEditor.document.uri,
-          textEditor.selection.active,
-          locations.map(this.lc.protocol2CodeConverter.asLocation),
-        );
-      },
-    );
-    this.disposables.push(findImplsDisposable);
 
     const rustupUpdateDisposable = commands.registerCommand(
       'rls.update',

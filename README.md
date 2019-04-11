@@ -65,16 +65,6 @@ Some highlights:
 
 ## Features
 
-### Commands
-
-Commands can be found in the command palette <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>. We provide the
-following commands:
-
-* `Find Implementations` - Find locations of `impl` blocks for traits, structs, and enums.
-  Usefull to find all structs implementing a specific trait or all traits implemented for a struct.
-  Select a type when running the command.
-
-
 ### Snippets
 
 Snippets are code templates which expand into common boilerplate. Intellisense

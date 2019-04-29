@@ -3,14 +3,17 @@
         "module": "commonjs",
         "target": "es6",
         "outDir": "out",
-        "lib": ["es6"],
+        "lib": [
+            "es6"
+        ],
         "sourceMap": true,
         "rootDir": "src",
         "strict": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true
+        "noFallthroughCasesInSwitch": true,
+        "experimentalDecorators": true
     },
     "exclude": [
         "node_modules",

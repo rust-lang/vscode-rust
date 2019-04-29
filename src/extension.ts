@@ -13,6 +13,7 @@ import {
   workspace,
   WorkspaceFolder,
   WorkspaceFoldersChangeEvent,
+  debug,
 } from 'vscode';
 import {
   LanguageClient,
@@ -22,6 +23,13 @@ import {
 } from 'vscode-languageclient';
 
 import { RLSConfiguration } from './configuration';
+import RustConfigProvider from './debugger';
+import CargoExt from './debugger/cargo/ext';
+import { MetadataFactory } from './debugger/cargo/metadata';
+import CargoResolver from './debugger/cargo/resolver';
+import CargoTaskProvider from './debugger/cargo/task_provider';
+import { CargoWorkspaceFactory } from './debugger/cargo/workspace_factory';
+import { RustcResolver } from './debugger/rustc/factory';
 import { SignatureHelpProvider } from './providers/signatureHelpProvider';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
@@ -42,6 +50,22 @@ interface ProgressParams {
 }
 
 export async function activate(context: ExtensionContext) {
+  function add<T extends Disposable>(t: T): T {
+    context.subscriptions.push(t);
+    return t
+  }
+
+  const rustc = add(new RustcResolver());
+  const cargo = add(new CargoResolver());
+  const cargoMetadata = add(new MetadataFactory(cargo));
+  const cargoWorkspace = add(new CargoWorkspaceFactory(cargoMetadata));
+
+  add(new CargoExt(new CargoTaskProvider(cargo, cargoWorkspace)));
+
+  const debugConfigProvider = add(new RustConfigProvider(rustc, cargo, cargoWorkspace));
+  debug.registerDebugConfigurationProvider('rust', debugConfigProvider);
+
+
   context.subscriptions.push(configureLanguage());
 
   workspace.onDidOpenTextDocument(doc => didOpenTextDocument(doc, context));
@@ -348,10 +372,10 @@ class ClientWorkspace {
       this.config.rustupDisabled
         ? wslWrapper.execFile('rustc', ['--print', 'sysroot'], { env })
         : wslWrapper.execFile(
-            this.config.rustupPath,
-            ['run', this.config.channel, 'rustc', '--print', 'sysroot'],
-            { env },
-          );
+          this.config.rustupPath,
+          ['run', this.config.channel, 'rustc', '--print', 'sysroot'],
+          { env },
+        );
 
     const { stdout } = await rustcPrintSysroot();
     return stdout

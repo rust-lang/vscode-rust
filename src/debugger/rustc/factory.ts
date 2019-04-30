@@ -1,5 +1,3 @@
-import { join } from 'path';
-
 import { Factory } from '../util';
 import { Context } from '../util/context';
 import Rustc from './rustc';

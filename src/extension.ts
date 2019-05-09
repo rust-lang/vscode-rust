@@ -23,11 +23,13 @@ import {
 
 import { RLSConfiguration } from './configuration';
 import { SignatureHelpProvider } from './providers/signatureHelpProvider';
+import { Decorator } from './providers/typeAnnotationsProvider';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
+import * as vscode from 'vscode';
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.
@@ -201,6 +203,7 @@ class ClientWorkspace {
   private lc: LanguageClient | null = null;
   private readonly folder: WorkspaceFolder;
   private disposables: Disposable[];
+  private decorator: Decorator | null = null;
 
   constructor(folder: WorkspaceFolder) {
     this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
@@ -259,6 +262,8 @@ class ClientWorkspace {
       clientOptions,
     );
 
+    this.decorator = new Decorator(this.lc);
+
     this.setupProgressCounter();
     this.registerCommands(context);
     this.disposables.push(activateTaskProvider(this.folder));
@@ -315,12 +320,16 @@ class ClientWorkspace {
     const runningProgress: Set<string> = new Set();
     await this.lc.onReady();
     stopSpinner('RLS');
-
     this.lc.onNotification(
       new NotificationType<ProgressParams, void>('window/progress'),
       progress => {
         if (progress.done) {
           runningProgress.delete(progress.id);
+          if (this.decorator) {
+            for (let editor of vscode.window.visibleTextEditors) {
+              this.decorator.decorate(editor);
+            }
+          }
         } else {
           runningProgress.add(progress.id);
         }

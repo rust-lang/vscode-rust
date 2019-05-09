@@ -64,23 +64,37 @@
         "vscode": "^1.1.30"
     },
     "contributes": {
-        "languages": [
+        "colors": [{
+                "id": "rust.typeHintColor",
+                "description": "Specifies the foreground color of a type hint",
+                "defaults": {
+                    "dark": "#A0A0A0F0",
+                    "light": "#747474",
+                    "highContrast": "#BEBEBE"
+                }
+            },
             {
-                "id": "rust",
-                "extensions": [
-                    ".rs"
-                ],
-                "configuration": "./language-configuration.json"
+                "id": "rust.typeHintBackgroundColor",
+                "description": "Specifies the foreground color of a type hint",
+                "defaults": {
+                    "dark": "#70707020",
+                    "light": "#74747410",
+                    "highContrast": "#BEBEBE"
+                }
             }
         ],
-        "snippets": [
-            {
-                "language": "rust",
-                "path": "./snippets/rust.json"
-            }
-        ],
-        "commands": [
-            {
+        "languages": [{
+            "id": "rust",
+            "extensions": [
+                ".rs"
+            ],
+            "configuration": "./language-configuration.json"
+        }],
+        "snippets": [{
+            "language": "rust",
+            "path": "./snippets/rust.json"
+        }],
+        "commands": [{
                 "command": "rls.update",
                 "title": "Update the RLS",
                 "description": "Use Rustup to update Rust, the RLS, and required data",
@@ -93,52 +107,47 @@
                 "category": "Rust"
             }
         ],
-        "taskDefinitions": [
-            {
-                "type": "cargo",
-                "properties": {
-                    "subcommand": {
-                        "type": "string"
-                    }
+        "taskDefinitions": [{
+            "type": "cargo",
+            "properties": {
+                "subcommand": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "subcommand"
+            ]
+        }],
+        "problemMatchers": [{
+            "name": "rustc",
+            "owner": "rust",
+            "fileLocation": [
+                "relative",
+                "${workspaceRoot}"
+            ],
+            "pattern": [{
+                    "regexp": "^(warning|warn|error)(\\[(.*)\\])?: (.*)$",
+                    "severity": 1,
+                    "message": 4,
+                    "code": 3
                 },
-                "required": [
-                    "subcommand"
-                ]
-            }
-        ],
-        "problemMatchers": [
-            {
-                "name": "rustc",
-                "owner": "rust",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceRoot}"
-                ],
-                "pattern": [
-                    {
-                        "regexp": "^(warning|warn|error)(\\[(.*)\\])?: (.*)$",
-                        "severity": 1,
-                        "message": 4,
-                        "code": 3
-                    },
-                    {
-                        "regexp": "^([\\s->=]*(.*):(\\d*):(\\d*)|.*)$",
-                        "file": 2,
-                        "line": 3,
-                        "column": 4
-                    },
-                    {
-                        "regexp": "^.*$"
-                    },
-                    {
-                        "regexp": "^([\\s->=]*(.*):(\\d*):(\\d*)|.*)$",
-                        "file": 2,
-                        "line": 3,
-                        "column": 4
-                    }
-                ]
-            }
-        ],
+                {
+                    "regexp": "^([\\s->=]*(.*):(\\d*):(\\d*)|.*)$",
+                    "file": 2,
+                    "line": 3,
+                    "column": 4
+                },
+                {
+                    "regexp": "^.*$"
+                },
+                {
+                    "regexp": "^([\\s->=]*(.*):(\\d*):(\\d*)|.*)$",
+                    "file": 2,
+                    "line": 3,
+                    "column": 4
+                }
+            ]
+        }],
         "configuration": {
             "type": "object",
             "title": "Rust configuration",

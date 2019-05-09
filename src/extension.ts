@@ -51,6 +51,15 @@ export async function activate(context: ExtensionContext) {
   workspace.onDidChangeWorkspaceFolders(e =>
     didChangeWorkspaceFolders(e, context),
   );
+  window.onDidChangeVisibleTextEditors(editors => {
+    const decorator = Decorator.getInstance()!;
+    for (const editor of editors) {
+      decorator.decorate(editor);
+    }
+  });
+  window.onDidChangeActiveTextEditor(editor => {
+    Decorator.getInstance()!.decorate(editor!);
+  });
 }
 
 export async function deactivate() {

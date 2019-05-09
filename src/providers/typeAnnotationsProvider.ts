@@ -95,9 +95,16 @@ function get_next_position(
 }
 
 export class Decorator {
-  lc: LanguageClient;
+  private static instance?: Decorator;
+  private lc: LanguageClient;
+
   public constructor(lc: LanguageClient) {
     this.lc = lc;
+    Decorator.instance = this;
+  }
+
+  public static getInstance(): Decorator | undefined {
+    return Decorator.instance;
   }
 
   public async decorate(editor: vscode.TextEditor) {
@@ -106,29 +113,29 @@ export class Decorator {
     }
     const text = editor.document.getText();
     const lines = text.split('\n');
-    let declaration_positions: Position[] = [];
+    const declarationPositions: Position[] = [];
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i].split('//')[0];
       if (line.trim().startsWith('impl')) {
         continue;
       }
-      let new_positions: Position[] = [];
+      let newPositions: Position[] = [];
       let count = 0;
       do {
-        new_positions = get_next_position(i, line, count);
-        for (let position of new_positions) {
-          declaration_positions.push(position);
+        newPositions = get_next_position(i, line, count);
+        for (const position of newPositions) {
+          declarationPositions.push(position);
         }
-        let last = new_positions[new_positions.length - 1];
+        const last = newPositions[newPositions.length - 1];
         if (last) {
           line = line.substr(last.character);
           count += last.character;
         }
-      } while (new_positions.length > 0);
+      } while (newPositions.length > 0);
     }
-    let hints: vscode.DecorationOptions[] = [];
-    for (let position of declaration_positions) {
-      let hover = await this.lc.sendRequest(
+    const hints: vscode.DecorationOptions[] = [];
+    for (const position of declarationPositions) {
+      const hover = await this.lc.sendRequest(
         HoverRequest.type,
         this.lc.code2ProtocolConverter.asTextDocumentPositionParams(
           editor.document,
@@ -137,7 +144,7 @@ export class Decorator {
       );
       if (hover) {
         let hint = ': ';
-        let content = hover.contents;
+        const content = hover.contents;
         try {
           // @ts-ignore
           hint += content[0].value;

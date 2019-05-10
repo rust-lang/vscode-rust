@@ -1,10 +1,8 @@
-'use strict';
-import { Mutex } from 'async-mutex';
 import * as vscode from 'vscode';
 import { HoverRequest, LanguageClient } from 'vscode-languageclient';
 
 const typeHintDecorationType = vscode.window.createTextEditorDecorationType({
-  after: {
+  before: {
     color: new vscode.ThemeColor('rust.typeHintColor'),
     backgroundColor: new vscode.ThemeColor('rust.typeHintBackgroundColor'),
   },
@@ -99,7 +97,6 @@ function get_next_position(
 export class Decorator {
   private static instance?: Decorator;
   private lc: LanguageClient;
-  private mutex: Mutex = new Mutex();
 
   constructor(lc: LanguageClient) {
     this.lc = lc;
@@ -110,12 +107,9 @@ export class Decorator {
       if (Decorator.instance === undefined) {
         Decorator.instance = new Decorator(lc);
       } else {
-        Decorator.instance.mutex.acquire().then(release => {
-          if (Decorator.instance) {
-            Decorator.instance.lc = lc;
-          }
-          release();
-        });
+        if (Decorator.instance) {
+          Decorator.instance.lc = lc;
+        }
       }
     }
     return Decorator.instance;
@@ -125,7 +119,6 @@ export class Decorator {
     if (editor.document.languageId !== 'rust') {
       return;
     }
-    const mutexRelease = await this.mutex.acquire();
     console.log('DECORATING: ' + editor.document.uri.toString());
     try {
       const text = editor.document.getText();
@@ -166,7 +159,7 @@ export class Decorator {
             const hint = ': ' + content[0].value;
             hints.push({
               range: new vscode.Range(position, position),
-              renderOptions: { after: { contentText: hint } },
+              renderOptions: { before: { contentText: hint } },
             });
           }
         } catch (e) {
@@ -179,6 +172,5 @@ export class Decorator {
       console.log('FAILED: ');
       console.log(e);
     }
-    mutexRelease();
   }
 }

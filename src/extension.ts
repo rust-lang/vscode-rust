@@ -50,23 +50,15 @@ export async function activate(context: ExtensionContext) {
   workspace.onDidChangeWorkspaceFolders(e =>
     didChangeWorkspaceFolders(e, context),
   );
-  window.onDidChangeVisibleTextEditors(editors => {
-    const decorator = Decorator.getInstance();
-    if (decorator === undefined) {
-      return;
-    }
-    for (const editor of editors) {
-      decorator.decorate(editor);
-    }
-  });
   window.onDidChangeActiveTextEditor(editor => {
-    if (editor === undefined) {
+    if (editor === undefined || editor === null) {
       return;
     }
     const decorator = Decorator.getInstance();
     if (decorator === undefined) {
       return;
     }
+    console.log('Attempting to decorate after editor change.');
     decorator.decorate(editor);
   });
 }
@@ -344,6 +336,7 @@ class ClientWorkspace {
           runningProgress.delete(progress.id);
           const decorator = Decorator.getInstance();
           if (decorator !== undefined) {
+            console.log('Starting Decoration after progress.done');
             for (const editor of window.visibleTextEditors) {
               decorator.decorate(editor);
             }

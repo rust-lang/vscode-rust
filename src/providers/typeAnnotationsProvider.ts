@@ -120,11 +120,11 @@ export class Decorator {
   }
 
   public async decorate(editor: vscode.TextEditor): Promise<void> {
-    if (!editor.document.uri.toString().endsWith('.rs')) {
+    if (editor.document.languageId !== 'rust') {
       return;
     }
     const mutexRelease = await this.mutex.acquire();
-    console.log('DECORATING');
+    console.log('DECORATING: ' + editor.document.uri.toString());
     try {
       const text = editor.document.getText();
       const lines = text.split('\n');

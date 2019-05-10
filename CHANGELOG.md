@@ -1,5 +1,10 @@
 ### Unreleased
 
+### 0.6.2 - 2019-05-10
+
+* Added type annotations _à la_ CLion.
+
+
 ### 0.6.1 - 2019-04-04
 
 * Fix Cargo task auto-detection

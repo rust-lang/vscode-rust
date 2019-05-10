@@ -1,7 +1,6 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -9,6 +8,19 @@ import {
   ServerOptions,
 } from 'vscode-languageclient';
 
+import {
+  commands,
+  Disposable,
+  ExtensionContext,
+  IndentAction,
+  languages,
+  TextDocument,
+  Uri,
+  window,
+  workspace,
+  WorkspaceFolder,
+  WorkspaceFoldersChangeEvent,
+} from 'vscode';
 import { RLSConfiguration } from './configuration';
 import { SignatureHelpProvider } from './providers/signatureHelpProvider';
 import { Decorator } from './providers/typeAnnotationsProvider';
@@ -30,26 +42,32 @@ interface ProgressParams {
   done?: boolean;
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
 
-  vscode.workspace.onDidOpenTextDocument(doc =>
-    didOpenTextDocument(doc, context),
-  );
-  vscode.workspace.textDocuments.forEach(doc =>
-    didOpenTextDocument(doc, context),
-  );
-  vscode.workspace.onDidChangeWorkspaceFolders(e =>
+  workspace.onDidOpenTextDocument(doc => didOpenTextDocument(doc, context));
+  workspace.textDocuments.forEach(doc => didOpenTextDocument(doc, context));
+  workspace.onDidChangeWorkspaceFolders(e =>
     didChangeWorkspaceFolders(e, context),
   );
-  vscode.window.onDidChangeVisibleTextEditors(editors => {
-    const decorator = Decorator.getInstance()!;
+  window.onDidChangeVisibleTextEditors(editors => {
+    const decorator = Decorator.getInstance();
+    if (decorator === undefined) {
+      return;
+    }
     for (const editor of editors) {
       decorator.decorate(editor);
     }
   });
-  vscode.window.onDidChangeActiveTextEditor(editor => {
-    Decorator.getInstance()!.decorate(editor!);
+  window.onDidChangeActiveTextEditor(editor => {
+    if (editor === undefined) {
+      return;
+    }
+    const decorator = Decorator.getInstance();
+    if (decorator === undefined) {
+      return;
+    }
+    decorator.decorate(editor);
   });
 }
 
@@ -59,20 +77,20 @@ export async function deactivate() {
 
 // Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
 function didOpenTextDocument(
-  document: vscode.TextDocument,
-  context: vscode.ExtensionContext,
+  document: TextDocument,
+  context: ExtensionContext,
 ) {
   if (document.languageId !== 'rust' && document.languageId !== 'toml') {
     return;
   }
 
   const uri = document.uri;
-  let folder = vscode.workspace.getWorkspaceFolder(uri);
+  let folder = workspace.getWorkspaceFolder(uri);
   if (!folder) {
     return;
   }
   if (
-    vscode.workspace
+    workspace
       .getConfiguration()
       .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true)
   ) {
@@ -96,8 +114,8 @@ function didOpenTextDocument(
 let _sortedWorkspaceFolders: string[] | undefined;
 
 function sortedWorkspaceFolders(): string[] {
-  if (!_sortedWorkspaceFolders && vscode.workspace.workspaceFolders) {
-    _sortedWorkspaceFolders = vscode.workspace.workspaceFolders
+  if (!_sortedWorkspaceFolders && workspace.workspaceFolders) {
+    _sortedWorkspaceFolders = workspace.workspaceFolders
       .map(folder => {
         let result = folder.uri.toString();
         if (result.charAt(result.length - 1) !== '/') {
@@ -144,9 +162,7 @@ function sortedWorkspaceFolders(): string[] {
 //     return cur_workspace;
 // }
 
-function getOuterMostWorkspaceFolder(
-  folder: vscode.WorkspaceFolder,
-): vscode.WorkspaceFolder {
+function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
   const sorted = sortedWorkspaceFolders();
   for (const element of sorted) {
     let uri = folder.uri.toString();
@@ -154,17 +170,15 @@ function getOuterMostWorkspaceFolder(
       uri = uri + '/';
     }
     if (uri.startsWith(element)) {
-      return (
-        vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(element)) || folder
-      );
+      return workspace.getWorkspaceFolder(Uri.parse(element)) || folder;
     }
   }
   return folder;
 }
 
 function didChangeWorkspaceFolders(
-  e: vscode.WorkspaceFoldersChangeEvent,
-  context: vscode.ExtensionContext,
+  e: WorkspaceFoldersChangeEvent,
+  context: ExtensionContext,
 ) {
   _sortedWorkspaceFolders = undefined;
 
@@ -195,7 +209,7 @@ function didChangeWorkspaceFolders(
   }
 }
 
-const workspaces: Map<vscode.Uri, ClientWorkspace> = new Map();
+const workspaces: Map<Uri, ClientWorkspace> = new Map();
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
@@ -205,17 +219,16 @@ class ClientWorkspace {
   // handle possible `rust-client.*` value changes while extension is running
   private readonly config: RLSConfiguration;
   private lc: LanguageClient | null = null;
-  private readonly folder: vscode.WorkspaceFolder;
-  private disposables: vscode.Disposable[];
-  private decorator: Decorator | null = null;
+  private readonly folder: WorkspaceFolder;
+  private disposables: Disposable[];
 
-  constructor(folder: vscode.WorkspaceFolder) {
+  constructor(folder: WorkspaceFolder) {
     this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
     this.folder = folder;
     this.disposables = [];
   }
 
-  public async start(context: vscode.ExtensionContext) {
+  public async start(context: ExtensionContext) {
     warnOnMissingCargoToml();
 
     startSpinner('RLS', 'Starting');
@@ -244,14 +257,14 @@ class ClientWorkspace {
     // Changes paths between Windows and Windows Subsystem for Linux
     if (this.config.useWSL) {
       clientOptions.uriConverters = {
-        code2Protocol: (uri: vscode.Uri) => {
-          const res = vscode.Uri.file(uriWindowsToWsl(uri.fsPath)).toString();
+        code2Protocol: (uri: Uri) => {
+          const res = Uri.file(uriWindowsToWsl(uri.fsPath)).toString();
           console.log(`code2Protocol for path ${uri.fsPath} -> ${res}`);
           return res;
         },
         protocol2Code: (wslUri: string) => {
-          const urlDecodedPath = vscode.Uri.parse(wslUri).path;
-          const winPath = vscode.Uri.file(uriWslToWindows(urlDecodedPath));
+          const urlDecodedPath = Uri.parse(wslUri).path;
+          const winPath = Uri.file(uriWslToWindows(urlDecodedPath));
           console.log(`protocol2Code for path ${wslUri} -> ${winPath.fsPath}`);
           return winPath;
         },
@@ -266,15 +279,15 @@ class ClientWorkspace {
       clientOptions,
     );
 
-    this.decorator = new Decorator(this.lc);
+    Decorator.getInstance(this.lc);
 
     this.setupProgressCounter();
     this.registerCommands(context);
     this.disposables.push(activateTaskProvider(this.folder));
     this.disposables.push(this.lc.start());
     this.disposables.push(
-      vscode.languages.registerSignatureHelpProvider(
-        { language: 'rust' },
+      languages.registerSignatureHelpProvider(
+        { language: 'rust', scheme: 'file' },
         new SignatureHelpProvider(this.lc),
         '(',
         ',',
@@ -290,12 +303,12 @@ class ClientWorkspace {
     this.disposables.forEach(d => d.dispose());
   }
 
-  private registerCommands(context: vscode.ExtensionContext) {
+  private registerCommands(context: ExtensionContext) {
     if (!this.lc) {
       return;
     }
 
-    const rustupUpdateDisposable = vscode.commands.registerCommand(
+    const rustupUpdateDisposable = commands.registerCommand(
       'rls.update',
       () => {
         return rustupUpdate(this.config.rustupConfig());
@@ -303,17 +316,14 @@ class ClientWorkspace {
     );
     this.disposables.push(rustupUpdateDisposable);
 
-    const restartServer = vscode.commands.registerCommand(
-      'rls.restart',
-      async () => {
-        await this.stop();
-        return this.start(context);
-      },
-    );
+    const restartServer = commands.registerCommand('rls.restart', async () => {
+      await this.stop();
+      return this.start(context);
+    });
     this.disposables.push(restartServer);
 
     this.disposables.push(
-      vscode.commands.registerCommand('rls.run', (cmd: Execution) =>
+      commands.registerCommand('rls.run', (cmd: Execution) =>
         runRlsCommand(this.folder, cmd),
       ),
     );
@@ -332,9 +342,10 @@ class ClientWorkspace {
       progress => {
         if (progress.done) {
           runningProgress.delete(progress.id);
-          if (this.decorator) {
-            for (const editor of vscode.window.visibleTextEditors) {
-              this.decorator.decorate(editor);
+          const decorator = Decorator.getInstance();
+          if (decorator !== undefined) {
+            for (const editor of window.visibleTextEditors) {
+              decorator.decorate(editor);
             }
           }
         } else {
@@ -397,7 +408,7 @@ class ClientWorkspace {
         sysroot = await this.getSysroot(env);
       } catch (e) {
         console.warn('Error reading sysroot (second try)', e);
-        vscode.window.showWarningMessage(`Error reading sysroot: ${e.message}`);
+        window.showWarningMessage(`Error reading sysroot: ${e.message}`);
         return env;
       }
     }
@@ -459,9 +470,7 @@ class ClientWorkspace {
     childProcess.on('error', (err: { code?: string; message: string }) => {
       if (err.code === 'ENOENT') {
         console.error(`Could not spawn RLS: ${err.message}`);
-        vscode.window.showWarningMessage(
-          `Could not spawn RLS: \`${err.message}\``,
-        );
+        window.showWarningMessage(`Could not spawn RLS: \`${err.message}\``);
       }
     });
 
@@ -482,10 +491,10 @@ class ClientWorkspace {
 }
 
 async function warnOnMissingCargoToml() {
-  const files = await vscode.workspace.findFiles('Cargo.toml');
+  const files = await workspace.findFiles('Cargo.toml');
 
   if (files.length < 1) {
-    vscode.window.showWarningMessage(
+    window.showWarningMessage(
       'A Cargo.toml file must be at the root of the workspace in order to support all features',
     );
   }
@@ -497,20 +506,20 @@ async function warnOnMissingCargoToml() {
  *
  * [1]: https://github.com/Microsoft/vscode/issues/11514#issuecomment-244707076
  */
-function configureLanguage(): vscode.Disposable {
-  return vscode.languages.setLanguageConfiguration('rust', {
+function configureLanguage(): Disposable {
+  return languages.setLanguageConfiguration('rust', {
     onEnterRules: [
       {
         // Doc single-line comment
         // e.g. ///|
         beforeText: /^\s*\/{3}.*$/,
-        action: { indentAction: vscode.IndentAction.None, appendText: '/// ' },
+        action: { indentAction: IndentAction.None, appendText: '/// ' },
       },
       {
         // Parent doc single-line comment
         // e.g. //!|
         beforeText: /^\s*\/{2}\!.*$/,
-        action: { indentAction: vscode.IndentAction.None, appendText: '//! ' },
+        action: { indentAction: IndentAction.None, appendText: '//! ' },
       },
       {
         // Begins an auto-closed multi-line comment (standard or parent doc)
@@ -518,7 +527,7 @@ function configureLanguage(): vscode.Disposable {
         beforeText: /^\s*\/\*(\*|\!)(?!\/)([^\*]|\*(?!\/))*$/,
         afterText: /^\s*\*\/$/,
         action: {
-          indentAction: vscode.IndentAction.IndentOutdent,
+          indentAction: IndentAction.IndentOutdent,
           appendText: ' * ',
         },
       },
@@ -526,19 +535,19 @@ function configureLanguage(): vscode.Disposable {
         // Begins a multi-line comment (standard or parent doc)
         // e.g. /** ...| or /*! ...|
         beforeText: /^\s*\/\*(\*|\!)(?!\/)([^\*]|\*(?!\/))*$/,
-        action: { indentAction: vscode.IndentAction.None, appendText: ' * ' },
+        action: { indentAction: IndentAction.None, appendText: ' * ' },
       },
       {
         // Continues a multi-line comment
         // e.g.  * ...|
         beforeText: /^(\ \ )*\ \*(\ ([^\*]|\*(?!\/))*)?$/,
-        action: { indentAction: vscode.IndentAction.None, appendText: '* ' },
+        action: { indentAction: IndentAction.None, appendText: '* ' },
       },
       {
         // Dedents after closing a multi-line comment
         // e.g.  */|
         beforeText: /^(\ \ )*\ \*\/\s*$/,
-        action: { indentAction: vscode.IndentAction.None, removeText: 1 },
+        action: { indentAction: IndentAction.None, removeText: 1 },
       },
     ],
   });

@@ -1,4 +1,5 @@
 'use strict';
+import { Mutex } from 'async-mutex';
 import * as vscode from 'vscode';
 import { HoverRequest, LanguageClient } from 'vscode-languageclient';
 
@@ -96,66 +97,86 @@ function get_next_position(
 export class Decorator {
   private static instance?: Decorator;
   private lc: LanguageClient;
+  private mutex: Mutex = new Mutex();
 
-  public constructor(lc: LanguageClient) {
+  constructor(lc: LanguageClient) {
     this.lc = lc;
-    Decorator.instance = this;
   }
 
-  public static getInstance(): Decorator | undefined {
-    return Decorator.instance;
-  }
-
-  public async decorate(editor: vscode.TextEditor) {
-    if (!editor.document.uri.toString().endsWith('.rs')) {
-      return;
-    }
-    const text = editor.document.getText();
-    const lines = text.split('\n');
-    const declarationPositions: vscode.Position[] = [];
-    for (let i = 0; i < lines.length; i++) {
-      let line = lines[i].split('//')[0];
-      if (line.trim().startsWith('impl')) {
-        continue;
-      }
-      let newPositions: vscode.Position[] = [];
-      let count = 0;
-      do {
-        newPositions = get_next_position(i, line, count);
-        for (const position of newPositions) {
-          declarationPositions.push(position);
-        }
-        const last = newPositions[newPositions.length - 1];
-        if (last) {
-          line = line.substr(last.character);
-          count += last.character;
-        }
-      } while (newPositions.length > 0);
-    }
-    const hints: vscode.DecorationOptions[] = [];
-    for (const position of declarationPositions) {
-      const hover = await this.lc.sendRequest(
-        HoverRequest.type,
-        this.lc.code2ProtocolConverter.asTextDocumentPositionParams(
-          editor.document,
-          position.translate(0, -1),
-        ),
-      );
-      if (hover) {
-        let hint = ': ';
-        const content = hover.contents;
-        try {
-          // @ts-ignore
-          hint += content[0].value;
-        } catch (e) {
-          continue;
-        }
-        hints.push({
-          range: new vscode.Range(position, position),
-          renderOptions: { after: { contentText: hint } },
+  public static getInstance(lc?: LanguageClient): Decorator | undefined {
+    if (lc !== undefined) {
+      if (Decorator.instance === undefined) {
+        Decorator.instance = new Decorator(lc);
+      } else {
+        Decorator.instance.mutex.acquire().then(release => {
+          if (Decorator.instance) {
+            Decorator.instance.lc = lc;
+          }
+          release();
         });
       }
     }
-    editor.setDecorations(typeHintDecorationType, hints);
+    return Decorator.instance;
+  }
+
+  public async decorate(editor: vscode.TextEditor): Promise<void> {
+    if (!editor.document.uri.toString().endsWith('.rs')) {
+      return;
+    }
+    const mutexRelease = await this.mutex.acquire();
+    console.log('DECORATING');
+    try {
+      const text = editor.document.getText();
+      const lines = text.split('\n');
+      const declarationPositions: vscode.Position[] = [];
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].split('//')[0].split('#')[0];
+        if (line.trim().startsWith('impl')) {
+          continue;
+        }
+        let newPositions: vscode.Position[] = [];
+        let count = 0;
+        do {
+          newPositions = get_next_position(i, line, count);
+          for (const position of newPositions) {
+            declarationPositions.push(position);
+          }
+          const last = newPositions[newPositions.length - 1];
+          if (last) {
+            line = line.substr(last.character);
+            count += last.character;
+          }
+        } while (newPositions.length > 0);
+      }
+      const hints: vscode.DecorationOptions[] = [];
+      for (const position of declarationPositions) {
+        try {
+          const hover = await this.lc.sendRequest(
+            HoverRequest.type,
+            this.lc.code2ProtocolConverter.asTextDocumentPositionParams(
+              editor.document,
+              position.translate(0, -1),
+            ),
+          );
+          if (hover) {
+            const content = hover.contents;
+            // @ts-ignore
+            const hint = ': ' + content[0].value;
+            hints.push({
+              range: new vscode.Range(position, position),
+              renderOptions: { after: { contentText: hint } },
+            });
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+      editor.setDecorations(typeHintDecorationType, hints);
+      console.log('DONE: ' + hints.length + ' decorations provided');
+    } catch (e) {
+      console.log('FAILED: ');
+      console.log(e);
+    }
+    mutexRelease();
   }
 }

@@ -80,15 +80,17 @@ function get_next_position(
     }
     return declarationPositions;
   }
-  const matchArm = substring.match(MATCH_CASE);
-  if (matchArm && matchArm.index) {
-    for (const character of unpack_arguments(matchArm[0].substr(1))) {
-      declarationPositions.push(
-        new vscode.Position(
-          lineNumber,
-          currentCharCount + matchArm.index + 1 + character,
-        ),
-      );
+  if (substring.includes('=>')) {
+    const matchArm = substring.match(MATCH_CASE);
+    if (matchArm && matchArm.index) {
+      for (const character of unpack_arguments(matchArm[0].substr(1))) {
+        declarationPositions.push(
+          new vscode.Position(
+            lineNumber,
+            currentCharCount + matchArm.index + 1 + character,
+          ),
+        );
+      }
     }
   }
   return declarationPositions;

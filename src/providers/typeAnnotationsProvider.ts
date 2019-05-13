@@ -95,6 +95,16 @@ function get_next_position(
   return declarationPositions;
 }
 
+const SHORTENER_REGEX = /<[^<]*?(<\.\.\.>)?[^<]*?>/;
+const ENABLED = vscode.workspace
+  .getConfiguration()
+  .get<boolean>('rust-type_hints.enabled', true);
+const MAX_LENGTH = vscode.workspace
+  .getConfiguration()
+  .get<number>('rust-type_hints.max_length', 40);
+const SHORTENER = vscode.workspace
+  .getConfiguration()
+  .get<string>('rust-type_hints.shortening', 'greedy');
 export class Decorator {
   private static instance?: Decorator;
   private lc: LanguageClient;
@@ -117,7 +127,7 @@ export class Decorator {
   }
 
   public async decorate(editor: vscode.TextEditor): Promise<void> {
-    if (editor.document.languageId !== 'rust') {
+    if (editor.document.languageId !== 'rust' || !ENABLED) {
       return;
     }
     try {
@@ -158,10 +168,25 @@ export class Decorator {
             // @ts-ignore
             const simplified = content[0].value;
             const type = new FullType(simplified);
-            const hint = ': ' + GreedySimplifier.simplify(type).stringify();
+            let hint = '';
+            switch (SHORTENER) {
+              case 'none':
+                hint = type.stringify();
+                break;
+              case 'greedy':
+                hint = GreedySimplifier.simplify(type).stringify();
+                break;
+            }
+            while (hint.length > MAX_LENGTH) {
+              const replacement = hint.replace(SHORTENER_REGEX, '<...>');
+              if (replacement === hint) {
+                break;
+              }
+              hint = replacement;
+            }
             hints.push({
               range: new vscode.Range(position, position),
-              renderOptions: { before: { contentText: hint } },
+              renderOptions: { before: { contentText: ': ' + hint } },
             });
           }
         } catch (e) {

@@ -30,6 +30,12 @@ function splitSingleBracketLevel(
           result.push(str.substring(latestDelimiter, i));
           latestDelimiter = i + 1;
         }
+        break;
+      case '[':
+        count++;
+        break;
+      case ']':
+        count--;
     }
   }
   const end = str.substring(latestDelimiter);
@@ -39,20 +45,49 @@ function splitSingleBracketLevel(
   return result;
 }
 
+function getPostFix(str: string, brackets = '<>'): string {
+  let count = 0;
+  const bracketStart = brackets[0];
+  const bracketEnd = brackets[brackets.length - 1];
+  for (let i = 0; i < str.length; i++) {
+    switch (str[i]) {
+      case bracketStart:
+        count++;
+        break;
+      case bracketEnd:
+        count--;
+        if (count === 0) {
+          return str.substring(i + 1);
+        }
+        break;
+    }
+  }
+  return '';
+}
+
 class SemiFullType {
-  public name: string;
+  public prefix: string;
+  public postfix: string;
   public children: FullType[];
-  public constructor(name: string, children: FullType[] = []) {
-    this.name = name;
+  public constructor(
+    prefix: string,
+    postfix: string,
+    children: FullType[] = [],
+  ) {
+    this.prefix = prefix;
+    this.postfix = postfix;
     this.children = children;
   }
 
   public stringify(): string {
     return (
-      this.name +
+      this.prefix +
       (this.children.length === 0
         ? ''
-        : '<' + this.children.map(child => child.stringify()).join(', ') + '>')
+        : '<' +
+          this.children.map(child => child.stringify()).join(', ') +
+          '>') +
+      this.postfix
     );
   }
 }
@@ -71,9 +106,13 @@ export class FullType {
       index = index < 0 ? undefined : index;
       const prefix = typePart.substring(0, index);
       const args = index !== undefined ? typePart.substring(index) : '';
-      const part: SemiFullType = new SemiFullType(prefix.trim());
+      const postfix = getPostFix(args);
+      const part: SemiFullType = new SemiFullType(prefix.trim(), postfix);
       const childrenStr = splitSingleBracketLevel(args, '<>');
-      for (const childStr of childrenStr) {
+      for (let childStr of childrenStr) {
+        if (childStr.trim().startsWith('[closure@')) {
+          childStr = '[closure]';
+        }
         part.children.push(new FullType(childStr));
       }
       this.parts.push(part);
@@ -92,14 +131,19 @@ export class GreedySimplifier {
   public static simplify(fullType: FullType): FullType {
     const returnValue: FullType = new FullType('');
     for (const part of fullType.parts) {
-      if (part.name.startsWith("'")) {
+      if (part.prefix.startsWith("'")) {
         continue;
       }
-      const prefixOption = part.name.match(GreedySimplifier.prefixRegex);
+      const prefixOption = part.prefix.match(GreedySimplifier.prefixRegex);
       const prefix = prefixOption !== null ? prefixOption[0] : '';
-      const nameSplit = part.name.substring(prefix.length).split('::');
+      const nameSplit = part.prefix.substring(prefix.length).split('::');
       const semiType: SemiFullType = new SemiFullType(
-        prefix + nameSplit[nameSplit.length - 1],
+        prefix +
+          (part.prefix.includes(' as ')
+            ? part.prefix.split(' as ')[0] + ' as '
+            : '') +
+          nameSplit[nameSplit.length - 1],
+        part.postfix,
       );
       for (const subType of part.children) {
         semiType.children.push(this.simplify(subType));

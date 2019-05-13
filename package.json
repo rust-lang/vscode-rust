@@ -403,6 +403,25 @@
                     "default": true,
                     "description": "Show additional context in hover tooltips when available. This is often the type local variable declaration.",
                     "scope": "resource"
+                },
+                "rust-type_hints.enable": {
+                    "type": "boolean",
+                    "default": true,
+                    "desciption": "Show type hints",
+                    "scope": "resource"
+                },
+                "rust-type_hints.max_length": {
+                    "type": "integer",
+                    "default": 40,
+                    "desciption": "Maximum length of type hints",
+                    "scope": "resource"
+                },
+                "rust-type_hints.shortening": {
+                    "type": "string",
+                    "enum": ["greedy", "none"],
+                    "default": "greedy",
+                    "desciption": "\"greedy\" will remove all namespace parts from type names, as well as lifetime specifiers, from the hints",
+                    "scope": "resource"
                 }
             }
         }

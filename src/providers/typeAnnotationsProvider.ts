@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { HoverRequest, LanguageClient } from 'vscode-languageclient';
+import { FullType, GreedySimplifier } from './typeNameShortener';
 
 const typeHintDecorationType = vscode.window.createTextEditorDecorationType({
   before: {
@@ -119,7 +120,6 @@ export class Decorator {
     if (editor.document.languageId !== 'rust') {
       return;
     }
-    console.log('DECORATING: ' + editor.document.uri.toString());
     try {
       const text = editor.document.getText();
       const lines = text.split('\n');
@@ -156,7 +156,9 @@ export class Decorator {
           if (hover) {
             const content = hover.contents;
             // @ts-ignore
-            const hint = ': ' + content[0].value;
+            const simplified = content[0].value;
+            const type = new FullType(simplified);
+            const hint = ': ' + GreedySimplifier.simplify(type).stringify();
             hints.push({
               range: new vscode.Range(position, position),
               renderOptions: { before: { contentText: hint } },
@@ -167,10 +169,8 @@ export class Decorator {
         }
       }
       editor.setDecorations(typeHintDecorationType, hints);
-      console.log('DONE: ' + hints.length + ' decorations provided');
     } catch (e) {
-      console.log('FAILED: ');
-      console.log(e);
+      return;
     }
   }
 }

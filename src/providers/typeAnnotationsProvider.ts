@@ -10,7 +10,7 @@ const typeHintDecorationType = vscode.window.createTextEditorDecorationType({
 });
 
 const MULTIPLE_DECLARATIONS = '(&?(mut\\s+)?\\w+(\\s*:\\s*\\w+)?\\s*,?\\s*)+';
-const SIMPLE_DECLARATION = /(let|for)(\s+mut)?\s+(\w+)[ :=]/;
+const SIMPLE_DECLARATION = /((let|for)(\s+mut)?\s+(\w+))\s*[=;]/;
 const TUPLE_UNPACKING: RegExp = new RegExp(
   '(let\\s+|for\\s+|if let[^=]+)(\\(' + MULTIPLE_DECLARATIONS + '\\))',
 );
@@ -28,7 +28,7 @@ function unpack_arguments(line: string): number[] {
   let count = 0;
   for (const arg of args) {
     const inner = arg.match(INNER_DECLARATION);
-    if (inner && inner.index !== undefined) {
+    if (!arg.includes(':') && inner && inner.index !== undefined) {
       result.push(count + inner.index + inner[0].length);
     }
     count += arg.length + 1;
@@ -46,7 +46,7 @@ function get_next_position(
     return [
       new vscode.Position(
         lineNumber,
-        currentCharCount + match.index + match[0].length - 1,
+        currentCharCount + match.index + match[1].length,
       ),
     ];
   }
@@ -167,6 +167,9 @@ export class Decorator {
             const content = hover.contents;
             // @ts-ignore
             const simplified = content[0].value;
+            if (!/^(?:\w+::)*\w+(?:<.*>)?$/m.test(simplified)) {
+              continue;
+            }
             const type = new FullType(simplified);
             let hint = '';
             switch (SHORTENER) {

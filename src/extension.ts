@@ -61,6 +61,13 @@ export async function activate(context: ExtensionContext) {
     console.log('Attempting to decorate after editor change.');
     decorator.decorate(editor);
   });
+  workspace.onDidChangeTextDocument(textDocumentChange => {
+    for (const editor of window.visibleTextEditors) {
+      if (editor.document === textDocumentChange.document) {
+        Decorator.getInstance()!.decorate(editor);
+      }
+    }
+  });
 }
 
 export async function deactivate() {

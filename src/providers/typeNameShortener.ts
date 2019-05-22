@@ -146,7 +146,10 @@ export class GreedySimplifier {
         part.postfix,
       );
       for (const subType of part.children) {
-        semiType.children.push(this.simplify(subType));
+        const simplifiedSubType = this.simplify(subType);
+        if (simplifiedSubType.stringify() !== '') {
+          semiType.children.push(simplifiedSubType);
+        }
       }
       returnValue.parts.push(semiType);
     }

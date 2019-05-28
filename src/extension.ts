@@ -44,22 +44,22 @@ interface ProgressParams {
 export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
 
-  workspace.onDidOpenTextDocument(doc => didOpenTextDocument(doc, context));
-  workspace.textDocuments.forEach(doc => didOpenTextDocument(doc, context));
-  workspace.onDidChangeWorkspaceFolders(e =>
-    didChangeWorkspaceFolders(e, context),
+  registerCommands();
+  workspace.textDocuments.forEach(doc => didOpenTextDocument(doc));
+  workspace.onDidOpenTextDocument(doc => didOpenTextDocument(doc));
+  window.onDidChangeActiveTextEditor(
+    ed => ed && didOpenTextDocument(ed.document),
   );
+  workspace.onDidChangeWorkspaceFolders(e => didChangeWorkspaceFolders(e));
 }
 
 export async function deactivate() {
+  [...cmds.values()].forEach(c => c.dispose());
   return Promise.all([...workspaces.values()].map(ws => ws.stop()));
 }
 
 // Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
-function didOpenTextDocument(
-  document: TextDocument,
-  context: ExtensionContext,
-) {
+function didOpenTextDocument(document: TextDocument) {
   if (document.languageId !== 'rust' && document.languageId !== 'toml') {
     return;
   }
@@ -82,11 +82,12 @@ function didOpenTextDocument(
     return;
   }
 
-  if (!workspaces.has(folder.uri)) {
-    const workspace = new ClientWorkspace(folder);
-    workspaces.set(folder.uri, workspace);
-    workspace.start(context);
+  let ws = workspaces.get(folder.uri);
+  if (!ws) {
+    ws = new ClientWorkspace(folder);
+    workspaces.set(folder.uri, ws);
   }
+  currentWs = ws;
 }
 
 // This is an intermediate, lazy cache used by `getOuterMostWorkspaceFolder`
@@ -110,38 +111,6 @@ function sortedWorkspaceFolders(): string[] {
   return _sortedWorkspaceFolders || [];
 }
 
-// function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder {
-//     if (!cur_workspace) {
-//         return cur_workspace;
-//     }
-
-//     const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
-//     const root_manifest = path.join(workspace_root, 'Cargo.toml');
-//     if (fs.existsSync(root_manifest)) {
-//         return cur_workspace;
-//     }
-
-//     let current = file_path;
-
-//     while (true) {
-//         const old = current;
-//         current = path.dirname(current);
-//         if (old == current) {
-//             break;
-//         }
-//         if (workspace_root == path.parse(current).dir) {
-//             break;
-//         }
-
-//         const cargo_path = path.join(current, 'Cargo.toml');
-//         if (fs.existsSync(cargo_path)) {
-//             return { ...cur_workspace, uri: Uri.parse(current) };
-//         }
-//     }
-
-//     return cur_workspace;
-// }
-
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
   const sorted = sortedWorkspaceFolders();
   for (const element of sorted) {
@@ -156,10 +125,7 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
   return folder;
 }
 
-function didChangeWorkspaceFolders(
-  e: WorkspaceFoldersChangeEvent,
-  context: ExtensionContext,
-) {
+function didChangeWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
   _sortedWorkspaceFolders = undefined;
 
   // If a VSCode workspace has been added, check to see if it is part of an existing one, and
@@ -173,7 +139,7 @@ function didChangeWorkspaceFolders(
       if (f === 'Cargo.toml') {
         const workspace = new ClientWorkspace(folder);
         workspaces.set(folder.uri, workspace);
-        workspace.start(context);
+        workspace.start();
         break;
       }
     }
@@ -187,6 +153,32 @@ function didChangeWorkspaceFolders(
       ws.stop();
     }
   }
+}
+
+const cmds: Set<Disposable> = new Set();
+let currentWs: ClientWorkspace | null = null;
+
+function registerCommands() {
+  cmds.add(
+    commands.registerCommand(
+      'rls.update',
+      () => currentWs && currentWs.rustupUpdate(),
+    ),
+  );
+
+  cmds.add(
+    commands.registerCommand(
+      'rls.restart',
+      async () => currentWs && currentWs.restart(),
+    ),
+  );
+
+  cmds.add(
+    commands.registerCommand(
+      'rls.run',
+      (cmd: Execution) => currentWs && currentWs.runRlsCommand(cmd),
+    ),
+  );
 }
 
 const workspaces: Map<Uri, ClientWorkspace> = new Map();
@@ -208,9 +200,13 @@ class ClientWorkspace {
     this.disposables = [];
   }
 
-  public async start(context: ExtensionContext) {
+  public async start() {
     warnOnMissingCargoToml();
 
+    if (currentWs) {
+      await currentWs.stop();
+    }
+    currentWs = this;
     startSpinner('RLS', 'Starting');
 
     const serverOptions: ServerOptions = async () => {
@@ -260,7 +256,6 @@ class ClientWorkspace {
     );
 
     this.setupProgressCounter();
-    this.registerCommands(context);
     this.disposables.push(activateTaskProvider(this.folder));
     this.disposables.push(this.lc.start());
     this.disposables.push(
@@ -281,30 +276,17 @@ class ClientWorkspace {
     this.disposables.forEach(d => d.dispose());
   }
 
-  private registerCommands(context: ExtensionContext) {
-    if (!this.lc) {
-      return;
-    }
+  public async restart() {
+    await this.stop();
+    return this.start();
+  }
 
-    const rustupUpdateDisposable = commands.registerCommand(
-      'rls.update',
-      () => {
-        return rustupUpdate(this.config.rustupConfig());
-      },
-    );
-    this.disposables.push(rustupUpdateDisposable);
+  public runRlsCommand(cmd: Execution) {
+    return runRlsCommand(this.folder, cmd);
+  }
 
-    const restartServer = commands.registerCommand('rls.restart', async () => {
-      await this.stop();
-      return this.start(context);
-    });
-    this.disposables.push(restartServer);
-
-    this.disposables.push(
-      commands.registerCommand('rls.run', (cmd: Execution) =>
-        runRlsCommand(this.folder, cmd),
-      ),
-    );
+  public rustupUpdate() {
+    return rustupUpdate(this.config.rustupConfig());
   }
 
   private async setupProgressCounter() {

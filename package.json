@@ -47,7 +47,6 @@
         "test": "npm run compile && node ./node_modules/vscode/bin/test",
         "prettier": "prettier **/*.ts",
         "check:version": "node cmd/check-version.js",
-        "postinstall": "node ./node_modules/vscode/bin/install",
         "installDevExtension": "npm install && ./node_modules/.bin/vsce package -o ./out/rls-vscode-dev.vsix && code --install-extension ./out/rls-vscode-dev.vsix"
     },
     "dependencies": {
@@ -56,6 +55,7 @@
     "devDependencies": {
         "@types/mocha": "^2.2.43",
         "@types/node": "~10.1.0",
+        "@types/vscode": "^1.31.0",
         "prettier": "^1.16.4",
         "tslint": "^5.14.0",
         "tslint-config-prettier": "^1.18.0",

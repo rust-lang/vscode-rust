@@ -3,11 +3,11 @@ import * as util from 'util';
 
 import { modifyParametersForWSL } from './wslpath';
 
-const execFileAsync = util.promisify(child_process.execFile);
+const execAsync = util.promisify(child_process.exec);
 
 export interface SpawnFunctions {
-  execFile: typeof execFileAsync;
-  execFileSync: typeof child_process.execFileSync;
+  exec: typeof execAsync;
+  execSync: typeof child_process.execSync;
   spawn: typeof child_process.spawn;
   modifyArgs: (
     command: string,
@@ -18,14 +18,14 @@ export interface SpawnFunctions {
 export function withWsl(withWsl: boolean): SpawnFunctions {
   return withWsl
     ? {
-        execFile: withWslModifiedParameters(execFileAsync),
-        execFileSync: withWslModifiedParameters(child_process.execFileSync),
+        exec: withWslModifiedParameters(execAsync),
+        execSync: withWslModifiedParameters(child_process.execSync),
         spawn: withWslModifiedParameters(child_process.spawn),
         modifyArgs: modifyParametersForWSL,
       }
     : {
-        execFile: execFileAsync,
-        execFileSync: child_process.execFileSync,
+        exec: execAsync,
+        execSync: child_process.execSync,
         spawn: child_process.spawn,
         modifyArgs: (command: string, args: string[]) => ({ command, args }),
       };

@@ -346,10 +346,9 @@ class ClientWorkspace {
 
     const rustcPrintSysroot = () =>
       this.config.rustupDisabled
-        ? wslWrapper.execFile('rustc', ['--print', 'sysroot'], { env })
-        : wslWrapper.execFile(
-            this.config.rustupPath,
-            ['run', this.config.channel, 'rustc', '--print', 'sysroot'],
+        ? wslWrapper.exec('rustc --print sysroot', { env })
+        : wslWrapper.exec(
+            `${this.config.rustupPath} run ${this.config.channel} rustc --print sysroot`,
             { env },
           );
 
@@ -419,7 +418,11 @@ class ClientWorkspace {
       console.info(`running without rustup: ${rlsPath}`);
       const env = await makeRlsEnv();
 
-      childProcess = child_process.spawn(rlsPath, [], { env, cwd });
+      childProcess = child_process.spawn(rlsPath, [], {
+        env,
+        cwd,
+        shell: true,
+      });
     } else {
       console.info(`running with rustup: ${rlsPath}`);
       const config = this.config.rustupConfig();
@@ -436,7 +439,7 @@ class ClientWorkspace {
       childProcess = withWsl(config.useWSL).spawn(
         config.path,
         ['run', config.channel, rlsPath],
-        { env, cwd },
+        { env, cwd, shell: true },
       );
     }
 

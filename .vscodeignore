@@ -5,6 +5,8 @@ test/**
 out/test/**
 src/**
 .gitignore
+.prettierignore
+prettier.config.js
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/tslint.json

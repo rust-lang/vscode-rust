@@ -4,7 +4,9 @@ import * as vscode from 'vscode';
 // tslint:disable-next-line: no-duplicate-imports
 import { Uri } from 'vscode';
 
-const fixtureDir = path.resolve(path.join(__dirname, '..', '..', 'fixtures'));
+const fixtureDir = path.resolve(
+  path.join(__dirname, '..', '..', '..', 'fixtures'),
+);
 
 suite('Extension Tests', () => {
   test('cargo tasks are auto-detected', async () => {

@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as child_process from 'child_process';
 
-import * as rustup from '../rustup';
+import * as rustup from '../../src/rustup';
 
 // We need to ensure that rustup works and is installed
 const rustupVersion = child_process.execSync('rustup --version').toString();

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 
-import * as wslpath from '../../utils/wslpath';
+import * as wslpath from '../../../src/utils/wslpath';
 
 function mkConverterCheck(converter: (arg: string) => string) {
   return (from: string, to: string) => assert.equal(converter(from), to);

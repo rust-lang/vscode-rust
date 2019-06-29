@@ -1,6 +1,7 @@
 ### Unreleased
 
 * Expand `~` in `rust-client.{rustup,rls}Path` settings
+* Deprecate `rust-client.useWSL` setting (use [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension instead)
 
 ### 0.6.1 - 2019-04-04
 

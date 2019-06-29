@@ -38,30 +38,33 @@
         "onLanguage:rust",
         "workspaceContains:Cargo.toml"
     ],
-    "main": "./out/extension.js",
+    "main": "./out/src/extension.js",
     "scripts": {
         "vscode:prepublish": "npm run check:version && npm run lint && npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "lint": "tslint --config ./tslint.json './src/**/*.ts'",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test",
+        "test": "node ./out/test/runTest.js",
         "prettier": "prettier **/*.ts",
         "check:version": "node cmd/check-version.js",
-        "postinstall": "node ./node_modules/vscode/bin/install",
         "installDevExtension": "npm install && ./node_modules/.bin/vsce package -o ./out/rls-vscode-dev.vsix && code --install-extension ./out/rls-vscode-dev.vsix"
     },
     "dependencies": {
         "vscode-languageclient": "^4.3.0"
     },
     "devDependencies": {
-        "@types/mocha": "^2.2.43",
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.6",
         "@types/node": "~10.1.0",
+        "@types/vscode": "^1.31.0",
+        "glob": "^7.1.4",
+        "mocha": "^6.1.4",
         "prettier": "^1.16.4",
         "tslint": "^5.14.0",
         "tslint-config-prettier": "^1.18.0",
         "typescript": "^3.0.0",
-        "vsce": "^1.58.0",
-        "vscode": "^1.1.30"
+        "vsce": "^1.63.0",
+        "vscode-test": "^0.4.3"
     },
     "contributes": {
         "languages": [

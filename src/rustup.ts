@@ -24,9 +24,9 @@ export async function rustupUpdate(config: RustupConfig) {
   startSpinner('RLS', 'Updating…');
 
   try {
-    const { stdout } = await withWsl(config.useWSL).execFile(config.path, [
-      'update',
-    ]);
+    const { stdout } = await withWsl(config.useWSL).exec(
+      `${config.path} update`,
+    );
 
     // This test is imperfect because if the user has multiple toolchains installed, they
     // might have one updated and one unchanged. But I don't want to go too far down the
@@ -83,10 +83,9 @@ export async function checkForRls(config: RustupConfig) {
 
 async function hasToolchain(config: RustupConfig): Promise<boolean> {
   try {
-    const { stdout } = await withWsl(config.useWSL).execFile(config.path, [
-      'toolchain',
-      'list',
-    ]);
+    const { stdout } = await withWsl(config.useWSL).exec(
+      `${config.path} toolchain list`,
+    );
     return stdout.includes(config.channel);
   } catch (e) {
     console.log(e);
@@ -130,7 +129,7 @@ async function tryToInstallToolchain(config: RustupConfig) {
  */
 async function listComponents(config: RustupConfig): Promise<string[]> {
   return withWsl(config.useWSL)
-    .execFile(config.path, ['component', 'list', '--toolchain', config.channel])
+    .exec(`${config.path} component list --toolchain ${config.channel}`)
     .then(({ stdout }) =>
       stdout
         .toString()
@@ -226,9 +225,8 @@ export function parseActiveToolchain(rustupOutput: string): string {
 
 export async function getVersion(config: RustupConfig): Promise<string> {
   const versionRegex = /rustup ([0-9]+\.[0-9]+\.[0-9]+)/;
-  const execFile = withWsl(config.useWSL).execFile;
 
-  const output = await execFile(config.path, ['--version']);
+  const output = await withWsl(config.useWSL).exec(`${config.path} --version`);
   const versionMatch = output.stdout.toString().match(versionRegex);
   if (versionMatch && versionMatch.length >= 2) {
     return versionMatch[1];
@@ -259,7 +257,7 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
   try {
     // `rustup show active-toolchain` is available since rustup 1.12.0
     activeChannel = withWsl(config.useWSL)
-      .execFileSync(config.path, ['show', 'active-toolchain'], { cwd: wsPath })
+      .execSync(`${config.path} show active-toolchain`, { cwd: wsPath })
       .toString()
       .trim();
     // Since rustup 1.17.0 if the active toolchain is the default, we're told
@@ -270,7 +268,7 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
   } catch (e) {
     // Possibly an old rustup version, so try rustup show
     const showOutput = withWsl(config.useWSL)
-      .execFileSync(config.path, ['show'], { cwd: wsPath })
+      .execSync(`${config.path} show`, { cwd: wsPath })
       .toString();
     activeChannel = parseActiveToolchain(showOutput);
   }

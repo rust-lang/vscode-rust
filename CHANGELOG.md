@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Expand `~` in `rust-client.{rustup,rls}Path` settings
+
 ### 0.6.1 - 2019-04-04
 
 * Fix Cargo task auto-detection

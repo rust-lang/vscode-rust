@@ -92,14 +92,13 @@ function didOpenTextDocument(
   const folderPath = folder.uri.toString();
 
   if (!workspaces.has(folderPath)) {
-
     const workspace = new ClientWorkspace(folder);
     activeWorkspace = workspace;
     workspaces.set(folderPath, workspace);
     workspace.start(context);
   } else {
     const ws = workspaces.get(folderPath);
-    activeWorkspace = typeof ws === "undefined" ? null : ws;
+    activeWorkspace = typeof ws === 'undefined' ? null : ws;
   }
 }
 
@@ -124,36 +123,39 @@ function sortedWorkspaceFolders(): string[] {
   return _sortedWorkspaceFolders || [];
 }
 
-function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder {
-    if (!cur_workspace) {
-        return cur_workspace;
+function getCargoTomlWorkspace(
+  curWorkspace: WorkspaceFolder,
+  filePath: string,
+): WorkspaceFolder {
+  if (!curWorkspace) {
+    return curWorkspace;
+  }
+
+  const workspaceRoot = path.parse(curWorkspace.uri.fsPath).dir;
+  const rootManifest = path.join(workspaceRoot, 'Cargo.toml');
+  if (fs.existsSync(rootManifest)) {
+    return curWorkspace;
+  }
+
+  let current = filePath;
+
+  while (true) {
+    const old = current;
+    current = path.dirname(current);
+    if (old === current) {
+      break;
+    }
+    if (workspaceRoot === path.parse(current).dir) {
+      break;
     }
 
-    const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
-    const root_manifest = path.join(workspace_root, 'Cargo.toml');
-    if (fs.existsSync(root_manifest)) {
-        return cur_workspace;
+    const cargoPath = path.join(current, 'Cargo.toml');
+    if (fs.existsSync(cargoPath)) {
+      return { ...curWorkspace, uri: Uri.parse(current) };
     }
+  }
 
-    let current = file_path;
-
-    while (true) {
-        const old = current;
-        current = path.dirname(current);
-        if (old == current) {
-            break;
-        }
-        if (workspace_root == path.parse(current).dir) {
-            break;
-        }
-
-        const cargo_path = path.join(current, 'Cargo.toml');
-        if (fs.existsSync(cargo_path)) {
-            return { ...cur_workspace, uri: Uri.parse(current) };
-        }
-    }
-
-    return cur_workspace;
+  return curWorkspace;
 }
 
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
@@ -230,7 +232,6 @@ class ClientWorkspace {
       warnOnMissingCargoToml();
     }
 
-
     startSpinner('RLS', 'Starting');
 
     const serverOptions: ServerOptions = async () => {
@@ -238,8 +239,12 @@ class ClientWorkspace {
       return this.makeRlsProcess();
     };
 
-    const pattern = this.config.multiProjectEnabled ? `${this.folder.uri.path}/**` : undefined;
-    const collectionName = this.config.multiProjectEnabled ? `rust ${this.folder.uri.toString()}` : 'rust';
+    const pattern = this.config.multiProjectEnabled
+      ? `${this.folder.uri.path}/**`
+      : undefined;
+    const collectionName = this.config.multiProjectEnabled
+      ? `rust ${this.folder.uri.toString()}`
+      : 'rust';
     const clientOptions: LanguageClientOptions = {
       // Register the server for Rust files
 
@@ -283,7 +288,9 @@ class ClientWorkspace {
       clientOptions,
     );
 
-    const selector = this.config.multiProjectEnabled ? { language: 'rust', scheme: 'file', pattern } : { language: 'rust' };
+    const selector = this.config.multiProjectEnabled
+      ? { language: 'rust', scheme: 'file', pattern }
+      : { language: 'rust' };
 
     this.setupProgressCounter();
     this.registerCommands(context, this.config.multiProjectEnabled);
@@ -308,7 +315,10 @@ class ClientWorkspace {
     commandsUnregistered = true;
   }
 
-  private registerCommands(context: ExtensionContext, multiProjectEnabled: boolean) {
+  private registerCommands(
+    context: ExtensionContext,
+    multiProjectEnabled: boolean,
+  ) {
     if (!this.lc) {
       return;
     }
@@ -320,27 +330,27 @@ class ClientWorkspace {
     const rustupUpdateDisposable = commands.registerCommand(
       'rls.update',
       () => {
-        const ws = multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
+        const ws =
+          multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
         return rustupUpdate(ws.config.rustupConfig());
       },
     );
     this.disposables.push(rustupUpdateDisposable);
 
     const restartServer = commands.registerCommand('rls.restart', async () => {
-      const ws = multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
+      const ws =
+        multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
       await ws.stop();
       return ws.start(context);
-
     });
     this.disposables.push(restartServer);
 
     this.disposables.push(
       commands.registerCommand('rls.run', (cmd: Execution) => {
-        const ws = multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
-        runRlsCommand(ws.folder, cmd)
-      },
-
-      ),
+        const ws =
+          multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
+        runRlsCommand(ws.folder, cmd);
+      }),
     );
   }
 

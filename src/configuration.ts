@@ -119,7 +119,10 @@ export class RLSConfiguration {
   }
 
   public get multiProjectEnabled(): boolean {
-    return this.configuration.get<boolean>('rust-client.enableMultiProjectSetup', false);
+    return this.configuration.get<boolean>(
+      'rust-client.enableMultiProjectSetup',
+      false,
+    );
   }
 
   // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.

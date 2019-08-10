@@ -86,7 +86,13 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
     const { stdout } = await withWsl(config.useWSL).exec(
       `${config.path} toolchain list`,
     );
-    return stdout.includes(config.channel);
+    if (/[a-z]+-(gnu|msvc)/.test(config.channel)) {
+      const dashIdx = config.channel.indexOf('-');
+      const toolchainRegex = new RegExp(config.channel.substr(0, dashIdx) + "-\\w+-\\w+-\\w+-" + config.channel.substr(dashIdx + 1), "g");
+      return toolchainRegex.test(stdout);
+    } else {
+      return stdout.includes(config.channel);
+    }
   } catch (e) {
     console.log(e);
     const rustupFoundButNotInWSLMode =

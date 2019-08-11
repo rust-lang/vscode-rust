@@ -294,12 +294,6 @@
                     "description": "Show warnings.",
                     "scope": "resource"
                 },
-                "rust.use_crate_blacklist": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Don't index crates on the crate blacklist.",
-                    "scope": "resource"
-                },
                 "rust.build_on_save": {
                     "type": "boolean",
                     "default": false,

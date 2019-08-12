@@ -298,7 +298,8 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Don't index crates on the crate blacklist.",
-                    "scope": "resource"
+                    "scope": "resource",
+                    "deprecationMessage": "Use `rust.crate_blacklist` instead"
                 },
                 "rust.crate_blacklist": {
                     "type": [

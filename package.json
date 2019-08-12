@@ -298,6 +298,16 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Don't index crates on the crate blacklist.",
+                    "scope": "resource",
+                    "deprecationMessage": "Use `rust.crate_blacklist` instead"
+                },
+                "rust.crate_blacklist": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "Overrides the default list of packages for which analysis is skipped.\nAvailable since RLS 1.38",
                     "scope": "resource"
                 },
                 "rust.build_on_save": {

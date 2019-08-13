@@ -518,7 +518,7 @@ async function warnOnMissingCargoToml() {
 
   if (files.length < 1) {
     window.showWarningMessage(
-      'A Cargo.toml file must be at the root of the workspace in order to support all features',
+      'A Cargo.toml file must be at the root of the workspace in order to support all features. Alternatively set rust-client.enableMultiProjectSetup=true in settings.',
     );
   }
 }

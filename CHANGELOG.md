@@ -1,5 +1,8 @@
 ### Unreleased
 
+### 0.6.2 - 2019-08-14
+
+* Deprecate `rust.use_crate_blacklist` in favor of newly added `rust.crate_blacklist` (supported by RLS 1.38)
 * Expand `~` in `rust-client.{rustup,rls}Path` settings
 * Deprecate `rust-client.useWSL` setting (use [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension instead)
 

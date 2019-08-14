@@ -306,7 +306,7 @@
                         "array",
                         "null"
                     ],
-                    "default": null,
+                    "default": ["cocoa", "gleam", "glium", "idna", "libc", "openssl", "rustc_serialize", "serde", "serde_json", "typenum", "unicode_normalization", "unicode_segmentation", "winapi"],
                     "description": "Overrides the default list of packages for which analysis is skipped.\nAvailable since RLS 1.38",
                     "scope": "resource"
                 },

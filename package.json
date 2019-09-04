@@ -193,7 +193,7 @@
                 "rust-client.channel": {
                     "type": [
                         "string",
-                        null
+                        "null"
                     ],
                     "enum": [
                         "stable",

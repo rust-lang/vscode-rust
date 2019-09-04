@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Fix `rust-client.channel` config type in package.json
+
 ### 0.6.2 - 2019-09-04
 
 * Deprecate `rust.use_crate_blacklist` in favor of newly added `rust.crate_blacklist` (supported by RLS 1.38)

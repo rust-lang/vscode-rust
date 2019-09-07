@@ -1,5 +1,7 @@
 ### Unreleased
 
+### 0.6.3 - 2019-09-07
+
 * Fix `rust-client.channel` config type in package.json
 
 ### 0.6.2 - 2019-09-04

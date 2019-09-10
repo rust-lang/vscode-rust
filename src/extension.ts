@@ -108,6 +108,7 @@ function whenOpeningTextDocument(
 let _sortedWorkspaceFolders: string[] | undefined;
 
 function sortedWorkspaceFolders(): string[] {
+  // TODO: decouple the global state such that it can be moved to workspace_util
   if (!_sortedWorkspaceFolders && workspace.workspaceFolders) {
     _sortedWorkspaceFolders = workspace.workspaceFolders
       .map(folder => {
@@ -126,6 +127,7 @@ function sortedWorkspaceFolders(): string[] {
 
 
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
+  // TODO: decouple the global state such that it can be moved to workspace_util
   const sorted = sortedWorkspaceFolders();
   for (const element of sorted) {
     let uri = folder.uri.toString();

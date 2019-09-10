@@ -175,7 +175,7 @@ function whenChangingWorkspaceFolders(
 // Don't use URI as it's unreliable the same path might not become the same URI.
 const workspaces: Map<string, ClientWorkspace> = new Map();
 let activeWorkspace: ClientWorkspace | null;
-let commandsUnregistered: boolean = true;
+let commandsRegistered: boolean = false;
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
@@ -279,7 +279,7 @@ class ClientWorkspace {
     }
 
     this.disposables.forEach(d => d.dispose());
-    commandsUnregistered = true;
+    commandsRegistered = false;
   }
 
   private registerCommands(
@@ -289,11 +289,11 @@ class ClientWorkspace {
     if (!this.lc) {
       return;
     }
-    if (multiProjectEnabled && !commandsUnregistered) {
+    if (multiProjectEnabled && commandsRegistered) {
       return;
     }
 
-    commandsUnregistered = false;
+    commandsRegistered = true;
     const rustupUpdateDisposable = commands.registerCommand(
       'rls.update',
       () => {

@@ -10,11 +10,6 @@ export function nearestParentWorkspace(
     filePath: string,
   ): WorkspaceFolder {
 
-
-    if (!curWorkspace) {
-      return curWorkspace;
-    }
-
     const workspaceRoot = path.parse(curWorkspace.uri.fsPath).dir;
     const rootManifest = path.join(workspaceRoot, 'Cargo.toml');
     if (fs.existsSync(rootManifest)) {

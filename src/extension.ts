@@ -45,10 +45,10 @@ interface ProgressParams {
 export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
 
-  workspace.onDidOpenTextDocument(doc => didOpenTextDocument(doc, context));
-  workspace.textDocuments.forEach(doc => didOpenTextDocument(doc, context));
+  workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc, context));
+  workspace.textDocuments.forEach(doc => whenOpeningTextDocument(doc, context));
   workspace.onDidChangeWorkspaceFolders(e =>
-    didChangeWorkspaceFolders(e, context),
+    whenChangingWorkspaceFolders(e, context),
   );
 }
 
@@ -57,7 +57,7 @@ export async function deactivate() {
 }
 
 // Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
-function didOpenTextDocument(
+function whenOpeningTextDocument(
   document: TextDocument,
   context: ExtensionContext,
 ) {
@@ -71,17 +71,17 @@ function didOpenTextDocument(
     return;
   }
 
-  if (
-    workspace
+  const inMultiProjectMode = workspace
       .getConfiguration()
-      .get<boolean>('rust-client.enableMultiProjectSetup', false)
-  ) {
-    folder = getCargoTomlWorkspace(folder, document.uri.fsPath);
-  } else if (
-    workspace
-      .getConfiguration()
-      .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true)
-  ) {
+      .get<boolean>('rust-client.enableMultiProjectSetup', false);
+
+  const inNestedOuterProjectMode = workspace
+        .getConfiguration()
+        .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
+
+  if (inMultiProjectMode) {
+    folder = workspace_util.nearestParentWorkspace(folder, document.uri.fsPath);
+  } else if (inNestedOuterProjectMode) {
     folder = getOuterMostWorkspaceFolder(folder);
   }
 
@@ -139,7 +139,7 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
   return folder;
 }
 
-function didChangeWorkspaceFolders(
+function whenChangingWorkspaceFolders(
   e: WorkspaceFoldersChangeEvent,
   context: ExtensionContext,
 ) {

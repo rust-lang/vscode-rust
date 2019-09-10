@@ -21,7 +21,6 @@ import {
   ServerOptions,
 } from 'vscode-languageclient';
 
-import * as workspace_util from './workspace_util';
 import { RLSConfiguration } from './configuration';
 import { SignatureHelpProvider } from './providers/signatureHelpProvider';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
@@ -29,6 +28,7 @@ import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
+import * as workspace_util from './workspace_util';
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.
@@ -72,12 +72,12 @@ function whenOpeningTextDocument(
   }
 
   const inMultiProjectMode = workspace
-      .getConfiguration()
-      .get<boolean>('rust-client.enableMultiProjectSetup', false);
+    .getConfiguration()
+    .get<boolean>('rust-client.enableMultiProjectSetup', false);
 
   const inNestedOuterProjectMode = workspace
-        .getConfiguration()
-        .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
+    .getConfiguration()
+    .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
 
   if (inMultiProjectMode) {
     folder = workspace_util.nearestParentWorkspace(folder, document.uri.fsPath);
@@ -124,7 +124,6 @@ function sortedWorkspaceFolders(): string[] {
   }
   return _sortedWorkspaceFolders || [];
 }
-
 
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
   // TODO: decouple the global state such that it can be moved to workspace_util

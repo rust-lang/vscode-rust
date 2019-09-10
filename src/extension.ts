@@ -21,6 +21,7 @@ import {
   ServerOptions,
 } from 'vscode-languageclient';
 
+import * as workspace_util from './workspace_util';
 import { RLSConfiguration } from './configuration';
 import { SignatureHelpProvider } from './providers/signatureHelpProvider';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
@@ -123,40 +124,6 @@ function sortedWorkspaceFolders(): string[] {
   return _sortedWorkspaceFolders || [];
 }
 
-function getCargoTomlWorkspace(
-  curWorkspace: WorkspaceFolder,
-  filePath: string,
-): WorkspaceFolder {
-  if (!curWorkspace) {
-    return curWorkspace;
-  }
-
-  const workspaceRoot = path.parse(curWorkspace.uri.fsPath).dir;
-  const rootManifest = path.join(workspaceRoot, 'Cargo.toml');
-  if (fs.existsSync(rootManifest)) {
-    return curWorkspace;
-  }
-
-  let current = filePath;
-
-  while (true) {
-    const old = current;
-    current = path.dirname(current);
-    if (old === current) {
-      break;
-    }
-    if (workspaceRoot === path.parse(current).dir) {
-      break;
-    }
-
-    const cargoPath = path.join(current, 'Cargo.toml');
-    if (fs.existsSync(cargoPath)) {
-      return { ...curWorkspace, uri: Uri.parse(current) };
-    }
-  }
-
-  return curWorkspace;
-}
 
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
   const sorted = sortedWorkspaceFolders();

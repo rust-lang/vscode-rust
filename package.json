@@ -302,10 +302,7 @@
                     "deprecationMessage": "Use `rust.crate_blacklist` instead"
                 },
                 "rust.crate_blacklist": {
-                    "type": [
-                        "array",
-                        "null"
-                    ],
+                    "type": "array",
                     "default": [
                         "cocoa",
                         "gleam",

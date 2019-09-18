@@ -28,6 +28,7 @@ import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
+import * as workspace_util from './workspace_util';
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.
@@ -44,10 +45,10 @@ interface ProgressParams {
 export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
 
-  workspace.onDidOpenTextDocument(doc => didOpenTextDocument(doc, context));
-  workspace.textDocuments.forEach(doc => didOpenTextDocument(doc, context));
+  workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc, context));
+  workspace.textDocuments.forEach(doc => whenOpeningTextDocument(doc, context));
   workspace.onDidChangeWorkspaceFolders(e =>
-    didChangeWorkspaceFolders(e, context),
+    whenChangingWorkspaceFolders(e, context),
   );
 }
 
@@ -56,7 +57,7 @@ export async function deactivate() {
 }
 
 // Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
-function didOpenTextDocument(
+function whenOpeningTextDocument(
   document: TextDocument,
   context: ExtensionContext,
 ) {
@@ -69,23 +70,36 @@ function didOpenTextDocument(
   if (!folder) {
     return;
   }
-  if (
-    workspace
-      .getConfiguration()
-      .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true)
-  ) {
+
+  const inMultiProjectMode = workspace
+    .getConfiguration()
+    .get<boolean>('rust-client.enableMultiProjectSetup', false);
+
+  const inNestedOuterProjectMode = workspace
+    .getConfiguration()
+    .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
+
+  if (inMultiProjectMode) {
+    folder = workspace_util.nearestParentWorkspace(folder, document.uri.fsPath);
+  } else if (inNestedOuterProjectMode) {
     folder = getOuterMostWorkspaceFolder(folder);
   }
-  // folder = getCargoTomlWorkspace(folder, document.uri.fsPath);
+
   if (!folder) {
     stopSpinner(`RLS: Cargo.toml missing`);
     return;
   }
 
-  if (!workspaces.has(folder.uri)) {
+  const folderPath = folder.uri.toString();
+
+  if (!workspaces.has(folderPath)) {
     const workspace = new ClientWorkspace(folder);
-    workspaces.set(folder.uri, workspace);
+    activeWorkspace = workspace;
+    workspaces.set(folderPath, workspace);
     workspace.start(context);
+  } else {
+    const ws = workspaces.get(folderPath);
+    activeWorkspace = typeof ws === 'undefined' ? null : ws;
   }
 }
 
@@ -94,6 +108,7 @@ function didOpenTextDocument(
 let _sortedWorkspaceFolders: string[] | undefined;
 
 function sortedWorkspaceFolders(): string[] {
+  // TODO: decouple the global state such that it can be moved to workspace_util
   if (!_sortedWorkspaceFolders && workspace.workspaceFolders) {
     _sortedWorkspaceFolders = workspace.workspaceFolders
       .map(folder => {
@@ -110,39 +125,8 @@ function sortedWorkspaceFolders(): string[] {
   return _sortedWorkspaceFolders || [];
 }
 
-// function getCargoTomlWorkspace(cur_workspace: WorkspaceFolder, file_path: string): WorkspaceFolder {
-//     if (!cur_workspace) {
-//         return cur_workspace;
-//     }
-
-//     const workspace_root = path.parse(cur_workspace.uri.fsPath).dir;
-//     const root_manifest = path.join(workspace_root, 'Cargo.toml');
-//     if (fs.existsSync(root_manifest)) {
-//         return cur_workspace;
-//     }
-
-//     let current = file_path;
-
-//     while (true) {
-//         const old = current;
-//         current = path.dirname(current);
-//         if (old == current) {
-//             break;
-//         }
-//         if (workspace_root == path.parse(current).dir) {
-//             break;
-//         }
-
-//         const cargo_path = path.join(current, 'Cargo.toml');
-//         if (fs.existsSync(cargo_path)) {
-//             return { ...cur_workspace, uri: Uri.parse(current) };
-//         }
-//     }
-
-//     return cur_workspace;
-// }
-
 function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
+  // TODO: decouple the global state such that it can be moved to workspace_util
   const sorted = sortedWorkspaceFolders();
   for (const element of sorted) {
     let uri = folder.uri.toString();
@@ -156,7 +140,7 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
   return folder;
 }
 
-function didChangeWorkspaceFolders(
+function whenChangingWorkspaceFolders(
   e: WorkspaceFoldersChangeEvent,
   context: ExtensionContext,
 ) {
@@ -166,13 +150,13 @@ function didChangeWorkspaceFolders(
   // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
   for (let folder of e.added) {
     folder = getOuterMostWorkspaceFolder(folder);
-    if (workspaces.has(folder.uri)) {
+    if (workspaces.has(folder.uri.toString())) {
       continue;
     }
     for (const f of fs.readdirSync(folder.uri.fsPath)) {
       if (f === 'Cargo.toml') {
         const workspace = new ClientWorkspace(folder);
-        workspaces.set(folder.uri, workspace);
+        workspaces.set(folder.uri.toString(), workspace);
         workspace.start(context);
         break;
       }
@@ -181,15 +165,18 @@ function didChangeWorkspaceFolders(
 
   // If a workspace is removed which is a Rust workspace, kill the client.
   for (const folder of e.removed) {
-    const ws = workspaces.get(folder.uri);
+    const ws = workspaces.get(folder.uri.toString());
     if (ws) {
-      workspaces.delete(folder.uri);
+      workspaces.delete(folder.uri.toString());
       ws.stop();
     }
   }
 }
 
-const workspaces: Map<Uri, ClientWorkspace> = new Map();
+// Don't use URI as it's unreliable the same path might not become the same URI.
+const workspaces: Map<string, ClientWorkspace> = new Map();
+let activeWorkspace: ClientWorkspace | null;
+let commandsRegistered: boolean = false;
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
@@ -209,7 +196,9 @@ class ClientWorkspace {
   }
 
   public async start(context: ExtensionContext) {
-    warnOnMissingCargoToml();
+    if (!this.config.multiProjectEnabled) {
+      warnOnMissingCargoToml();
+    }
 
     startSpinner('RLS', 'Starting');
 
@@ -217,13 +206,21 @@ class ClientWorkspace {
       await this.autoUpdate();
       return this.makeRlsProcess();
     };
+
+    const pattern = this.config.multiProjectEnabled
+      ? `${this.folder.uri.path}/**`
+      : undefined;
+    const collectionName = this.config.multiProjectEnabled
+      ? `rust ${this.folder.uri.toString()}`
+      : 'rust';
     const clientOptions: LanguageClientOptions = {
       // Register the server for Rust files
+
       documentSelector: [
-        { language: 'rust', scheme: 'file' },
-        { language: 'rust', scheme: 'untitled' },
+        { language: 'rust', scheme: 'file', pattern },
+        { language: 'rust', scheme: 'untitled', pattern },
       ],
-      diagnosticCollectionName: 'rust',
+      diagnosticCollectionName: collectionName,
       synchronize: { configurationSection: 'rust' },
       // Controls when to focus the channel rather than when to reveal it in the drop-down list
       revealOutputChannelOn: this.config.revealOutputChannelOn,
@@ -259,13 +256,17 @@ class ClientWorkspace {
       clientOptions,
     );
 
+    const selector = this.config.multiProjectEnabled
+      ? { language: 'rust', scheme: 'file', pattern }
+      : { language: 'rust' };
+
     this.setupProgressCounter();
-    this.registerCommands(context);
+    this.registerCommands(context, this.config.multiProjectEnabled);
     this.disposables.push(activateTaskProvider(this.folder));
     this.disposables.push(this.lc.start());
     this.disposables.push(
       languages.registerSignatureHelpProvider(
-        { language: 'rust' },
+        selector,
         new SignatureHelpProvider(this.lc),
         '(',
         ',',
@@ -279,31 +280,45 @@ class ClientWorkspace {
     }
 
     this.disposables.forEach(d => d.dispose());
+    commandsRegistered = false;
   }
 
-  private registerCommands(context: ExtensionContext) {
+  private registerCommands(
+    context: ExtensionContext,
+    multiProjectEnabled: boolean,
+  ) {
     if (!this.lc) {
       return;
     }
+    if (multiProjectEnabled && commandsRegistered) {
+      return;
+    }
 
+    commandsRegistered = true;
     const rustupUpdateDisposable = commands.registerCommand(
       'rls.update',
       () => {
-        return rustupUpdate(this.config.rustupConfig());
+        const ws =
+          multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
+        return rustupUpdate(ws.config.rustupConfig());
       },
     );
     this.disposables.push(rustupUpdateDisposable);
 
     const restartServer = commands.registerCommand('rls.restart', async () => {
-      await this.stop();
-      return this.start(context);
+      const ws =
+        multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
+      await ws.stop();
+      return ws.start(context);
     });
     this.disposables.push(restartServer);
 
     this.disposables.push(
-      commands.registerCommand('rls.run', (cmd: Execution) =>
-        runRlsCommand(this.folder, cmd),
-      ),
+      commands.registerCommand('rls.run', (cmd: Execution) => {
+        const ws =
+          multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
+        runRlsCommand(ws.folder, cmd);
+      }),
     );
   }
 
@@ -471,7 +486,7 @@ async function warnOnMissingCargoToml() {
 
   if (files.length < 1) {
     window.showWarningMessage(
-      'A Cargo.toml file must be at the root of the workspace in order to support all features',
+      'A Cargo.toml file must be at the root of the workspace in order to support all features. Alternatively set rust-client.enableMultiProjectSetup=true in settings.',
     );
   }
 }

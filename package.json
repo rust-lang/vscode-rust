@@ -35,6 +35,7 @@
     ],
     "preview": true,
     "activationEvents": [
+        "onCommand:cargo.new",
         "onLanguage:rust",
         "workspaceContains:Cargo.toml"
     ],
@@ -83,6 +84,12 @@
             }
         ],
         "commands": [
+            {
+                "command": "cargo.new",
+                "title": "Create new Cargo project",
+                "description": "Use `cargo new` to create a new Rust project",
+                "category": "Rust"
+            },
             {
                 "command": "rls.update",
                 "title": "Update the RLS",

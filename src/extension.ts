@@ -45,6 +45,81 @@ interface ProgressParams {
 export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
 
+  const createNewProject = commands.registerCommand('cargo.new', async () => {
+    const projectName = await window.showInputBox({
+      prompt: 'Enter the name of the new project',
+      placeHolder: 'Project name',
+      value: 'example',
+      validateInput: (value: string) => {
+        if (!value) {
+          return 'Crate name cannot be empty';
+        }
+
+        return;
+      },
+    });
+    if (!projectName) {
+      return;
+    }
+
+    // Try to use the currently open folder if available.
+    let rootPath = process.cwd();
+    if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+      const rootUri = workspace.workspaceFolders[0].uri;
+      if (rootUri.scheme === 'file') {
+        rootPath = rootUri.fsPath;
+      }
+    }
+
+    const projectPath = await window.showInputBox({
+      prompt: 'Enter the path where to create the project directory',
+      value: path.join(rootPath, projectName),
+    });
+    if (!projectPath) {
+      return;
+    }
+
+    const crateType = await window.showQuickPick(['bin', 'lib'], {
+      placeHolder: 'Crate type',
+    });
+    if (!crateType) {
+      return;
+    }
+
+    const edition = await window.showQuickPick(['2018', '2015'], {
+      placeHolder: 'Rust edition',
+    });
+    if (!edition) {
+      return;
+    }
+
+    const vcs = await window.showQuickPick(
+      ['none', 'git', 'hg', 'pijul', 'fossil'],
+      { placeHolder: 'Initialize a Version Control System' },
+    );
+    if (!vcs) {
+      return;
+    }
+
+    child_process.exec(
+      `cargo new --${crateType} --edition ${edition} --vcs ${vcs} --name ${projectName} ${projectPath}`,
+      {},
+      (error, _stdout, _stderr) => {
+        if (error) {
+          window.showErrorMessage(`Failed to run Cargo:\n${error}`);
+          return;
+        }
+
+        workspace.updateWorkspaceFolders(
+          workspace.workspaceFolders ? workspace.workspaceFolders.length : 0,
+          null,
+          { uri: Uri.file(projectPath) },
+        );
+      },
+    );
+  });
+  context.subscriptions.push(createNewProject);
+
   workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc, context));
   workspace.textDocuments.forEach(doc => whenOpeningTextDocument(doc, context));
   workspace.onDidChangeWorkspaceFolders(e =>

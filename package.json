@@ -289,7 +289,7 @@
                 },
                 "rust.wait_to_build": {
                     "type": "number",
-                    "default": 1500,
+                    "default": 300,
                     "description": "Time in milliseconds between receiving a change notification and starting build.",
                     "scope": "resource"
                 },

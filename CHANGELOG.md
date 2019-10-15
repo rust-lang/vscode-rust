@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Implement support for multi-project workspace layout ([#638](https://github.com/rust-lang/rls-vscode/pull/638))
+
 ### 0.6.3 - 2019-09-07
 
 * Fix `rust-client.channel` config type in package.json

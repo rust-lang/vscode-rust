@@ -1,7 +1,19 @@
 ### Unreleased
 
-* Implement support for multi-project workspace layout ([#638](https://github.com/rust-lang/rls-vscode/pull/638))
+### 0.7.0 - 2019-10-15
+
+* Implement support for multi-project workspace layout 🎉
 * Remove deprecated `rust.use_crate_blacklist` configuration entry
+
+#### Contributors
+This minor release was possible thanks to:
+* Alex Tugarev
+* Igor Matuszewski
+* Jannick Johnsen
+* lwshang
+* Nickolay Ponomarev
+
+(Generated via `git shortlog -s --no-merges 0.6.0...0.7.0 | cut -f2 | sort`)
 
 ### 0.6.3 - 2019-09-07
 

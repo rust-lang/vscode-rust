@@ -45,6 +45,32 @@ interface ProgressParams {
 export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
 
+  commands.registerCommand(
+    'rls.start',
+    () => {
+      let editor = window.activeTextEditor;
+      if (editor == null) {
+        return;
+      }
+      let document: TextDocument = editor.document;
+      startRlsForDocument(document, context, true);
+    },
+  );
+  commands.registerCommand(
+    'rls.stop',
+    () => {
+      let editor = window.activeTextEditor;
+      if (editor == null) {
+        return;
+      }
+      let document: TextDocument = editor.document;
+      let ws = getDocumentWorkspace(document);
+      if (ws) {
+        ws.stop();
+        stopSpinner("");
+      }
+    },
+  );
   workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc, context));
   workspace.textDocuments.forEach(doc => whenOpeningTextDocument(doc, context));
   workspace.onDidChangeWorkspaceFolders(e =>
@@ -56,10 +82,47 @@ export async function deactivate() {
   return Promise.all([...workspaces.values()].map(ws => ws.stop()));
 }
 
-// Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
-function whenOpeningTextDocument(
+function getDocumentWorkspace(
+  document: TextDocument
+): ClientWorkspace | undefined {
+  if (document.languageId !== 'rust' && document.languageId !== 'toml') {
+    return;
+  }
+
+  const uri = document.uri;
+  let folder = workspace.getWorkspaceFolder(uri);
+  if (!folder) {
+    return;
+  }
+
+  const inMultiProjectMode = workspace
+    .getConfiguration()
+    .get<boolean>('rust-client.enableMultiProjectSetup', false);
+
+  const inNestedOuterProjectMode = workspace
+    .getConfiguration()
+    .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
+
+  if (inMultiProjectMode) {
+    folder = workspace_util.nearestParentWorkspace(folder, document.uri.fsPath);
+  } else if (inNestedOuterProjectMode) {
+    folder = getOuterMostWorkspaceFolder(folder);
+  }
+
+  if (!folder) {
+    stopSpinner(`RLS: Cargo.toml missing`);
+    return;
+  }
+
+  const folderPath = folder.uri.toString();
+
+  return workspaces.get(folderPath);
+}
+
+function startRlsForDocument(
   document: TextDocument,
   context: ExtensionContext,
+  manual_start: boolean | undefined,
 ) {
   if (document.languageId !== 'rust' && document.languageId !== 'toml') {
     return;
@@ -96,11 +159,26 @@ function whenOpeningTextDocument(
     const workspace = new ClientWorkspace(folder);
     activeWorkspace = workspace;
     workspaces.set(folderPath, workspace);
-    workspace.start(context);
+    if (manual_start === true){
+      workspace.start(context);
+    } else {
+      workspace.auto_start(context);
+    }
   } else {
     const ws = workspaces.get(folderPath);
     activeWorkspace = typeof ws === 'undefined' ? null : ws;
+    if (ws !== undefined && manual_start === true){
+      ws.start(context);
+    }
   }
+}
+
+// Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
+function whenOpeningTextDocument(
+  document: TextDocument,
+  context: ExtensionContext,
+) {
+  startRlsForDocument(document, context, false);
 }
 
 // This is an intermediate, lazy cache used by `getOuterMostWorkspaceFolder`
@@ -157,7 +235,7 @@ function whenChangingWorkspaceFolders(
       if (f === 'Cargo.toml') {
         const workspace = new ClientWorkspace(folder);
         workspaces.set(folder.uri.toString(), workspace);
-        workspace.start(context);
+        workspace.auto_start(context);
         break;
       }
     }
@@ -195,7 +273,17 @@ class ClientWorkspace {
     this.disposables = [];
   }
 
+  public auto_start(context: ExtensionContext) {
+    if (this.config.autoStartRls) {
+      this.start(context);
+    }
+  }
+
   public async start(context: ExtensionContext) {
+    if (this.lc !== null) {
+      return;
+    }
+    
     if (!this.config.multiProjectEnabled) {
       warnOnMissingCargoToml();
     }
@@ -277,6 +365,7 @@ class ClientWorkspace {
   public async stop() {
     if (this.lc) {
       await this.lc.stop();
+      this.lc = null;
     }
 
     this.disposables.forEach(d => d.dispose());

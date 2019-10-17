@@ -94,6 +94,18 @@
                 "title": "Restart the RLS",
                 "description": "Sometimes, it's just best to try turning it off and on again",
                 "category": "Rust"
+            },
+            {
+                "command": "rls.start",
+                "title": "Start the RLS",
+                "description": "Start the RLS (when rust.autoStartRls is false or when manually stopped)",
+                "category": "Rust"
+            },
+            {
+                "command": "rls.stop",
+                "title": "Stop the RLS",
+                "description": "Stop the RLS for a workspace until manually started again",
+                "category": "Rust"
             }
         ],
         "taskDefinitions": [
@@ -419,6 +431,11 @@
                     "default": true,
                     "description": "Show additional context in hover tooltips when available. This is often the type local variable declaration.",
                     "scope": "resource"
+                },
+                "rust.autoStartRls": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Start rls automatically when opening a file or project."
                 }
             }
         }

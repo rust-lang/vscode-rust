@@ -125,6 +125,13 @@ export class RLSConfiguration {
     );
   }
 
+  public get autoStartRls(): boolean {
+    return this.configuration.get<boolean>(
+      'rust.autoStartRls',
+      true,
+    );
+  }
+
   // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.
   public rustupConfig(ignoreChannel: boolean = false): RustupConfig {
     return {

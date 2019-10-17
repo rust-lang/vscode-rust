@@ -48,23 +48,23 @@ export async function activate(context: ExtensionContext) {
   commands.registerCommand(
     'rls.start',
     () => {
-      let editor = window.activeTextEditor;
+      const editor = window.activeTextEditor;
       if (editor == null) {
         return;
       }
-      let document: TextDocument = editor.document;
+      const document: TextDocument = editor.document;
       startRlsForDocument(document, context, true);
     },
   );
   commands.registerCommand(
     'rls.stop',
     () => {
-      let editor = window.activeTextEditor;
+      const editor = window.activeTextEditor;
       if (editor == null) {
         return;
       }
-      let document: TextDocument = editor.document;
-      let ws = getDocumentWorkspace(document);
+      const document: TextDocument = editor.document;
+      const ws = getDocumentWorkspace(document);
       if (ws) {
         ws.stop();
         stopSpinner("");
@@ -122,7 +122,7 @@ function getDocumentWorkspace(
 function startRlsForDocument(
   document: TextDocument,
   context: ExtensionContext,
-  manual_start: boolean | undefined,
+  manualStart: boolean | undefined,
 ) {
   if (document.languageId !== 'rust' && document.languageId !== 'toml') {
     return;
@@ -159,7 +159,7 @@ function startRlsForDocument(
     const workspace = new ClientWorkspace(folder);
     activeWorkspace = workspace;
     workspaces.set(folderPath, workspace);
-    if (manual_start === true){
+    if (manualStart === true){
       workspace.start(context);
     } else {
       workspace.auto_start(context);
@@ -167,7 +167,7 @@ function startRlsForDocument(
   } else {
     const ws = workspaces.get(folderPath);
     activeWorkspace = typeof ws === 'undefined' ? null : ws;
-    if (ws !== undefined && manual_start === true){
+    if (ws !== undefined && manualStart === true){
       ws.start(context);
     }
   }

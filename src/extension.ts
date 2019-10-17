@@ -45,32 +45,26 @@ interface ProgressParams {
 export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
 
-  commands.registerCommand(
-    'rls.start',
-    () => {
-      const editor = window.activeTextEditor;
-      if (editor == null) {
-        return;
-      }
-      const document: TextDocument = editor.document;
-      startRlsForDocument(document, context, true);
-    },
-  );
-  commands.registerCommand(
-    'rls.stop',
-    () => {
-      const editor = window.activeTextEditor;
-      if (editor == null) {
-        return;
-      }
-      const document: TextDocument = editor.document;
-      const ws = getDocumentWorkspace(document);
-      if (ws) {
-        ws.stop();
-        stopSpinner("");
-      }
-    },
-  );
+  commands.registerCommand('rls.start', () => {
+    const editor = window.activeTextEditor;
+    if (editor == null) {
+      return;
+    }
+    const document: TextDocument = editor.document;
+    startRlsForDocument(document, context, true);
+  });
+  commands.registerCommand('rls.stop', () => {
+    const editor = window.activeTextEditor;
+    if (editor == null) {
+      return;
+    }
+    const document: TextDocument = editor.document;
+    const ws = getDocumentWorkspace(document);
+    if (ws) {
+      ws.stop();
+      stopSpinner('');
+    }
+  });
   workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc, context));
   workspace.textDocuments.forEach(doc => whenOpeningTextDocument(doc, context));
   workspace.onDidChangeWorkspaceFolders(e =>
@@ -83,7 +77,7 @@ export async function deactivate() {
 }
 
 function getDocumentWorkspace(
-  document: TextDocument
+  document: TextDocument,
 ): ClientWorkspace | undefined {
   if (document.languageId !== 'rust' && document.languageId !== 'toml') {
     return;
@@ -159,7 +153,7 @@ function startRlsForDocument(
     const workspace = new ClientWorkspace(folder);
     activeWorkspace = workspace;
     workspaces.set(folderPath, workspace);
-    if (manualStart === true){
+    if (manualStart === true) {
       workspace.start(context);
     } else {
       workspace.auto_start(context);
@@ -167,7 +161,7 @@ function startRlsForDocument(
   } else {
     const ws = workspaces.get(folderPath);
     activeWorkspace = typeof ws === 'undefined' ? null : ws;
-    if (ws !== undefined && manualStart === true){
+    if (ws !== undefined && manualStart === true) {
       ws.start(context);
     }
   }
@@ -283,7 +277,7 @@ class ClientWorkspace {
     if (this.lc !== null) {
       return;
     }
-    
+
     if (!this.config.multiProjectEnabled) {
       warnOnMissingCargoToml();
     }

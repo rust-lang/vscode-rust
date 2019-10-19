@@ -362,8 +362,9 @@ class ClientWorkspace {
     const rustcPrintSysroot = () =>
       this.config.rustupDisabled
         ? wslWrapper.exec('rustc --print sysroot', { env })
-        : wslWrapper.exec(
-            `${this.config.rustupPath} run ${this.config.channel} rustc --print sysroot`,
+        : wslWrapper.execFile(
+            this.config.rustupPath,
+            ['run', this.config.channel, 'rustc', '--print', 'sysroot'],
             { env },
           );
 
@@ -416,7 +417,7 @@ class ClientWorkspace {
 
   private async makeRlsProcess(): Promise<child_process.ChildProcess> {
     // Run "rls" from the PATH unless there's an override.
-    const rlsPath = this.config.rlsPath || 'rls';
+    const rlsPath = this.config.rlsPathQuotes || 'rls';
 
     // We don't need to set [DY]LD_LIBRARY_PATH if we're using rustup,
     // as rustup will set it for us when it chooses a toolchain.
@@ -451,8 +452,9 @@ class ClientWorkspace {
       }
 
       const env = await makeRlsEnv();
+
       childProcess = withWsl(config.useWSL).spawn(
-        config.path,
+        config.pathQuotes,
         ['run', config.channel, rlsPath],
         { env, cwd, shell: true },
       );

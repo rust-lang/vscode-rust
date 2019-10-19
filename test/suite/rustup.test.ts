@@ -9,6 +9,7 @@ assert(rustupVersion);
 
 const config: rustup.RustupConfig = {
   path: 'rustup',
+  pathQuotes: 'rustup',
   channel: 'stable',
   // TODO: Detect if we're running in Windows and if wsl works?
   useWSL: false,
@@ -21,5 +22,9 @@ suite('Rustup Tests', () => {
   });
   test('getActiveChannel', async () => {
     rustup.getActiveChannel('.', config);
+  });
+  test('installRlsComponents', async function() {
+    this.timeout(30000);
+    await rustup.installRlsComponents(config);
   });
 });

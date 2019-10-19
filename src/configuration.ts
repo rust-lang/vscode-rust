@@ -79,6 +79,10 @@ export class RLSConfiguration {
     return this.configuration.get('rust-client.rustupPath', 'rustup');
   }
 
+  public get rustupPathQuotes(): string {
+    return '"' + this.rustupPath + '"';
+  }
+
   public get useWSL(): boolean {
     return this.configuration.get<boolean>('rust-client.useWSL', false);
   }
@@ -118,6 +122,10 @@ export class RLSConfiguration {
     return this.configuration.get<string>('rust-client.rlsPath');
   }
 
+  public get rlsPathQuotes(): string | undefined {
+    return this.rlsPath ? '"' + this.rlsPath + '"' : undefined;
+  }
+
   public get multiProjectEnabled(): boolean {
     return this.configuration.get<boolean>(
       'rust-client.enableMultiProjectSetup',
@@ -130,6 +138,7 @@ export class RLSConfiguration {
     return {
       channel: ignoreChannel ? '' : this.channel,
       path: this.rustupPath,
+      pathQuotes: this.rustupPathQuotes,
       useWSL: this.useWSL,
     };
   }

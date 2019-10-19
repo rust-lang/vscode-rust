@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import {
   Disposable,
+  ProcessExecution,
   ShellExecution,
   Task,
   TaskGroup,
@@ -127,6 +128,9 @@ export async function runTaskCommand(
   displayName: string,
   folder?: WorkspaceFolder,
 ) {
+  if (!command) {
+    return;
+  }
   const uniqueId = crypto.randomBytes(20).toString();
 
   const task = new Task(
@@ -134,7 +138,7 @@ export async function runTaskCommand(
     folder ? folder : workspace.workspaceFolders![0],
     displayName,
     TASK_SOURCE,
-    new ShellExecution(`${command} ${args.join(' ')}`, {
+    new ProcessExecution(command, args, {
       cwd: cwd || (folder && folder.uri.fsPath),
       env,
     }),

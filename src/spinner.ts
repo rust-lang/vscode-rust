@@ -21,4 +21,4 @@ export function stopSpinner(message: string) {
 }
 
 let spinnerTimer: NodeJS.Timer | null = null;
-const spinner = ['◐', '◓', '◑', '◒'];
+const spinner = ['🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔'];

@@ -385,18 +385,22 @@ class ClientWorkspace {
     const env = { ...process.env };
 
     let sysroot: string | undefined;
-    try {
-      sysroot = await this.getSysroot(env);
-    } catch (err) {
-      console.info(err.message);
-      console.info(`Let's retry with extended $PATH`);
-      env.PATH = `${env.HOME || '~'}/.cargo/bin:${env.PATH || ''}`;
+    if (this.config.sysroot !== '') {
+      sysroot = this.config.sysroot;
+    } else {
       try {
         sysroot = await this.getSysroot(env);
-      } catch (e) {
-        console.warn('Error reading sysroot (second try)', e);
-        window.showWarningMessage(`Error reading sysroot: ${e.message}`);
-        return env;
+      } catch (err) {
+        console.info(err.message);
+        console.info(`Let's retry with extended $PATH`);
+        env.PATH = `${env.HOME || '~'}/.cargo/bin:${env.PATH || ''}`;
+        try {
+          sysroot = await this.getSysroot(env);
+        } catch (e) {
+          console.warn('Error reading sysroot (second try)', e);
+          window.showWarningMessage(`Error reading sysroot: ${e.message}`);
+          return env;
+        }
       }
     }
 

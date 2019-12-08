@@ -79,6 +79,10 @@ export class RLSConfiguration {
     return this.configuration.get('rust-client.rustupPath', 'rustup');
   }
 
+  public get sysroot(): string {
+    return this.configuration.get('rust.sysroot', '');
+  }
+
   public get useWSL(): boolean {
     return this.configuration.get<boolean>('rust-client.useWSL', false);
   }

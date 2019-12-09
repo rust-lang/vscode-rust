@@ -273,8 +273,6 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     activeChannel = parseActiveToolchain(showOutput);
   }
 
-  console.info(
-    `Using active channel: ${activeChannel}`,
-  );
+  console.info(`Using active channel: ${activeChannel}`);
   return activeChannel;
 }

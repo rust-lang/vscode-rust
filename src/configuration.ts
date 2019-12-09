@@ -62,7 +62,7 @@ export class RLSConfiguration {
     configuration: WorkspaceConfiguration,
   ): string {
     const channel = configuration.get<string>('rust-client.channel');
-    if(channel === 'default' || !channel) {
+    if (channel === 'default' || !channel) {
       try {
         return getActiveChannel(wsPath, rustupConfiguration);
       } catch (e) {

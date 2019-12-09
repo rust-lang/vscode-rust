@@ -62,16 +62,25 @@ export class RLSConfiguration {
     configuration: WorkspaceConfiguration,
   ): string {
     const channel = configuration.get<string>('rust-client.channel');
-    if (channel) {
+    if(channel && channel === "default") {
+      return RLSConfiguration.defaultOrNightly(wsPath, rustupConfiguration);
+    } else if(channel) {
       return channel;
     } else {
-      try {
-        return getActiveChannel(wsPath, rustupConfiguration);
-      } catch (e) {
-        // rustup might not be installed at the time the configuration is
-        // initially loaded, so silently ignore the error and return a default value
-        return 'nightly';
-      }
+      return RLSConfiguration.defaultOrNightly(wsPath, rustupConfiguration);
+    }
+  }
+  
+  private static defaultOrNightly(
+    wsPath: string,
+    rustupConfiguration: RustupConfig,
+  ): string {
+    try {
+      return getActiveChannel(wsPath, rustupConfiguration);
+    } catch (e) {
+      // rustup might not be installed at the time the configuration is
+      // initially loaded, so silently ignore the error and return a default value
+      return 'nightly';
     }
   }
 

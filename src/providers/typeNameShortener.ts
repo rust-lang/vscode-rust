@@ -147,7 +147,7 @@ export class GreedySimplifier {
       );
       for (const subType of part.children) {
         const simplifiedSubType = this.simplify(subType);
-        if (simplifiedSubType.stringify() !== '') {
+        if (simplifiedSubType.parts.length > 0) {
           semiType.children.push(simplifiedSubType);
         }
       }

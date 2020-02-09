@@ -1,9 +1,31 @@
 ### Unreleased
 
-### 0.6.2 - 2019-05-10
+* Use dynamic `wait_to_build` in RLS by default rather than setting it to 1500ms
 
-* Added type annotations _à la_ CLion.
+### 0.7.0 - 2019-10-15
 
+* Implement support for multi-project workspace layout 🎉
+* Remove deprecated `rust.use_crate_blacklist` configuration entry
+
+#### Contributors
+This minor release was possible thanks to:
+* Alex Tugarev
+* Igor Matuszewski
+* Jannick Johnsen
+* lwshang
+* Nickolay Ponomarev
+
+(Generated via `git shortlog -s --no-merges 0.6.0...0.7.0 | cut -f2 | sort`)
+
+### 0.6.3 - 2019-09-07
+
+* Fix `rust-client.channel` config type in package.json
+
+### 0.6.2 - 2019-09-04
+
+* Deprecate `rust.use_crate_blacklist` in favor of newly added `rust.crate_blacklist` (supported by RLS 1.38)
+* Expand `~` in `rust-client.{rustup,rls}Path` settings
+* Deprecate `rust-client.useWSL` setting (use [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension instead)
 
 ### 0.6.1 - 2019-04-04
 

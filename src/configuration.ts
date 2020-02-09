@@ -1,4 +1,4 @@
-import { workspace, WorkspaceConfiguration } from 'vscode';
+import { window, workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
 
 import { getActiveChannel, RustupConfig } from './rustup';
@@ -26,6 +26,14 @@ export class RLSConfiguration {
   private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
     this.configuration = configuration;
     this.wsPath = wsPath;
+
+    if (this.configuration.get<boolean>('rust-client.useWSL')) {
+      window.showWarningMessage(
+        'Option `rust-client.useWsl` is enabled for this workspace, which is DEPRECATED.\
+        For a complete and first-class WSL support try Remote - WSL extension \
+        extension (https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)',
+      );
+    }
   }
 
   public static loadFromWorkspace(wsPath: string): RLSConfiguration {
@@ -108,6 +116,13 @@ export class RLSConfiguration {
    */
   public get rlsPath(): string | undefined {
     return this.configuration.get<string>('rust-client.rlsPath');
+  }
+
+  public get multiProjectEnabled(): boolean {
+    return this.configuration.get<boolean>(
+      'rust-client.enableMultiProjectSetup',
+      false,
+    );
   }
 
   // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.

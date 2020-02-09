@@ -2,7 +2,7 @@
     "name": "rust",
     "displayName": "Rust (rls)",
     "description": "Rust language support - code completion, Intellisense, refactoring, reformatting, errors, snippets. A client for the Rust Language Server, built by the RLS team.",
-    "version": "0.6.2",
+    "version": "0.7.0",
     "publisher": "rust-lang",
     "icon": "rust-icon.png",
     "galleryBanner": {
@@ -38,30 +38,33 @@
         "onLanguage:rust",
         "workspaceContains:Cargo.toml"
     ],
-    "main": "./out/extension.js",
+    "main": "./out/src/extension.js",
     "scripts": {
         "vscode:prepublish": "npm run check:version && npm run lint && npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "lint": "tslint --config ./tslint.json './src/**/*.ts'",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test",
+        "test": "node ./out/test/runTest.js",
         "prettier": "prettier **/*.ts",
         "check:version": "node cmd/check-version.js",
-        "postinstall": "node ./node_modules/vscode/bin/install",
         "installDevExtension": "npm install && ./node_modules/.bin/vsce package -o ./out/rls-vscode-dev.vsix && code --install-extension ./out/rls-vscode-dev.vsix"
     },
     "dependencies": {
         "vscode-languageclient": "^4.3.0"
     },
     "devDependencies": {
-        "@types/mocha": "^2.2.43",
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.6",
         "@types/node": "~10.1.0",
+        "@types/vscode": "^1.31.0",
+        "glob": "^7.1.4",
+        "mocha": "^6.1.4",
         "prettier": "^1.16.4",
         "tslint": "^5.14.0",
         "tslint-config-prettier": "^1.18.0",
         "typescript": "^3.0.0",
-        "vsce": "^1.58.0",
-        "vscode": "^1.1.34"
+        "vsce": "^1.63.0",
+        "vscode-test": "^0.4.3"
     },
     "contributes": {
         "colors": [{
@@ -199,7 +202,7 @@
                 "rust-client.channel": {
                     "type": [
                         "string",
-                        null
+                        "null"
                     ],
                     "enum": [
                         "stable",
@@ -224,6 +227,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "If one root workspace folder is nested in another root folder, look for the Rust config in the outermost root."
+                },
+                "rust-client.enableMultiProjectSetup": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Allow multiple projects in the same folder, along with remove the constraint that the cargo.toml must be located at the root. (Experimental: might not work for certain setups)"
                 },
                 "rust.sysroot": {
                     "type": [
@@ -289,8 +297,11 @@
                     "scope": "resource"
                 },
                 "rust.wait_to_build": {
-                    "type": "number",
-                    "default": 1500,
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "default": null,
                     "description": "Time in milliseconds between receiving a change notification and starting build.",
                     "scope": "resource"
                 },
@@ -300,10 +311,27 @@
                     "description": "Show warnings.",
                     "scope": "resource"
                 },
-                "rust.use_crate_blacklist": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Don't index crates on the crate blacklist.",
+                "rust.crate_blacklist": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "default": [
+                        "cocoa",
+                        "gleam",
+                        "glium",
+                        "idna",
+                        "libc",
+                        "openssl",
+                        "rustc_serialize",
+                        "serde",
+                        "serde_json",
+                        "typenum",
+                        "unicode_normalization",
+                        "unicode_segmentation",
+                        "winapi"
+                    ],
+                    "description": "Overrides the default list of packages for which analysis is skipped.\nAvailable since RLS 1.38",
                     "scope": "resource"
                 },
                 "rust.build_on_save": {
@@ -344,7 +372,7 @@
                         "off"
                     ],
                     "default": "opt-in",
-                    "description": "Controls eagerness of clippy diagnostics when available. Valid values are (case-insensitive):\n - \"off\": Disable clippy lints.\n - \"opt-in\": Clippy lints are shown when crates specify `#![warn(clippy)]`.\n - \"on\": Clippy lints enabled for all crates in workspace.\nYou need to install clippy via rustup if you haven't already.",
+                    "description": "Controls eagerness of clippy diagnostics when available. Valid values are (case-insensitive):\n - \"off\": Disable clippy lints.\n - \"on\": Display the same diagnostics as command-line clippy invoked with no arguments (`clippy::all` unless overridden).\n - \"opt-in\": Only display the lints explicitly enabled in the code. Start by adding `#![warn(clippy::all)]` to the root of each crate you want linted.\nYou need to install clippy via rustup if you haven't already.",
                     "scope": "resource"
                 },
                 "rust.jobs": {

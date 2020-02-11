@@ -78,7 +78,10 @@
         "description": "Unwrap Option with if let"
     },
     "spawn": {
-        "prefix": "thread::spawn",
+        "prefix": [
+            "thread_spawn",
+            "spawn"
+        ],
         "body": [
             "thread::spawn(move || {",
             "\t$0",

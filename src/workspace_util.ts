@@ -34,7 +34,7 @@ export function nearestParentWorkspace(
     const cargoPath = path.join(current, 'Cargo.toml');
     if (fs.existsSync(cargoPath)) {
       // ghetto change the uri on Workspace folder to make vscode think it's located elsewhere
-      return { ...curWorkspace, uri: Uri.parse(current) };
+      return { ...curWorkspace, uri: Uri.file(current) };
     }
   }
 

@@ -8,7 +8,7 @@ export function nearestParentWorkspace(
   filePath: string,
 ): WorkspaceFolder {
   // check that the workspace folder already contains the "Cargo.toml"
-  const workspaceRoot = path.parse(curWorkspace.uri.fsPath).dir;
+  const workspaceRoot = curWorkspace.uri.fsPath;
   const rootManifest = path.join(workspaceRoot, 'Cargo.toml');
   if (fs.existsSync(rootManifest)) {
     return curWorkspace;

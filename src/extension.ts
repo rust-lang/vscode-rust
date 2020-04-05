@@ -310,6 +310,7 @@ class ClientWorkspace {
       const ws =
         multiProjectEnabled && activeWorkspace ? activeWorkspace : this;
       await ws.stop();
+      commandsRegistered = true;
       return ws.start(context);
     });
     this.disposables.push(restartServer);

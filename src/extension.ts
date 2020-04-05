@@ -208,7 +208,7 @@ class ClientWorkspace {
     };
 
     const pattern = this.config.multiProjectEnabled
-      ? `${this.folder.uri.path}/**`
+      ? `**${this.folder.uri.path}/**`
       : undefined;
     const collectionName = this.config.multiProjectEnabled
       ? `rust ${this.folder.uri.toString()}`

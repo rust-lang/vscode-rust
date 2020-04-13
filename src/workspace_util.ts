@@ -25,8 +25,8 @@ export function nearestParentWorkspace(
       break;
     }
 
-    // break in case the strip folder has not changed
-    if (workspaceRoot === path.parse(current).dir) {
+    // break in case the strip folder reached the workspace root
+    if (workspaceRoot === current) {
       break;
     }
 

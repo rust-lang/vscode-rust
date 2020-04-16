@@ -1,5 +1,6 @@
 ### Unreleased
 
+* Limit scope of few extension-specific settings to `machine`
 * Bump required VSCode to 1.36
 * Change `thread::spawn` snippet to activate on `thread_spawn` prefix
 * Use dynamic `wait_to_build` in RLS by default rather than setting it to 1500ms

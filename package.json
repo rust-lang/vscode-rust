@@ -154,7 +154,8 @@
                 "rust-client.rustupPath": {
                     "type": "string",
                     "default": "rustup",
-                    "description": "Path to rustup executable. Ignored if rustup is disabled."
+                    "description": "Path to rustup executable. Ignored if rustup is disabled.",
+                    "scope": "machine"
                 },
                 "rust-client.useWSL": {
                     "type": "boolean",
@@ -167,7 +168,8 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Override RLS path. Only required for RLS developers. If you set this and use rustup, you should also set `rust-client.channel` to ensure your RLS sees the right libraries. If you don't use rustup, make sure to set `rust-client.disableRustup`."
+                    "description": "Override RLS path. Only required for RLS developers. If you set this and use rustup, you should also set `rust-client.channel` to ensure your RLS sees the right libraries. If you don't use rustup, make sure to set `rust-client.disableRustup`.",
+                    "scope": "machine"
                 },
                 "rust-client.revealOutputChannelOn": {
                     "type": "string",

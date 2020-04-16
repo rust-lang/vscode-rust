@@ -1,5 +1,6 @@
 ### Unreleased
 
+* Change `thread::spawn` snippet to activate on `thread_spawn` prefix
 * Use dynamic `wait_to_build` in RLS by default rather than setting it to 1500ms
 
 ### 0.7.0 - 2019-10-15

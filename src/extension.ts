@@ -212,7 +212,7 @@ class ClientWorkspace {
       : undefined;
 
     const collectionName = this.config.multiProjectEnabled
-      ? `rust ${this.folder.uri.path}`
+      ? `rust ${this.folder.uri.toString()}`
       : 'rust';
     const clientOptions: LanguageClientOptions = {
       // Register the server for Rust files

@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Prevent hover with function signature from being shown when declaring the function
+
 ### 0.7.1 - 2020-04-16
 
 * Limit scope of few extension-specific settings to `machine`

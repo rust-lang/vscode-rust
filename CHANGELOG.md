@@ -1,5 +1,7 @@
 ### Unreleased
 
+### 0.7.1 - 2020-04-16
+
 * Limit scope of few extension-specific settings to `machine`
 * Bump required VSCode to 1.36
 * Change `thread::spawn` snippet to activate on `thread_spawn` prefix

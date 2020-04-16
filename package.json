@@ -10,7 +10,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.31.0"
+        "vscode": "^1.36.0"
     },
     "license": "(MIT OR Apache-2.0)",
     "repository": {
@@ -55,7 +55,7 @@
     "devDependencies": {
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.6",
-        "@types/node": "~10.1.0",
+        "@types/node": "^10.10",
         "@types/vscode": "^1.31.0",
         "glob": "^7.1.4",
         "mocha": "^6.1.4",

@@ -207,8 +207,14 @@ class ClientWorkspace {
       return this.makeRlsProcess();
     };
 
+    // Something else is put front of files when pattern matching that prevents the windows version from picking up the files
+    // This should be safe as the uri is a absolute path that includes the drive + colon
+    // i.e. a pattern would become "**/c:/some/path**" and since colon is reserved only the root can ever contain it.
+    const isWin = process.platform === 'win32';
+    const windowsHack = isWin ? '**' : '';
+
     const pattern = this.config.multiProjectEnabled
-      ? `**${this.folder.uri.path}/**`
+      ? `${windowsHack}${this.folder.uri.path}/**`
       : undefined;
 
     const collectionName = this.config.multiProjectEnabled

@@ -8,7 +8,7 @@ export function nearestParentWorkspace(
   filePath: string,
 ): WorkspaceFolder {
   // check that the workspace folder already contains the "Cargo.toml"
-  const workspaceRoot = path.parse(curWorkspace.uri.fsPath).dir;
+  const workspaceRoot = curWorkspace.uri.fsPath;
   const rootManifest = path.join(workspaceRoot, 'Cargo.toml');
   if (fs.existsSync(rootManifest)) {
     return curWorkspace;
@@ -25,8 +25,8 @@ export function nearestParentWorkspace(
       break;
     }
 
-    // break in case the strip folder has not changed
-    if (workspaceRoot === path.parse(current).dir) {
+    // break in case the strip folder reached the workspace root
+    if (workspaceRoot === current) {
       break;
     }
 
@@ -34,7 +34,11 @@ export function nearestParentWorkspace(
     const cargoPath = path.join(current, 'Cargo.toml');
     if (fs.existsSync(cargoPath)) {
       // ghetto change the uri on Workspace folder to make vscode think it's located elsewhere
-      return { ...curWorkspace, uri: Uri.parse(current) };
+      return {
+        ...curWorkspace,
+        name: path.basename(current),
+        uri: Uri.file(current),
+      };
     }
   }
 

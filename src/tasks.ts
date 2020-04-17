@@ -78,7 +78,11 @@ function detectCargoTasks(target: WorkspaceFolder): Task[] {
     .map(({ subcommand, group }) => ({
       definition: { subcommand, type: TASK_TYPE },
       label: `cargo ${subcommand}`,
-      execution: createShellExecution({ command: 'cargo', args: [subcommand] }),
+      execution: createShellExecution({
+        command: 'cargo',
+        args: [subcommand],
+        cwd: target.uri.fsPath,
+      }),
       group,
       problemMatchers: ['$rustc'],
     }))

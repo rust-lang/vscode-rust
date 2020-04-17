@@ -47,11 +47,13 @@ export async function activate(context: ExtensionContext) {
   context.subscriptions.push(...registerCommands());
 
   workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc));
-  workspace.textDocuments.forEach(doc => whenOpeningTextDocument(doc));
   workspace.onDidChangeWorkspaceFolders(e => whenChangingWorkspaceFolders(e));
   window.onDidChangeActiveTextEditor(
     ed => ed && whenOpeningTextDocument(ed.document),
   );
+  // Installed listeners don't fire immediately for already opened files, so
+  // trigger an open event manually to fire up RLS instances where needed
+  workspace.textDocuments.forEach(whenOpeningTextDocument);
 }
 
 export async function deactivate() {

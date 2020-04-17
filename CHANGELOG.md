@@ -1,5 +1,6 @@
 ### Unreleased
 
+* Don't warn on custom `rust-client.channel` value such as `1.39.0` in properties.json
 * Add a new `default` value for `rust-client.channel` (same as setting it explicitly to `null`)
 * Add a self-closing angular (`>`) bracket whenever opening one (`<`) has been typed
 * Refresh the RLS spinner 🌕

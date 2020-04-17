@@ -44,8 +44,7 @@ interface ProgressParams {
 
 export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
-
-  registerCommands();
+  context.subscriptions.push(...registerCommands());
 
   workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc));
   workspace.textDocuments.forEach(doc => whenOpeningTextDocument(doc));
@@ -56,7 +55,6 @@ export async function activate(context: ExtensionContext) {
 }
 
 export async function deactivate() {
-  [...cmds.values()].forEach(c => c.dispose());
   return Promise.all([...workspaces.values()].map(ws => ws.stop()));
 }
 
@@ -175,29 +173,21 @@ function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
 const workspaces: Map<string, ClientWorkspace> = new Map();
 let activeWorkspace: ClientWorkspace | null;
 
-const cmds: Set<Disposable> = new Set();
-
-function registerCommands() {
-  cmds.add(
+function registerCommands(): Disposable[] {
+  return [
     commands.registerCommand(
       'rls.update',
       () => activeWorkspace && activeWorkspace.rustupUpdate(),
     ),
-  );
-
-  cmds.add(
     commands.registerCommand(
       'rls.restart',
       async () => activeWorkspace && activeWorkspace.restart(),
     ),
-  );
-
-  cmds.add(
     commands.registerCommand(
       'rls.run',
       (cmd: Execution) => activeWorkspace && activeWorkspace.runRlsCommand(cmd),
     ),
-  );
+  ];
 }
 
 // We run one RLS and one corresponding language client per workspace folder

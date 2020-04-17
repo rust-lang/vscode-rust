@@ -171,24 +171,6 @@ function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
 
 // Don't use URI as it's unreliable the same path might not become the same URI.
 const workspaces: Map<string, ClientWorkspace> = new Map();
-let activeWorkspace: ClientWorkspace | null;
-
-function registerCommands(): Disposable[] {
-  return [
-    commands.registerCommand(
-      'rls.update',
-      () => activeWorkspace && activeWorkspace.rustupUpdate(),
-    ),
-    commands.registerCommand(
-      'rls.restart',
-      async () => activeWorkspace && activeWorkspace.restart(),
-    ),
-    commands.registerCommand(
-      'rls.run',
-      (cmd: Execution) => activeWorkspace && activeWorkspace.runRlsCommand(cmd),
-    ),
-  ];
-}
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
@@ -480,6 +462,34 @@ async function warnOnMissingCargoToml() {
       'A Cargo.toml file must be at the root of the workspace in order to support all features. Alternatively set rust-client.enableMultiProjectSetup=true in settings.',
     );
   }
+}
+
+/**
+ * Tracks the most current VSCode workspace as opened by the user. Used by the
+ * commands to know in which workspace these should be executed.
+ */
+let activeWorkspace: ClientWorkspace | null;
+
+/**
+ * Registers the VSCode [commands] used by the extension.
+ *
+ * [commands]: https://code.visualstudio.com/api/extension-guides/command
+ */
+function registerCommands(): Disposable[] {
+  return [
+    commands.registerCommand(
+      'rls.update',
+      () => activeWorkspace && activeWorkspace.rustupUpdate(),
+    ),
+    commands.registerCommand(
+      'rls.restart',
+      async () => activeWorkspace && activeWorkspace.restart(),
+    ),
+    commands.registerCommand(
+      'rls.run',
+      (cmd: Execution) => activeWorkspace && activeWorkspace.runRlsCommand(cmd),
+    ),
+  ];
 }
 
 /**

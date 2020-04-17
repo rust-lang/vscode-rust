@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Refresh the RLS spinner 🌕
+* Fix project layout detection bugs on Windows when using the `enableMultiProjectSetup` option
 * Prevent hover with function signature from being shown when declaring the function
 
 ### 0.7.1 - 2020-04-16

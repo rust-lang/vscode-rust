@@ -1,5 +1,6 @@
 ### Unreleased
 
+* Add a new `default` value for `rust-client.channel` (same as setting it explicitly to `null`)
 * Add a self-closing angular (`>`) bracket whenever opening one (`<`) has been typed
 * Refresh the RLS spinner 🌕
 * Fix project layout detection bugs on Windows when using the `enableMultiProjectSetup` option

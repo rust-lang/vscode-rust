@@ -62,9 +62,7 @@ export class RLSConfiguration {
     configuration: WorkspaceConfiguration,
   ): string {
     const channel = configuration.get<string>('rust-client.channel');
-    if (channel) {
-      return channel;
-    } else {
+    if (channel === 'default' || !channel) {
       try {
         return getActiveChannel(wsPath, rustupConfiguration);
       } catch (e) {
@@ -72,6 +70,8 @@ export class RLSConfiguration {
         // initially loaded, so silently ignore the error and return a default value
         return 'nightly';
       }
+    } else {
+      return channel;
     }
   }
 

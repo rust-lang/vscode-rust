@@ -198,6 +198,7 @@
                         "null"
                     ],
                     "enum": [
+                        "default",
                         "stable",
                         "beta",
                         "nightly"

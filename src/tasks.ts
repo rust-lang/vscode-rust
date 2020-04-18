@@ -76,7 +76,7 @@ function detectCargoTasks(target: WorkspaceFolder): Task[] {
   ]
     .map(({ subcommand, group }) => ({
       definition: { subcommand, type: TASK_TYPE },
-      label: `cargo ${subcommand}`,
+      label: `cargo ${subcommand} - ${target.name}`,
       execution: createShellExecution({
         command: 'cargo',
         args: [subcommand],

@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Fix support for multiple VSCode workspaces
+
 ### 0.7.2 - 2020-04-17
 
 * Fix a bug where rustup didn't install all of the required components for the RLS

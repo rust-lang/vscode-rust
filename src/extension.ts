@@ -209,13 +209,9 @@ class ClientWorkspace {
     const isWin = process.platform === 'win32';
     const windowsHack = isWin ? '**' : '';
 
-    const pattern = this.config.multiProjectEnabled
-      ? `${windowsHack}${this.folder.uri.path}/**`
-      : undefined;
+    const pattern = `${windowsHack}${this.folder.uri.path}/**`;
 
-    const collectionName = this.config.multiProjectEnabled
-      ? `rust ${this.folder.uri.toString()}`
-      : 'rust';
+    const collectionName = `rust (${this.folder.uri.toString()})`;
     const clientOptions: LanguageClientOptions = {
       // Register the server for Rust files
 
@@ -259,9 +255,7 @@ class ClientWorkspace {
       clientOptions,
     );
 
-    const selector = this.config.multiProjectEnabled
-      ? { language: 'rust', scheme: 'file', pattern }
-      : { language: 'rust' };
+    const selector = { language: 'rust', scheme: 'file', pattern };
 
     this.setupProgressCounter();
     this.disposables.push(activateTaskProvider(this.folder));

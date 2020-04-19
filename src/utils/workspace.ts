@@ -46,43 +46,39 @@ export function nearestParentWorkspace(
 }
 
 // This is an intermediate, lazy cache used by `getOuterMostWorkspaceFolder`
-// and cleared when VSCode workspaces change.
-let _sortedWorkspaceFolders: string[] | undefined;
-
-function sortedWorkspaceFolders(): string[] {
-  if (!_sortedWorkspaceFolders && workspace.workspaceFolders) {
-    _sortedWorkspaceFolders = workspace.workspaceFolders
-      .map(folder => {
-        let result = folder.uri.toString();
-        if (result.charAt(result.length - 1) !== '/') {
-          result = result + '/';
-        }
-        return result;
-      })
-      .sort((a, b) => {
-        return a.length - b.length;
-      });
-  }
-  return _sortedWorkspaceFolders || [];
-}
+// and should be regenerated when VSCode workspaces change.
+let _cachedSortedWorkspaceFolders: string[] | undefined;
 
 export function getOuterMostWorkspaceFolder(
   folder: WorkspaceFolder,
   options?: { cached: boolean },
 ): WorkspaceFolder {
-  if (!options || !options.cached) {
-    _sortedWorkspaceFolders = undefined;
-  }
+  const recalculate = !options || !options.cached;
+  // Sort workspace folders or used already cached result, if possible
+  const sortedFolders =
+    !recalculate && _cachedSortedWorkspaceFolders
+      ? _cachedSortedWorkspaceFolders
+      : (workspace.workspaceFolders || [])
+          .map(folder => normalizeUriToPathPrefix(folder.uri))
+          .sort((a, b) => a.length - b.length);
+  _cachedSortedWorkspaceFolders = sortedFolders;
 
-  const sorted = sortedWorkspaceFolders();
-  for (const element of sorted) {
-    let uri = folder.uri.toString();
-    if (uri.charAt(uri.length - 1) !== '/') {
-      uri = uri + '/';
-    }
-    if (uri.startsWith(element)) {
-      return workspace.getWorkspaceFolder(Uri.parse(element)) || folder;
-    }
+  const uri = normalizeUriToPathPrefix(folder.uri);
+
+  const outermostPath = sortedFolders.find(prefix => uri.startsWith(prefix));
+  return outermostPath
+    ? workspace.getWorkspaceFolder(Uri.parse(outermostPath)) || folder
+    : folder;
+}
+
+/**
+ * Transforms a given URI to a path prefix, namely ensures that each path
+ * segment ends with a path separator `/`.
+ */
+function normalizeUriToPathPrefix(uri: Uri): string {
+  let result = uri.toString();
+  if (result.charAt(result.length - 1) !== '/') {
+    result = result + '/';
   }
-  return folder;
+  return result;
 }

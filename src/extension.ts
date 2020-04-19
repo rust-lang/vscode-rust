@@ -28,8 +28,11 @@ import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
+import {
+  getOuterMostWorkspaceFolder,
+  nearestParentWorkspace,
+} from './utils/workspace';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
-import * as workspace_util from './workspace_util';
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.
@@ -82,7 +85,7 @@ function whenOpeningTextDocument(document: TextDocument) {
     .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
 
   if (inMultiProjectMode) {
-    folder = workspace_util.nearestParentWorkspace(folder, document.uri.fsPath);
+    folder = nearestParentWorkspace(folder, document.uri.fsPath);
   } else if (inNestedOuterProjectMode) {
     folder = getOuterMostWorkspaceFolder(folder);
   }
@@ -105,50 +108,11 @@ function whenOpeningTextDocument(document: TextDocument) {
   }
 }
 
-// This is an intermediate, lazy cache used by `getOuterMostWorkspaceFolder`
-// and cleared when VSCode workspaces change.
-let _sortedWorkspaceFolders: string[] | undefined;
-
-function sortedWorkspaceFolders(): string[] {
-  // TODO: decouple the global state such that it can be moved to workspace_util
-  if (!_sortedWorkspaceFolders && workspace.workspaceFolders) {
-    _sortedWorkspaceFolders = workspace.workspaceFolders
-      .map(folder => {
-        let result = folder.uri.toString();
-        if (result.charAt(result.length - 1) !== '/') {
-          result = result + '/';
-        }
-        return result;
-      })
-      .sort((a, b) => {
-        return a.length - b.length;
-      });
-  }
-  return _sortedWorkspaceFolders || [];
-}
-
-function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
-  // TODO: decouple the global state such that it can be moved to workspace_util
-  const sorted = sortedWorkspaceFolders();
-  for (const element of sorted) {
-    let uri = folder.uri.toString();
-    if (uri.charAt(uri.length - 1) !== '/') {
-      uri = uri + '/';
-    }
-    if (uri.startsWith(element)) {
-      return workspace.getWorkspaceFolder(Uri.parse(element)) || folder;
-    }
-  }
-  return folder;
-}
-
 function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
-  _sortedWorkspaceFolders = undefined;
-
   // If a VSCode workspace has been added, check to see if it is part of an existing one, and
   // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
   for (let folder of e.added) {
-    folder = getOuterMostWorkspaceFolder(folder);
+    folder = getOuterMostWorkspaceFolder(folder, { cached: false });
     if (workspaces.has(folder.uri.toString())) {
       continue;
     }

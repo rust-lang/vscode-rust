@@ -13,6 +13,7 @@ import {
   workspace,
   WorkspaceFolder,
   WorkspaceFoldersChangeEvent,
+  RelativePattern,
 } from 'vscode';
 import {
   LanguageClient,
@@ -203,18 +204,18 @@ class ClientWorkspace {
       return this.makeRlsProcess();
     };
 
-    // Something else is put front of files when pattern matching that prevents the windows version from picking up the files
-    // This should be safe as the uri is a absolute path that includes the drive + colon
-    // i.e. a pattern would become "**/c:/some/path**" and since colon is reserved only the root can ever contain it.
-    const isWin = process.platform === 'win32';
-    const windowsHack = isWin ? '**' : '';
-
-    const pattern = `${windowsHack}${this.folder.uri.path}/**`;
+    // FIXME: vscode-languageserver-node internally uses `pattern` here as
+    // `vscode.GlobPattern` but only types it out as `string` type. We use
+    // `RelativePattern` to  reliably match files relative to a workspace folder
+    // in a way that's supported in a cross-platform fashion.
+    const pattern = (new RelativePattern(
+      this.folder,
+      '**',
+    ) as unknown) as string;
 
     const collectionName = `rust (${this.folder.uri.toString()})`;
     const clientOptions: LanguageClientOptions = {
       // Register the server for Rust files
-
       documentSelector: [
         { language: 'rust', scheme: 'file', pattern },
         { language: 'rust', scheme: 'untitled', pattern },

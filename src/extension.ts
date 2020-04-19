@@ -213,14 +213,13 @@ class ClientWorkspace {
       '**',
     ) as unknown) as string;
 
-    const collectionName = `rust (${this.folder.uri.toString()})`;
     const clientOptions: LanguageClientOptions = {
       // Register the server for Rust files
       documentSelector: [
         { language: 'rust', scheme: 'file', pattern },
         { language: 'rust', scheme: 'untitled', pattern },
       ],
-      diagnosticCollectionName: collectionName,
+      diagnosticCollectionName: `rust-${this.folder.uri}`,
       synchronize: { configurationSection: 'rust' },
       // Controls when to focus the channel rather than when to reveal it in the drop-down list
       revealOutputChannelOn: this.config.revealOutputChannelOn,

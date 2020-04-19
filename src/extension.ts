@@ -7,13 +7,13 @@ import {
   ExtensionContext,
   IndentAction,
   languages,
+  RelativePattern,
   TextDocument,
   Uri,
   window,
   workspace,
   WorkspaceFolder,
   WorkspaceFoldersChangeEvent,
-  RelativePattern,
 } from 'vscode';
 import {
   LanguageClient,

@@ -227,11 +227,6 @@
                     "description": "Traces the communication between VS Code and the Rust language server.",
                     "scope": "window"
                 },
-                "rust-client.nestedMultiRootConfigInOutermost": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "If one root workspace folder is nested in another root folder, look for the Rust config in the outermost root."
-                },
                 "rust-client.enableMultiProjectSetup": {
                     "type": ["boolean", "null"],
                     "default": null,

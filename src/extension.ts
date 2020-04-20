@@ -98,22 +98,12 @@ function whenOpeningTextDocument(document: TextDocument) {
     return;
   }
 
-  const uri = document.uri;
-  let folder = workspace.getWorkspaceFolder(uri);
+  let folder = workspace.getWorkspaceFolder(document.uri);
   if (!folder) {
     return;
   }
 
-  const inMultiProjectMode = true;
-  const inNestedOuterProjectMode = workspace
-    .getConfiguration()
-    .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
-
-  if (inMultiProjectMode) {
-    folder = nearestParentWorkspace(folder, document.uri.fsPath);
-  } else if (inNestedOuterProjectMode) {
-    folder = getOuterMostWorkspaceFolder(folder);
-  }
+  folder = nearestParentWorkspace(folder, document.uri.fsPath);
 
   if (!folder) {
     stopSpinner(`RLS: Cargo.toml missing`);

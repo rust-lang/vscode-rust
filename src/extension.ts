@@ -112,7 +112,7 @@ function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
   // If a VSCode workspace has been added, check to see if it is part of an existing one, and
   // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
   for (let folder of e.added) {
-    folder = getOuterMostWorkspaceFolder(folder, { cached: false });
+    folder = getOuterMostWorkspaceFolder(folder);
     if (workspaces.has(folder.uri.toString())) {
       continue;
     }

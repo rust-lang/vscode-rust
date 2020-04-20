@@ -45,27 +45,16 @@ export function nearestParentWorkspace(
   return curWorkspace;
 }
 
-// This is an intermediate, lazy cache used by `getOuterMostWorkspaceFolder`
-// and should be regenerated when VSCode workspaces change.
-let _cachedSortedWorkspaceFolders: string[] | undefined;
-
 export function getOuterMostWorkspaceFolder(
   folder: WorkspaceFolder,
-  options?: { cached: boolean },
 ): WorkspaceFolder {
-  const recalculate = !options || !options.cached;
-  // Sort workspace folders or used already cached result, if possible
-  const sortedFolders =
-    !recalculate && _cachedSortedWorkspaceFolders
-      ? _cachedSortedWorkspaceFolders
-      : (workspace.workspaceFolders || [])
-          .map(folder => normalizeUriToPathPrefix(folder.uri))
-          .sort((a, b) => a.length - b.length);
-  _cachedSortedWorkspaceFolders = sortedFolders;
+  const sortedFoldersByPrefix = (workspace.workspaceFolders || [])
+    .map(folder => normalizeUriToPathPrefix(folder.uri))
+    .sort((a, b) => a.length - b.length);
 
   const uri = normalizeUriToPathPrefix(folder.uri);
 
-  const outermostPath = sortedFolders.find(prefix => uri.startsWith(prefix));
+  const outermostPath = sortedFoldersByPrefix.find(pre => uri.startsWith(pre));
   return outermostPath
     ? workspace.getWorkspaceFolder(Uri.parse(outermostPath)) || folder
     : folder;

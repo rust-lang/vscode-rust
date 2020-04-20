@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   commands,
+  ConfigurationTarget,
   Disposable,
   ExtensionContext,
   IndentAction,
@@ -58,6 +59,33 @@ export async function activate(context: ExtensionContext) {
   // Installed listeners don't fire immediately for already opened files, so
   // trigger an open event manually to fire up RLS instances where needed
   workspace.textDocuments.forEach(whenOpeningTextDocument);
+
+  // Migrate the users of multi-project setup for RLS to disable the setting
+  // entirely (it's always on now)
+  const config = workspace.getConfiguration();
+  if (
+    typeof config.get<boolean | null>(
+      'rust-client.enableMultiProjectSetup',
+      null,
+    ) === 'boolean'
+  ) {
+    window
+      .showWarningMessage(
+        'The multi-project setup for RLS is always enabled, so the `rust-client.enableMultiProjectSetup` setting is now redundant',
+        { modal: false },
+        { title: 'Remove' },
+      )
+      .then(value => {
+        if (value && value.title === 'Remove') {
+          return config.update(
+            'rust-client.enableMultiProjectSetup',
+            null,
+            ConfigurationTarget.Global,
+          );
+        }
+        return;
+      });
+  }
 }
 
 export async function deactivate() {
@@ -76,10 +104,7 @@ function whenOpeningTextDocument(document: TextDocument) {
     return;
   }
 
-  const inMultiProjectMode = workspace
-    .getConfiguration()
-    .get<boolean>('rust-client.enableMultiProjectSetup', false);
-
+  const inMultiProjectMode = true;
   const inNestedOuterProjectMode = workspace
     .getConfiguration()
     .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
@@ -157,10 +182,6 @@ class ClientWorkspace {
   }
 
   public async start() {
-    if (!this.config.multiProjectEnabled) {
-      warnOnMissingCargoToml();
-    }
-
     startSpinner('RLS', 'Starting');
 
     const serverOptions: ServerOptions = async () => {
@@ -411,16 +432,6 @@ class ClientWorkspace {
     if (this.config.updateOnStartup && !this.config.rustupDisabled) {
       await rustupUpdate(this.config.rustupConfig());
     }
-  }
-}
-
-async function warnOnMissingCargoToml() {
-  const files = await workspace.findFiles('Cargo.toml');
-
-  if (files.length < 1) {
-    window.showWarningMessage(
-      'A Cargo.toml file must be at the root of the workspace in order to support all features. Alternatively set rust-client.enableMultiProjectSetup=true in settings.',
-    );
   }
 }
 

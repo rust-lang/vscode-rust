@@ -1,5 +1,6 @@
 ### Unreleased
 
+* Ignore setting `rust-client.enableMultiProjectSetup` (it's always on by default)
 * Fix support for multiple VSCode workspaces
 
 ### 0.7.2 - 2020-04-17

@@ -1,0 +1,7 @@
+[package]
+name = "bare-lib-project"
+version = "0.1.0"
+authors = ["Example <example@example.com>"]
+edition = "2018"
+
+[dependencies]

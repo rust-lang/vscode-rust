@@ -227,14 +227,9 @@
                     "description": "Traces the communication between VS Code and the Rust language server.",
                     "scope": "window"
                 },
-                "rust-client.nestedMultiRootConfigInOutermost": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "If one root workspace folder is nested in another root folder, look for the Rust config in the outermost root."
-                },
                 "rust-client.enableMultiProjectSetup": {
-                    "type": "boolean",
-                    "default": false,
+                    "type": ["boolean", "null"],
+                    "default": null,
                     "description": "Allow multiple projects in the same folder, along with removing the constraint that the cargo.toml must be located at the root. (Experimental: might not work for certain setups)"
                 },
                 "rust.sysroot": {

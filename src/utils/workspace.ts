@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Uri, WorkspaceFolder } from 'vscode';
+import { Uri, workspace, WorkspaceFolder } from 'vscode';
 
 // searches up the folder structure until it finds a Cargo.toml
 export function nearestParentWorkspace(
@@ -43,4 +43,31 @@ export function nearestParentWorkspace(
   }
 
   return curWorkspace;
+}
+
+export function getOuterMostWorkspaceFolder(
+  folder: WorkspaceFolder,
+): WorkspaceFolder {
+  const sortedFoldersByPrefix = (workspace.workspaceFolders || [])
+    .map(folder => normalizeUriToPathPrefix(folder.uri))
+    .sort((a, b) => a.length - b.length);
+
+  const uri = normalizeUriToPathPrefix(folder.uri);
+
+  const outermostPath = sortedFoldersByPrefix.find(pre => uri.startsWith(pre));
+  return outermostPath
+    ? workspace.getWorkspaceFolder(Uri.parse(outermostPath)) || folder
+    : folder;
+}
+
+/**
+ * Transforms a given URI to a path prefix, namely ensures that each path
+ * segment ends with a path separator `/`.
+ */
+function normalizeUriToPathPrefix(uri: Uri): string {
+  let result = uri.toString();
+  if (result.charAt(result.length - 1) !== '/') {
+    result = result + '/';
+  }
+  return result;
 }

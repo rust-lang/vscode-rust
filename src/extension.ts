@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   commands,
+  ConfigurationTarget,
   Disposable,
   ExtensionContext,
   IndentAction,
@@ -28,8 +29,11 @@ import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
+import {
+  getOuterMostWorkspaceFolder,
+  nearestParentWorkspace,
+} from './utils/workspace';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
-import * as workspace_util from './workspace_util';
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.
@@ -55,6 +59,33 @@ export async function activate(context: ExtensionContext) {
   // Installed listeners don't fire immediately for already opened files, so
   // trigger an open event manually to fire up RLS instances where needed
   workspace.textDocuments.forEach(whenOpeningTextDocument);
+
+  // Migrate the users of multi-project setup for RLS to disable the setting
+  // entirely (it's always on now)
+  const config = workspace.getConfiguration();
+  if (
+    typeof config.get<boolean | null>(
+      'rust-client.enableMultiProjectSetup',
+      null,
+    ) === 'boolean'
+  ) {
+    window
+      .showWarningMessage(
+        'The multi-project setup for RLS is always enabled, so the `rust-client.enableMultiProjectSetup` setting is now redundant',
+        { modal: false },
+        { title: 'Remove' },
+      )
+      .then(value => {
+        if (value && value.title === 'Remove') {
+          return config.update(
+            'rust-client.enableMultiProjectSetup',
+            null,
+            ConfigurationTarget.Global,
+          );
+        }
+        return;
+      });
+  }
 }
 
 export async function deactivate() {
@@ -67,25 +98,12 @@ function whenOpeningTextDocument(document: TextDocument) {
     return;
   }
 
-  const uri = document.uri;
-  let folder = workspace.getWorkspaceFolder(uri);
+  let folder = workspace.getWorkspaceFolder(document.uri);
   if (!folder) {
     return;
   }
 
-  const inMultiProjectMode = workspace
-    .getConfiguration()
-    .get<boolean>('rust-client.enableMultiProjectSetup', false);
-
-  const inNestedOuterProjectMode = workspace
-    .getConfiguration()
-    .get<boolean>('rust-client.nestedMultiRootConfigInOutermost', true);
-
-  if (inMultiProjectMode) {
-    folder = workspace_util.nearestParentWorkspace(folder, document.uri.fsPath);
-  } else if (inNestedOuterProjectMode) {
-    folder = getOuterMostWorkspaceFolder(folder);
-  }
+  folder = nearestParentWorkspace(folder, document.uri.fsPath);
 
   if (!folder) {
     stopSpinner(`RLS: Cargo.toml missing`);
@@ -105,46 +123,7 @@ function whenOpeningTextDocument(document: TextDocument) {
   }
 }
 
-// This is an intermediate, lazy cache used by `getOuterMostWorkspaceFolder`
-// and cleared when VSCode workspaces change.
-let _sortedWorkspaceFolders: string[] | undefined;
-
-function sortedWorkspaceFolders(): string[] {
-  // TODO: decouple the global state such that it can be moved to workspace_util
-  if (!_sortedWorkspaceFolders && workspace.workspaceFolders) {
-    _sortedWorkspaceFolders = workspace.workspaceFolders
-      .map(folder => {
-        let result = folder.uri.toString();
-        if (result.charAt(result.length - 1) !== '/') {
-          result = result + '/';
-        }
-        return result;
-      })
-      .sort((a, b) => {
-        return a.length - b.length;
-      });
-  }
-  return _sortedWorkspaceFolders || [];
-}
-
-function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
-  // TODO: decouple the global state such that it can be moved to workspace_util
-  const sorted = sortedWorkspaceFolders();
-  for (const element of sorted) {
-    let uri = folder.uri.toString();
-    if (uri.charAt(uri.length - 1) !== '/') {
-      uri = uri + '/';
-    }
-    if (uri.startsWith(element)) {
-      return workspace.getWorkspaceFolder(Uri.parse(element)) || folder;
-    }
-  }
-  return folder;
-}
-
 function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
-  _sortedWorkspaceFolders = undefined;
-
   // If a VSCode workspace has been added, check to see if it is part of an existing one, and
   // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
   for (let folder of e.added) {
@@ -193,10 +172,6 @@ class ClientWorkspace {
   }
 
   public async start() {
-    if (!this.config.multiProjectEnabled) {
-      warnOnMissingCargoToml();
-    }
-
     startSpinner('RLS', 'Starting');
 
     const serverOptions: ServerOptions = async () => {
@@ -447,16 +422,6 @@ class ClientWorkspace {
     if (this.config.updateOnStartup && !this.config.rustupDisabled) {
       await rustupUpdate(this.config.rustupConfig());
     }
-  }
-}
-
-async function warnOnMissingCargoToml() {
-  const files = await workspace.findFiles('Cargo.toml');
-
-  if (files.length < 1) {
-    window.showWarningMessage(
-      'A Cargo.toml file must be at the root of the workspace in order to support all features. Alternatively set rust-client.enableMultiProjectSetup=true in settings.',
-    );
   }
 }
 

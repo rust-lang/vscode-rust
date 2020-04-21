@@ -228,7 +228,10 @@
                     "scope": "window"
                 },
                 "rust-client.enableMultiProjectSetup": {
-                    "type": ["boolean", "null"],
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
                     "default": null,
                     "description": "Allow multiple projects in the same folder, along with removing the constraint that the cargo.toml must be located at the root. (Experimental: might not work for certain setups)"
                 },

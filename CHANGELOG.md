@@ -1,5 +1,7 @@
 ### Unreleased
 
+### 0.7.3 - 2020-04-21
+
 * Remove redundant `rust-client.nestedMultiRootConfigInOutermost` setting (originally used to work around non-multi-project limitations)
 * Ignore setting `rust-client.enableMultiProjectSetup` (it's always on by default)
 * Fix support for multiple VSCode workspaces

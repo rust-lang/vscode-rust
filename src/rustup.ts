@@ -21,7 +21,7 @@ export interface RustupConfig {
 }
 
 export async function rustupUpdate(config: RustupConfig) {
-  startSpinner('RLS', 'Updating…');
+  startSpinner('Updating…');
 
   try {
     const { stdout } = await withWsl(config.useWSL).exec(
@@ -103,7 +103,7 @@ async function hasToolchain(config: RustupConfig): Promise<boolean> {
 }
 
 async function tryToInstallToolchain(config: RustupConfig) {
-  startSpinner('RLS', 'Installing toolchain…');
+  startSpinner('Installing toolchain…');
   try {
     const { command, args } = withWsl(config.useWSL).modifyArgs(config.path, [
       'toolchain',
@@ -154,7 +154,7 @@ async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
 }
 
 async function installRlsComponents(config: RustupConfig) {
-  startSpinner('RLS', 'Installing components…');
+  startSpinner('Installing components…');
 
   for (const component of REQUIRED_COMPONENTS) {
     try {

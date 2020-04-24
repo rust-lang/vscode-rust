@@ -106,7 +106,7 @@ function whenOpeningTextDocument(document: TextDocument) {
   folder = nearestParentWorkspace(folder, document.uri.fsPath);
 
   if (!folder) {
-    stopSpinner(`RLS: Cargo.toml missing`);
+    stopSpinner(`Cargo.toml missing`);
     return;
   }
 
@@ -172,7 +172,7 @@ class ClientWorkspace {
   }
 
   public async start() {
-    startSpinner('RLS', 'Starting');
+    startSpinner('Starting');
 
     const serverOptions: ServerOptions = async () => {
       await this.autoUpdate();
@@ -273,7 +273,7 @@ class ClientWorkspace {
 
     const runningProgress: Set<string> = new Set();
     await this.lc.onReady();
-    stopSpinner('RLS');
+    stopSpinner();
 
     this.lc.onNotification(
       new NotificationType<ProgressParams, void>('window/progress'),
@@ -292,9 +292,9 @@ class ClientWorkspace {
           } else if (progress.title) {
             status = `[${progress.title.toLowerCase()}]`;
           }
-          startSpinner('RLS', status);
+          startSpinner(status);
         } else {
-          stopSpinner('RLS');
+          stopSpinner();
         }
       },
     );

@@ -46,12 +46,16 @@ interface ProgressParams {
 }
 
 export async function activate(context: ExtensionContext) {
-  context.subscriptions.push(configureLanguage());
-  context.subscriptions.push(...registerCommands());
-
-  workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders);
-  window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor);
-  // Trigger manually logic for opening the first active editor
+  context.subscriptions.push(
+    ...[
+      configureLanguage(),
+      ...registerCommands(),
+      workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders),
+      window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
+    ],
+  );
+  // Manually trigger the first event to start up server instance if necessary,
+  // since VSCode doesn't do that on startup by itself.
   onDidChangeActiveTextEditor(window.activeTextEditor);
 
   // Migrate the users of multi-project setup for RLS to disable the setting

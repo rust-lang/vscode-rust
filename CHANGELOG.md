@@ -1,5 +1,6 @@
 ### Unreleased
 
+* Dynamically show progress only for the active client workspace
 * Correctly run tasks based on active text editor rather than last opened Rust file
 * (!) Don't immediately try to start server instance for newly added workspace folders
 * Use smooth, universally supported spinner in the status bar ⚙️

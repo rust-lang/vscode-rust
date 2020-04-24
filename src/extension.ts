@@ -30,6 +30,7 @@ import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
+import { Observable, Observer } from './utils/observable';
 import { nearestParentWorkspace } from './utils/workspace';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
@@ -102,15 +103,32 @@ function whenOpeningTextDocument(document: TextDocument) {
   clientWorkspaceForUri(document.uri, { startIfMissing: true });
 }
 
+/** Tracks dynamically updated progress for the active client workspace for UI purposes. */
+const progressObserver: Observer<{ message: string } | null> = new Observer();
+
 function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
   if (!editor) {
     return;
   }
 
   const workspace = clientWorkspaceForUri(editor.document.uri);
-  if (workspace) {
-    activeWorkspace = workspace;
+  if (!workspace) {
+    return;
   }
+
+  activeWorkspace = workspace;
+
+  const updateProgress = (progress: { message: string } | null) => {
+    if (progress) {
+      startSpinner(`[${workspace.folder.name}] ${progress.message}`);
+    } else {
+      stopSpinner(`[${workspace.folder.name}]`);
+    }
+  };
+
+  progressObserver.bind(activeWorkspace.progress, updateProgress);
+  // Update UI ourselves immediately and don't wait for value update callbacks
+  updateProgress(activeWorkspace.progress.value);
 }
 
 function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
@@ -159,21 +177,26 @@ function clientWorkspaceForUri(
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
 // and per-workspace stuff.
 class ClientWorkspace {
+  public readonly folder: WorkspaceFolder;
   // FIXME(#233): Don't only rely on lazily initializing it once on startup,
   // handle possible `rust-client.*` value changes while extension is running
   private readonly config: RLSConfiguration;
   private lc: LanguageClient | null = null;
-  private readonly folder: WorkspaceFolder;
   private disposables: Disposable[];
+  private _progress: Observable<{ message: string } | null>;
+  get progress() {
+    return this._progress;
+  }
 
   constructor(folder: WorkspaceFolder) {
     this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
     this.folder = folder;
     this.disposables = [];
+    this._progress = new Observable<{ message: string } | null>(null);
   }
 
   public async start() {
-    startSpinner('Starting');
+    this._progress.value = { message: 'Starting' };
 
     const serverOptions: ServerOptions = async () => {
       await this.autoUpdate();
@@ -274,7 +297,6 @@ class ClientWorkspace {
 
     const runningProgress: Set<string> = new Set();
     await this.lc.onReady();
-    stopSpinner();
 
     this.lc.onNotification(
       new NotificationType<ProgressParams, void>('window/progress'),
@@ -293,9 +315,9 @@ class ClientWorkspace {
           } else if (progress.title) {
             status = `[${progress.title.toLowerCase()}]`;
           }
-          startSpinner(status);
+          this._progress.value = { message: status };
         } else {
-          stopSpinner();
+          this._progress.value = null;
         }
       },
     );

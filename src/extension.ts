@@ -52,7 +52,7 @@ export async function activate(context: ExtensionContext) {
   context.subscriptions.push(...registerCommands());
 
   workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc));
-  workspace.onDidChangeWorkspaceFolders(e => whenChangingWorkspaceFolders(e));
+  workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders);
   window.onDidChangeActiveTextEditor(
     ed => ed && whenOpeningTextDocument(ed.document),
   );
@@ -124,23 +124,6 @@ function whenOpeningTextDocument(document: TextDocument) {
 }
 
 function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
-  // If a VSCode workspace has been added, check to see if it is part of an existing one, and
-  // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
-  for (let folder of e.added) {
-    folder = getOuterMostWorkspaceFolder(folder);
-    if (workspaces.has(folder.uri.toString())) {
-      continue;
-    }
-    for (const f of fs.readdirSync(folder.uri.fsPath)) {
-      if (f === 'Cargo.toml') {
-        const workspace = new ClientWorkspace(folder);
-        workspaces.set(folder.uri.toString(), workspace);
-        workspace.start();
-        break;
-      }
-    }
-  }
-
   // If a workspace is removed which is a Rust workspace, kill the client.
   for (const folder of e.removed) {
     const ws = workspaces.get(folder.uri.toString());

@@ -1,5 +1,6 @@
 ### Unreleased
 
+* (!) Don't immediately try to start server instance for newly added workspace folders
 * Use smooth, universally supported spinner in the status bar ⚙️
 
 ### 0.7.3 - 2020-04-21

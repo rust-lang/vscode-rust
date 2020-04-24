@@ -9,7 +9,6 @@ import {
   IndentAction,
   languages,
   RelativePattern,
-  TextDocument,
   TextEditor,
   Uri,
   window,
@@ -50,15 +49,8 @@ export async function activate(context: ExtensionContext) {
   context.subscriptions.push(configureLanguage());
   context.subscriptions.push(...registerCommands());
 
-  workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc));
   workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders);
   window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor);
-  window.onDidChangeActiveTextEditor(
-    ed => ed && whenOpeningTextDocument(ed.document),
-  );
-  // Installed listeners don't fire immediately for already opened files, so
-  // trigger an open event manually to fire up RLS instances where needed
-  workspace.textDocuments.forEach(whenOpeningTextDocument);
   // Trigger manually logic for opening the first active editor
   onDidChangeActiveTextEditor(window.activeTextEditor);
 
@@ -94,24 +86,18 @@ export async function deactivate() {
   return Promise.all([...workspaces.values()].map(ws => ws.stop()));
 }
 
-// Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
-function whenOpeningTextDocument(document: TextDocument) {
-  if (document.languageId !== 'rust' && document.languageId !== 'toml') {
-    return;
-  }
-
-  clientWorkspaceForUri(document.uri, { startIfMissing: true });
-}
-
 /** Tracks dynamically updated progress for the active client workspace for UI purposes. */
 const progressObserver: Observer<{ message: string } | null> = new Observer();
 
 function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
-  if (!editor) {
+  if (!editor || !editor.document) {
     return;
   }
+  const { languageId, uri } = editor.document;
 
-  const workspace = clientWorkspaceForUri(editor.document.uri);
+  const workspace = clientWorkspaceForUri(uri, {
+    startIfMissing: languageId === 'rust' || languageId === 'toml',
+  });
   if (!workspace) {
     return;
   }

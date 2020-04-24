@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Use smooth, universally supported spinner in the status bar ⚙️
+
 ### 0.7.3 - 2020-04-21
 
 * Remove redundant `rust-client.nestedMultiRootConfigInOutermost` setting (originally used to work around non-multi-project limitations)

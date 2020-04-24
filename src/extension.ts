@@ -10,6 +10,7 @@ import {
   languages,
   RelativePattern,
   TextDocument,
+  TextEditor,
   Uri,
   window,
   workspace,
@@ -29,10 +30,7 @@ import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
-import {
-  getOuterMostWorkspaceFolder,
-  nearestParentWorkspace,
-} from './utils/workspace';
+import { nearestParentWorkspace } from './utils/workspace';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 /**
@@ -53,12 +51,15 @@ export async function activate(context: ExtensionContext) {
 
   workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc));
   workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders);
+  window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor);
   window.onDidChangeActiveTextEditor(
     ed => ed && whenOpeningTextDocument(ed.document),
   );
   // Installed listeners don't fire immediately for already opened files, so
   // trigger an open event manually to fire up RLS instances where needed
   workspace.textDocuments.forEach(whenOpeningTextDocument);
+  // Trigger manually logic for opening the first active editor
+  onDidChangeActiveTextEditor(window.activeTextEditor);
 
   // Migrate the users of multi-project setup for RLS to disable the setting
   // entirely (it's always on now)
@@ -98,28 +99,17 @@ function whenOpeningTextDocument(document: TextDocument) {
     return;
   }
 
-  let folder = workspace.getWorkspaceFolder(document.uri);
-  if (!folder) {
+  clientWorkspaceForUri(document.uri, { startIfMissing: true });
+}
+
+function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
+  if (!editor) {
     return;
   }
 
-  folder = nearestParentWorkspace(folder, document.uri.fsPath);
-
-  if (!folder) {
-    stopSpinner(`Cargo.toml missing`);
-    return;
-  }
-
-  const folderPath = folder.uri.toString();
-
-  if (!workspaces.has(folderPath)) {
-    const workspace = new ClientWorkspace(folder);
+  const workspace = clientWorkspaceForUri(editor.document.uri);
+  if (workspace) {
     activeWorkspace = workspace;
-    workspaces.set(folderPath, workspace);
-    workspace.start();
-  } else {
-    const ws = workspaces.get(folderPath);
-    activeWorkspace = typeof ws === 'undefined' ? null : ws;
   }
 }
 
@@ -136,6 +126,34 @@ function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
 
 // Don't use URI as it's unreliable the same path might not become the same URI.
 const workspaces: Map<string, ClientWorkspace> = new Map();
+
+/**
+ * Fetches a `ClientWorkspace` for a given URI. If missing and `startIfMissing`
+ * option was provided, it is additionally initialized beforehand, if applicable.
+ */
+function clientWorkspaceForUri(
+  uri: Uri,
+  options?: { startIfMissing: boolean },
+): ClientWorkspace | undefined {
+  const rootFolder = workspace.getWorkspaceFolder(uri);
+  if (!rootFolder) {
+    return;
+  }
+
+  const folder = nearestParentWorkspace(rootFolder, uri.fsPath);
+  if (!folder) {
+    return undefined;
+  }
+
+  const existing = workspaces.get(folder.uri.toString());
+  if (!existing && options && options.startIfMissing) {
+    const workspace = new ClientWorkspace(folder);
+    workspaces.set(folder.uri.toString(), workspace);
+    workspace.start();
+  }
+
+  return workspaces.get(folder.uri.toString());
+}
 
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client

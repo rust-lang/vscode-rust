@@ -1,5 +1,7 @@
 {
-    "editor.formatOnSave": true,
+    "[typescript]": {
+        "editor.formatOnSave": true
+    },
     "files.exclude": {
         "out": false
     },

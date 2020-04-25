@@ -1,5 +1,30 @@
 ### Unreleased
 
+* Use smooth, universally supported spinner in the status bar ⚙️
+
+### 0.7.3 - 2020-04-21
+
+* Remove redundant `rust-client.nestedMultiRootConfigInOutermost` setting (originally used to work around non-multi-project limitations)
+* Ignore setting `rust-client.enableMultiProjectSetup` (it's always on by default)
+* Fix support for multiple VSCode workspaces
+
+### 0.7.2 - 2020-04-17
+
+* Fix a bug where rustup didn't install all of the required components for the RLS
+* Don't warn on custom `rust-client.channel` value such as `1.39.0` in properties.json
+* Add a new `default` value for `rust-client.channel` (same as setting it explicitly to `null`)
+* Add a self-closing angular (`>`) bracket whenever opening one (`<`) has been typed
+* Refresh the RLS spinner 🌕
+* Fix project layout detection bugs on Windows when using the `enableMultiProjectSetup` option
+* Prevent hover with function signature from being shown when declaring the function
+
+### 0.7.1 - 2020-04-16
+
+* Limit scope of few extension-specific settings to `machine`
+* Bump required VSCode to 1.36
+* Change `thread::spawn` snippet to activate on `thread_spawn` prefix
+* Use dynamic `wait_to_build` in RLS by default rather than setting it to 1500ms
+
 ### 0.7.0 - 2019-10-15
 
 * Implement support for multi-project workspace layout 🎉

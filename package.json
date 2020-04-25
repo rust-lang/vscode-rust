@@ -2,7 +2,7 @@
     "name": "rust",
     "displayName": "Rust (rls)",
     "description": "Rust language support - code completion, Intellisense, refactoring, reformatting, errors, snippets. A client for the Rust Language Server, built by the RLS team.",
-    "version": "0.7.0",
+    "version": "0.7.3",
     "publisher": "rust-lang",
     "icon": "rust-icon.png",
     "galleryBanner": {
@@ -10,7 +10,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.31.0"
+        "vscode": "^1.36.0"
     },
     "license": "(MIT OR Apache-2.0)",
     "repository": {
@@ -55,10 +55,10 @@
     "devDependencies": {
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.6",
-        "@types/node": "~10.1.0",
+        "@types/node": "^10.10",
         "@types/vscode": "^1.31.0",
         "glob": "^7.1.4",
-        "mocha": "^6.1.4",
+        "mocha": "^6.2.3",
         "prettier": "^1.16.4",
         "tslint": "^5.14.0",
         "tslint-config-prettier": "^1.18.0",
@@ -166,7 +166,8 @@
                 "rust-client.rustupPath": {
                     "type": "string",
                     "default": "rustup",
-                    "description": "Path to rustup executable. Ignored if rustup is disabled."
+                    "description": "Path to rustup executable. Ignored if rustup is disabled.",
+                    "scope": "machine"
                 },
                 "rust-client.useWSL": {
                     "type": "boolean",
@@ -179,7 +180,8 @@
                         "null"
                     ],
                     "default": null,
-                    "description": "Override RLS path. Only required for RLS developers. If you set this and use rustup, you should also set `rust-client.channel` to ensure your RLS sees the right libraries. If you don't use rustup, make sure to set `rust-client.disableRustup`."
+                    "description": "Override RLS path. Only required for RLS developers. If you set this and use rustup, you should also set `rust-client.channel` to ensure your RLS sees the right libraries. If you don't use rustup, make sure to set `rust-client.disableRustup`.",
+                    "scope": "machine"
                 },
                 "rust-client.revealOutputChannelOn": {
                     "type": "string",
@@ -197,22 +199,39 @@
                     "default": false,
                     "description": "Update the RLS whenever the extension starts up."
                 },
+                "rust-client.autoStartRls": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Start rls automatically when opening a file or project.",
+                    "scope": "resource"
+                },
                 "rust-client.disableRustup": {
                     "type": "boolean",
                     "default": false,
                     "description": "Disable usage of rustup and use rustc/rls from PATH."
                 },
                 "rust-client.channel": {
-                    "type": [
-                        "string",
-                        "null"
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "default",
+                                "stable",
+                                "beta",
+                                "nightly"
+                            ],
+                            "enumDescriptions": [
+                                "Uses the same channel as your currently open project",
+                                "Explicitly use the `stable` channel",
+                                "Explicitly use the `beta` channel",
+                                "Explicitly use the `nightly` channel"
+                            ]
+                        }
                     ],
-                    "enum": [
-                        "stable",
-                        "beta",
-                        "nightly"
-                    ],
-                    "default": null,
+                    "default": "default",
                     "description": "Rust channel to invoke rustup with. Ignored if rustup is disabled. By default, uses the same channel as your currently open project."
                 },
                 "rust-client.trace.server": {
@@ -226,15 +245,13 @@
                     "description": "Traces the communication between VS Code and the Rust language server.",
                     "scope": "window"
                 },
-                "rust-client.nestedMultiRootConfigInOutermost": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "If one root workspace folder is nested in another root folder, look for the Rust config in the outermost root."
-                },
                 "rust-client.enableMultiProjectSetup": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Allow multiple projects in the same folder, along with remove the constraint that the cargo.toml must be located at the root. (Experimental: might not work for certain setups)"
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "Allow multiple projects in the same folder, along with removing the constraint that the cargo.toml must be located at the root. (Experimental: might not work for certain setups)"
                 },
                 "rust.sysroot": {
                     "type": [
@@ -300,8 +317,11 @@
                     "scope": "resource"
                 },
                 "rust.wait_to_build": {
-                    "type": "number",
-                    "default": 1500,
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "default": null,
                     "description": "Time in milliseconds between receiving a change notification and starting build.",
                     "scope": "resource"
                 },
@@ -431,11 +451,6 @@
                     "default": true,
                     "description": "Show additional context in hover tooltips when available. This is often the type local variable declaration.",
                     "scope": "resource"
-                },
-                "rust.autoStartRls": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Start rls automatically when opening a file or project."
                 }
             }
         }

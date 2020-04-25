@@ -25,7 +25,7 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
         document,
         position,
         token,
-      ).then(hover => this.hoverToSignatureHelp(hover));
+      ).then(hover => this.hoverToSignatureHelp(hover, position, document));
     } else if (context.triggerCharacter === ',') {
       if (
         this.previousFunctionPosition &&
@@ -36,7 +36,7 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
           document,
           this.previousFunctionPosition,
           token,
-        ).then(hover => this.hoverToSignatureHelp(hover));
+        ).then(hover => this.hoverToSignatureHelp(hover, position, document));
       } else {
         return null;
       }
@@ -71,6 +71,8 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
 
   private hoverToSignatureHelp(
     hover: vscode.Hover,
+    position: vscode.Position,
+    document: vscode.TextDocument,
   ): vscode.SignatureHelp | undefined {
     /*
     The contents of a hover result has the following structure:
@@ -114,8 +116,13 @@ export class SignatureHelpProvider implements vscode.SignatureHelpProvider {
       .replace('```', '');
 
     // the signature help tooltip is activated on `(` or `,`
-    // and without this, it could show the tooltip after non-functions
-    if (!label.includes('fn')) {
+    // here we make sure the label received is for a function,
+    // and that we are not showing the hover for the same line
+    // where we are declaring a function.
+    if (
+      !label.includes('fn') ||
+      document.lineAt(position.line).text.includes('fn ')
+    ) {
       return undefined;
     }
 

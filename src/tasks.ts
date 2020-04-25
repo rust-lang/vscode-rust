@@ -1,4 +1,3 @@
-import * as crypto from 'crypto';
 import {
   Disposable,
   ShellExecution,
@@ -77,8 +76,12 @@ function detectCargoTasks(target: WorkspaceFolder): Task[] {
   ]
     .map(({ subcommand, group }) => ({
       definition: { subcommand, type: TASK_TYPE },
-      label: `cargo ${subcommand}`,
-      execution: createShellExecution({ command: 'cargo', args: [subcommand] }),
+      label: `cargo ${subcommand} - ${target.name}`,
+      execution: createShellExecution({
+        command: 'cargo',
+        args: [subcommand],
+        cwd: target.uri.fsPath,
+      }),
       group,
       problemMatchers: ['$rustc'],
     }))
@@ -127,14 +130,16 @@ export async function runTaskCommand(
   displayName: string,
   folder?: WorkspaceFolder,
 ) {
-  const uniqueId = crypto.randomBytes(20).toString();
+  // Task finish callback does not preserve concrete task definitions, we so
+  // disambiguate finished tasks via executed command line.
+  const commandLine = `${command} ${args.join(' ')}`;
 
   const task = new Task(
-    { label: uniqueId, type: 'shell' },
-    folder ? folder : workspace.workspaceFolders![0],
+    { type: 'shell' },
+    folder || workspace.workspaceFolders![0],
     displayName,
     TASK_SOURCE,
-    new ShellExecution(`${command} ${args.join(' ')}`, {
+    new ShellExecution(commandLine, {
       cwd: cwd || (folder && folder.uri.fsPath),
       env,
     }),
@@ -142,7 +147,11 @@ export async function runTaskCommand(
 
   return new Promise(resolve => {
     const disposable = tasks.onDidEndTask(({ execution }) => {
-      if (execution.task === task) {
+      const taskExecution = execution.task.execution;
+      if (
+        taskExecution instanceof ShellExecution &&
+        taskExecution.commandLine === commandLine
+      ) {
         disposable.dispose();
         resolve();
       }

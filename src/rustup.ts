@@ -273,8 +273,6 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
     activeChannel = parseActiveToolchain(showOutput);
   }
 
-  console.info(
-    `Detected active channel: ${activeChannel} (since 'rust-client.channel' is unspecified)`,
-  );
+  console.info(`Using active channel: ${activeChannel}`);
   return activeChannel;
 }

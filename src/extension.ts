@@ -93,7 +93,10 @@ export async function deactivate() {
 }
 
 // Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
-function whenOpeningTextDocument(document: TextDocument, manualStart: boolean = false) {
+function whenOpeningTextDocument(
+  document: TextDocument,
+  manualStart: boolean = false,
+) {
   if (document.languageId !== 'rust' && document.languageId !== 'toml') {
     return;
   }

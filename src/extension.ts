@@ -160,7 +160,7 @@ function clientWorkspaceForUri(
   if (!existing && options && options.startIfMissing) {
     const workspace = new ClientWorkspace(folder);
     workspaces.set(folder.uri.toString(), workspace);
-    workspace.start();
+    workspace.auto_start();
   }
 
   return workspaces.get(folder.uri.toString());
@@ -186,6 +186,12 @@ class ClientWorkspace {
     this.folder = folder;
     this.disposables = [];
     this._progress = new Observable<{ message: string } | null>(null);
+  }
+
+  public auto_start() {
+    if (this.config.autoStartRls) {
+      this.start();
+    }
   }
 
   public async start() {
@@ -265,6 +271,7 @@ class ClientWorkspace {
   public async stop() {
     if (this.lc) {
       await this.lc.stop();
+      this.lc = null;
     }
 
     this.disposables.forEach(d => d.dispose());
@@ -465,6 +472,14 @@ function registerCommands(): Disposable[] {
     commands.registerCommand(
       'rls.run',
       (cmd: Execution) => activeWorkspace && activeWorkspace.runRlsCommand(cmd),
+    ),
+    commands.registerCommand(
+      'rls.start',
+      () => activeWorkspace && activeWorkspace.start(),
+    ),
+    commands.registerCommand(
+      'rls.stop',
+      () => activeWorkspace && activeWorkspace.stop(),
     ),
   ];
 }

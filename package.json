@@ -94,6 +94,18 @@
                 "title": "Restart the RLS",
                 "description": "Sometimes, it's just best to try turning it off and on again",
                 "category": "Rust"
+            },
+            {
+                "command": "rls.start",
+                "title": "Start the RLS",
+                "description": "Start the RLS (when rust-client.autoStartRls is false or when manually stopped)",
+                "category": "Rust"
+            },
+            {
+                "command": "rls.stop",
+                "title": "Stop the RLS",
+                "description": "Stop the RLS for a workspace until manually started again",
+                "category": "Rust"
             }
         ],
         "taskDefinitions": [
@@ -186,6 +198,12 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Update the RLS whenever the extension starts up."
+                },
+                "rust-client.autoStartRls": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Start RLS automatically when opening a file or project.",
+                    "scope": "resource"
                 },
                 "rust-client.disableRustup": {
                     "type": "boolean",

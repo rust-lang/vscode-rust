@@ -1,5 +1,9 @@
 ### Unreleased
 
+* (!) Don't immediately start server instances for every already opened file
+* (!) Don't immediately start server instances for newly added workspace folders
+* Dynamically show progress only for the active client workspace
+* Correctly run tasks based on active text editor rather than last opened Rust file
 * Use smooth, universally supported spinner in the status bar ⚙️
 
 ### 0.7.3 - 2020-04-21

@@ -9,7 +9,7 @@ import {
   IndentAction,
   languages,
   RelativePattern,
-  TextDocument,
+  TextEditor,
   Uri,
   window,
   workspace,
@@ -29,10 +29,8 @@ import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
-import {
-  getOuterMostWorkspaceFolder,
-  nearestParentWorkspace,
-} from './utils/workspace';
+import { Observable, Observer } from './utils/observable';
+import { nearestParentWorkspace } from './utils/workspace';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
 /**
@@ -48,17 +46,17 @@ interface ProgressParams {
 }
 
 export async function activate(context: ExtensionContext) {
-  context.subscriptions.push(configureLanguage());
-  context.subscriptions.push(...registerCommands());
-
-  workspace.onDidOpenTextDocument(doc => whenOpeningTextDocument(doc));
-  workspace.onDidChangeWorkspaceFolders(e => whenChangingWorkspaceFolders(e));
-  window.onDidChangeActiveTextEditor(
-    ed => ed && whenOpeningTextDocument(ed.document),
+  context.subscriptions.push(
+    ...[
+      configureLanguage(),
+      ...registerCommands(),
+      workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders),
+      window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
+    ],
   );
-  // Installed listeners don't fire immediately for already opened files, so
-  // trigger an open event manually to fire up RLS instances where needed
-  workspace.textDocuments.forEach(whenOpeningTextDocument);
+  // Manually trigger the first event to start up server instance if necessary,
+  // since VSCode doesn't do that on startup by itself.
+  onDidChangeActiveTextEditor(window.activeTextEditor);
 
   // Migrate the users of multi-project setup for RLS to disable the setting
   // entirely (it's always on now)
@@ -92,55 +90,38 @@ export async function deactivate() {
   return Promise.all([...workspaces.values()].map(ws => ws.stop()));
 }
 
-// Taken from https://github.com/Microsoft/vscode-extension-samples/blob/master/lsp-multi-server-sample/client/src/extension.ts
-function whenOpeningTextDocument(document: TextDocument) {
-  if (document.languageId !== 'rust' && document.languageId !== 'toml') {
+/** Tracks dynamically updated progress for the active client workspace for UI purposes. */
+const progressObserver: Observer<{ message: string } | null> = new Observer();
+
+function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
+  if (!editor || !editor.document) {
+    return;
+  }
+  const { languageId, uri } = editor.document;
+
+  const workspace = clientWorkspaceForUri(uri, {
+    startIfMissing: languageId === 'rust' || languageId === 'toml',
+  });
+  if (!workspace) {
     return;
   }
 
-  let folder = workspace.getWorkspaceFolder(document.uri);
-  if (!folder) {
-    return;
-  }
+  activeWorkspace = workspace;
 
-  folder = nearestParentWorkspace(folder, document.uri.fsPath);
+  const updateProgress = (progress: { message: string } | null) => {
+    if (progress) {
+      startSpinner(`[${workspace.folder.name}] ${progress.message}`);
+    } else {
+      stopSpinner(`[${workspace.folder.name}]`);
+    }
+  };
 
-  if (!folder) {
-    stopSpinner(`RLS: Cargo.toml missing`);
-    return;
-  }
-
-  const folderPath = folder.uri.toString();
-
-  if (!workspaces.has(folderPath)) {
-    const workspace = new ClientWorkspace(folder);
-    activeWorkspace = workspace;
-    workspaces.set(folderPath, workspace);
-    workspace.start();
-  } else {
-    const ws = workspaces.get(folderPath);
-    activeWorkspace = typeof ws === 'undefined' ? null : ws;
-  }
+  progressObserver.bind(activeWorkspace.progress, updateProgress);
+  // Update UI ourselves immediately and don't wait for value update callbacks
+  updateProgress(activeWorkspace.progress.value);
 }
 
 function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
-  // If a VSCode workspace has been added, check to see if it is part of an existing one, and
-  // if not, and it is a Rust project (i.e., has a Cargo.toml), then create a new client.
-  for (let folder of e.added) {
-    folder = getOuterMostWorkspaceFolder(folder);
-    if (workspaces.has(folder.uri.toString())) {
-      continue;
-    }
-    for (const f of fs.readdirSync(folder.uri.fsPath)) {
-      if (f === 'Cargo.toml') {
-        const workspace = new ClientWorkspace(folder);
-        workspaces.set(folder.uri.toString(), workspace);
-        workspace.start();
-        break;
-      }
-    }
-  }
-
   // If a workspace is removed which is a Rust workspace, kill the client.
   for (const folder of e.removed) {
     const ws = workspaces.get(folder.uri.toString());
@@ -154,25 +135,58 @@ function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
 // Don't use URI as it's unreliable the same path might not become the same URI.
 const workspaces: Map<string, ClientWorkspace> = new Map();
 
+/**
+ * Fetches a `ClientWorkspace` for a given URI. If missing and `startIfMissing`
+ * option was provided, it is additionally initialized beforehand, if applicable.
+ */
+function clientWorkspaceForUri(
+  uri: Uri,
+  options?: { startIfMissing: boolean },
+): ClientWorkspace | undefined {
+  const rootFolder = workspace.getWorkspaceFolder(uri);
+  if (!rootFolder) {
+    return;
+  }
+
+  const folder = nearestParentWorkspace(rootFolder, uri.fsPath);
+  if (!folder) {
+    return undefined;
+  }
+
+  const existing = workspaces.get(folder.uri.toString());
+  if (!existing && options && options.startIfMissing) {
+    const workspace = new ClientWorkspace(folder);
+    workspaces.set(folder.uri.toString(), workspace);
+    workspace.start();
+  }
+
+  return workspaces.get(folder.uri.toString());
+}
+
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
 // and per-workspace stuff.
 class ClientWorkspace {
+  public readonly folder: WorkspaceFolder;
   // FIXME(#233): Don't only rely on lazily initializing it once on startup,
   // handle possible `rust-client.*` value changes while extension is running
   private readonly config: RLSConfiguration;
   private lc: LanguageClient | null = null;
-  private readonly folder: WorkspaceFolder;
   private disposables: Disposable[];
+  private _progress: Observable<{ message: string } | null>;
+  get progress() {
+    return this._progress;
+  }
 
   constructor(folder: WorkspaceFolder) {
     this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
     this.folder = folder;
     this.disposables = [];
+    this._progress = new Observable<{ message: string } | null>(null);
   }
 
   public async start() {
-    startSpinner('RLS', 'Starting');
+    this._progress.value = { message: 'Starting' };
 
     const serverOptions: ServerOptions = async () => {
       await this.autoUpdate();
@@ -273,7 +287,6 @@ class ClientWorkspace {
 
     const runningProgress: Set<string> = new Set();
     await this.lc.onReady();
-    stopSpinner('RLS');
 
     this.lc.onNotification(
       new NotificationType<ProgressParams, void>('window/progress'),
@@ -292,9 +305,9 @@ class ClientWorkspace {
           } else if (progress.title) {
             status = `[${progress.title.toLowerCase()}]`;
           }
-          startSpinner('RLS', status);
+          this._progress.value = { message: status };
         } else {
-          stopSpinner('RLS');
+          this._progress.value = null;
         }
       },
     );

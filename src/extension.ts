@@ -160,7 +160,7 @@ function clientWorkspaceForUri(
   if (!existing && options && options.startIfMissing) {
     const workspace = new ClientWorkspace(folder);
     workspaces.set(folder.uri.toString(), workspace);
-    workspace.auto_start();
+    workspace.autoStart();
   }
 
   return workspaces.get(folder.uri.toString());
@@ -188,10 +188,13 @@ class ClientWorkspace {
     this._progress = new Observable<{ message: string } | null>(null);
   }
 
-  public auto_start() {
-    if (this.config.autoStartRls) {
-      this.start();
-    }
+  /**
+   * Attempts to start a server instance, if not configured otherwise via
+   * applicable `rust-client.autoStartRls` setting.
+   * @returns whether the server has started.
+   */
+  public async autoStart() {
+    return this.config.autoStartRls && this.start().then(() => true);
   }
 
   public async start() {

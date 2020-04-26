@@ -100,7 +100,7 @@ function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
   const { languageId, uri } = editor.document;
 
   const workspace = clientWorkspaceForUri(uri, {
-    startIfMissing: languageId === 'rust' || languageId === 'toml',
+    initializeIfMissing: languageId === 'rust' || languageId === 'toml',
   });
   if (!workspace) {
     return;
@@ -139,12 +139,12 @@ function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
 const workspaces: Map<string, ClientWorkspace> = new Map();
 
 /**
- * Fetches a `ClientWorkspace` for a given URI. If missing and `startIfMissing`
+ * Fetches a `ClientWorkspace` for a given URI. If missing and `initializeIfMissing`
  * option was provided, it is additionally initialized beforehand, if applicable.
  */
 function clientWorkspaceForUri(
   uri: Uri,
-  options?: { startIfMissing: boolean },
+  options?: { initializeIfMissing: boolean },
 ): ClientWorkspace | undefined {
   const rootFolder = workspace.getWorkspaceFolder(uri);
   if (!rootFolder) {
@@ -157,7 +157,7 @@ function clientWorkspaceForUri(
   }
 
   const existing = workspaces.get(folder.uri.toString());
-  if (!existing && options && options.startIfMissing) {
+  if (!existing && options && options.initializeIfMissing) {
     const workspace = new ClientWorkspace(folder);
     workspaces.set(folder.uri.toString(), workspace);
     workspace.autoStart();

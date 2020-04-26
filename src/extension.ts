@@ -108,11 +108,13 @@ function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
 
   activeWorkspace = workspace;
 
-  const updateProgress = (progress: { message: string } | null) => {
-    if (progress) {
+  const updateProgress = (progress: WorkspaceProgress) => {
+    if (progress.state === 'progress') {
       startSpinner(`[${workspace.folder.name}] ${progress.message}`);
     } else {
-      stopSpinner(`[${workspace.folder.name}]`);
+      const readySymbol =
+        progress.state === 'standby' ? '$(debug-stop)' : '$(debug-start)';
+      stopSpinner(`[${workspace.folder.name}] ${readySymbol}`);
     }
   };
 
@@ -166,6 +168,11 @@ function clientWorkspaceForUri(
   return workspaces.get(folder.uri.toString());
 }
 
+/** Denotes the state or progress the workspace is currently in. */
+type WorkspaceProgress =
+  | { state: 'progress'; message: string }
+  | { state: 'ready' | 'standby' };
+
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
 // and per-workspace stuff.
@@ -176,7 +183,7 @@ class ClientWorkspace {
   private readonly config: RLSConfiguration;
   private lc: LanguageClient | null = null;
   private disposables: Disposable[];
-  private _progress: Observable<{ message: string } | null>;
+  private _progress: Observable<WorkspaceProgress>;
   get progress() {
     return this._progress;
   }
@@ -185,7 +192,7 @@ class ClientWorkspace {
     this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
     this.folder = folder;
     this.disposables = [];
-    this._progress = new Observable<{ message: string } | null>(null);
+    this._progress = new Observable<WorkspaceProgress>({ state: 'standby' });
   }
 
   /**
@@ -198,7 +205,7 @@ class ClientWorkspace {
   }
 
   public async start() {
-    this._progress.value = { message: 'Starting' };
+    this._progress.value = { state: 'progress', message: 'Starting' };
 
     const serverOptions: ServerOptions = async () => {
       await this.autoUpdate();
@@ -275,6 +282,7 @@ class ClientWorkspace {
     if (this.lc) {
       await this.lc.stop();
       this.lc = null;
+      this._progress.value = { state: 'standby' };
     }
 
     this.disposables.forEach(d => d.dispose());
@@ -318,9 +326,9 @@ class ClientWorkspace {
           } else if (progress.title) {
             status = `[${progress.title.toLowerCase()}]`;
           }
-          this._progress.value = { message: status };
+          this._progress.value = { state: 'progress', message: status };
         } else {
-          this._progress.value = null;
+          this._progress.value = { state: 'ready' };
         }
       },
     );

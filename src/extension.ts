@@ -8,7 +8,6 @@ import {
   ExtensionContext,
   IndentAction,
   languages,
-  RelativePattern,
   TextEditor,
   Uri,
   window,
@@ -193,14 +192,10 @@ class ClientWorkspace {
       return this.makeRlsProcess();
     };
 
-    // FIXME: vscode-languageserver-node internally uses `pattern` here as
-    // `vscode.GlobPattern` but only types it out as `string` type. We use
-    // `RelativePattern` to  reliably match files relative to a workspace folder
-    // in a way that's supported in a cross-platform fashion.
-    const pattern = (new RelativePattern(
-      this.folder,
-      '**',
-    ) as unknown) as string;
+    // This accepts `vscode.GlobPattern` under the hood, which requires only
+    // forward slashes. It's worth mentioning that RelativePattern does *NOT*
+    // work in remote scenarios (?), so rely on normalized fs path from VSCode URIs.
+    const pattern = `${this.folder.uri.fsPath.replace(path.sep, '/')}/**`;
 
     const clientOptions: LanguageClientOptions = {
       // Register the server for Rust files

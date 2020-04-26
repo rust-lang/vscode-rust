@@ -29,7 +29,7 @@ import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
 import { withWsl } from './utils/child_process';
-import { Observable, Observer } from './utils/observable';
+import { Observable } from './utils/observable';
 import { nearestParentWorkspace } from './utils/workspace';
 import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
 
@@ -91,7 +91,7 @@ export async function deactivate() {
 }
 
 /** Tracks dynamically updated progress for the active client workspace for UI purposes. */
-const progressObserver: Observer<{ message: string } | null> = new Observer();
+let progressObserver: Disposable | undefined;
 
 function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
   if (!editor || !editor.document) {
@@ -116,7 +116,10 @@ function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
     }
   };
 
-  progressObserver.bind(activeWorkspace.progress, updateProgress);
+  if (progressObserver) {
+    progressObserver.dispose();
+  }
+  progressObserver = activeWorkspace.progress.observe(updateProgress);
   // Update UI ourselves immediately and don't wait for value update callbacks
   updateProgress(activeWorkspace.progress.value);
 }

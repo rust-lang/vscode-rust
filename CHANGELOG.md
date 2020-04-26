@@ -1,5 +1,8 @@
 ### Unreleased
 
+* Add a Start/Stop the RLS command
+* Introduce a `rust-client.autoStartRls` (defaults to true) setting to control the auto-start
+behaviour when opening a relevant Rust project file
 * (!) Don't immediately start server instances for every already opened file
 * (!) Don't immediately start server instances for newly added workspace folders
 * Dynamically show progress only for the active client workspace

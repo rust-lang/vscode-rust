@@ -32,7 +32,4 @@ jobs:
       - run: npm run compile
       - run: npm run lint
       - run: npm audit
-      - name: Run headless tests
-        uses: GabrielBB/xvfb-action@v1.0
-        with:
-          run: npm test
+      - run: npm test # Let's see if we have xvfb included by default

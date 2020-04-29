@@ -26,7 +26,6 @@ suite('Extension Tests', () => {
       { subcommand: 'run', group: undefined },
     ];
 
-    await vscode.commands.executeCommand('vscode.openFolder', projectUri);
     const whenWorkspacesActive = projects.map(path => {
       const fsPath = Uri.file(path).fsPath;
       return whenWorkspaceActive(fsPath);

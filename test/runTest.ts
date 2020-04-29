@@ -9,7 +9,12 @@ import { runTests } from 'vscode-test';
   await runTests({
     extensionDevelopmentPath,
     extensionTestsPath,
-    launchArgs: ['--disable-extensions'],
+    launchArgs: [
+      '--disable-extensions',
+      // Already start in the fixtures dir because we lose debugger connection
+      // once we re-open a different folder due to window reloading
+      path.join(extensionDevelopmentPath, 'fixtures'),
+    ],
   }).catch(() => {
     console.error(`Test run failed`);
     process.exit(1);

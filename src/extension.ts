@@ -1,6 +1,7 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as util from 'util';
 import {
   commands,
   ConfigurationTarget,
@@ -27,10 +28,10 @@ import { SignatureHelpProvider } from './providers/signatureHelpProvider';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
-import { withWsl } from './utils/child_process';
 import { Observable } from './utils/observable';
 import { nearestParentWorkspace } from './utils/workspace';
-import { uriWindowsToWsl, uriWslToWindows } from './utils/wslpath';
+
+const exec = util.promisify(child_process.exec);
 
 /**
  * Parameter type to `window/progress` request as issued by the RLS.
@@ -233,23 +234,6 @@ class ClientWorkspace {
       workspaceFolder: this.folder,
     };
 
-    // Changes paths between Windows and Windows Subsystem for Linux
-    if (this.config.useWSL) {
-      clientOptions.uriConverters = {
-        code2Protocol: (uri: Uri) => {
-          const res = Uri.file(uriWindowsToWsl(uri.fsPath)).toString();
-          console.log(`code2Protocol for path ${uri.fsPath} -> ${res}`);
-          return res;
-        },
-        protocol2Code: (wslUri: string) => {
-          const urlDecodedPath = Uri.parse(wslUri).path;
-          const winPath = Uri.file(uriWslToWindows(urlDecodedPath));
-          console.log(`protocol2Code for path ${wslUri} -> ${winPath.fsPath}`);
-          return winPath;
-        },
-      };
-    }
-
     // Create the language client and start the client.
     this.lc = new LanguageClient(
       'rust-client',
@@ -330,12 +314,10 @@ class ClientWorkspace {
   }
 
   private async getSysroot(env: typeof process.env): Promise<string> {
-    const wslWrapper = withWsl(this.config.useWSL);
-
     const rustcPrintSysroot = () =>
       this.config.rustupDisabled
-        ? wslWrapper.exec('rustc --print sysroot', { env })
-        : wslWrapper.exec(
+        ? exec('rustc --print sysroot', { env })
+        : exec(
             `${this.config.rustupPath} run ${this.config.channel} rustc --print sysroot`,
             { env },
           );
@@ -424,7 +406,7 @@ class ClientWorkspace {
       }
 
       const env = await makeRlsEnv();
-      childProcess = withWsl(config.useWSL).spawn(
+      childProcess = child_process.spawn(
         config.path,
         ['run', config.channel, rlsPath],
         { env, cwd, shell: true },

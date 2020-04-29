@@ -1,4 +1,4 @@
-import { window, workspace, WorkspaceConfiguration } from 'vscode';
+import { workspace, WorkspaceConfiguration } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
 
 import { getActiveChannel, RustupConfig } from './rustup';
@@ -26,14 +26,6 @@ export class RLSConfiguration {
   private constructor(configuration: WorkspaceConfiguration, wsPath: string) {
     this.configuration = configuration;
     this.wsPath = wsPath;
-
-    if (this.configuration.get<boolean>('rust-client.useWSL')) {
-      window.showWarningMessage(
-        'Option `rust-client.useWsl` is enabled for this workspace, which is DEPRECATED.\
-        For a complete and first-class WSL support try Remote - WSL extension \
-        extension (https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)',
-      );
-    }
   }
 
   public static loadFromWorkspace(wsPath: string): RLSConfiguration {
@@ -77,10 +69,6 @@ export class RLSConfiguration {
 
   public get rustupPath(): string {
     return this.configuration.get('rust-client.rustupPath', 'rustup');
-  }
-
-  public get useWSL(): boolean {
-    return this.configuration.get<boolean>('rust-client.useWSL', false);
   }
 
   public get logToFile(): boolean {
@@ -130,7 +118,6 @@ export class RLSConfiguration {
     return {
       channel: ignoreChannel ? '' : this.channel,
       path: this.rustupPath,
-      useWSL: this.useWSL,
     };
   }
 }

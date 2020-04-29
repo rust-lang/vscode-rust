@@ -1,5 +1,8 @@
 ### Unreleased
 
+* Remove deprecated `rust-client.useWsl` setting (use the official
+[Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension instead)
+
 ### 0.7.4 - 2020-04-27
 
 * Add a Start/Stop the RLS command

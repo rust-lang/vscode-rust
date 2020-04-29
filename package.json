@@ -169,11 +169,6 @@
                     "description": "Path to rustup executable. Ignored if rustup is disabled.",
                     "scope": "machine"
                 },
-                "rust-client.useWSL": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "When set to true, RLS is started within Windows Subsystem for Linux."
-                },
                 "rust-client.rlsPath": {
                     "type": [
                         "string",

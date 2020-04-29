@@ -32,4 +32,8 @@ jobs:
       - run: npm run compile
       - run: npm run lint
       - run: npm audit
-      - run: npm test # Let's see if we have xvfb included by default
+      # Ensure we run our tests with a display set for Linux (not provided by default)
+      - run: xvfb-run -a npm test
+        if: runner.os == 'Linux'
+      - run: npm test
+        if: runner.os != 'Linux'

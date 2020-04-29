@@ -2,7 +2,9 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 // tslint:disable-next-line: no-duplicate-imports
-import { Uri } from 'vscode';
+import { Disposable, Uri } from 'vscode';
+
+import * as extension from '../../src/extension';
 
 const fixtureDir = path.resolve(
   path.join(__dirname, '..', '..', '..', 'fixtures'),
@@ -25,6 +27,10 @@ suite('Extension Tests', () => {
     ];
 
     await vscode.commands.executeCommand('vscode.openFolder', projectUri);
+    const whenWorkspacesActive = projects.map(path => {
+      const fsPath = Uri.file(path).fsPath;
+      return whenWorkspaceActive(fsPath);
+    });
 
     // This makes sure that we set the focus on the opened files (which is what
     // actually triggers the extension for the project)
@@ -36,9 +42,9 @@ suite('Extension Tests', () => {
       'workbench.action.acceptSelectedQuickOpenItem',
     );
     await vscode.commands.executeCommand('workbench.action.keepEditor');
-    // Unfortunately, we need to wait a bit for the extension to kick in :(
-    // FIXME: See if we can directly import our extension and await its progress
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait until the first server is ready
+    await Promise.race([whenWorkspacesActive[0], timeoutReject(3000)]);
+
     assert(await currentTasksInclude([expected[0]]));
 
     // Now test for the second project
@@ -49,7 +55,8 @@ suite('Extension Tests', () => {
     await vscode.commands.executeCommand(
       'workbench.action.acceptSelectedQuickOpenItem',
     );
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait until the second server is ready
+    await Promise.race([whenWorkspacesActive[1], timeoutReject(3000)]);
     assert(await currentTasksInclude(expected));
   }).timeout(0);
 });
@@ -77,3 +84,30 @@ async function currentTasksInclude(
     ),
   );
 }
+
+/**
+ * Returns a promise when a client workspace will become active with a given path.
+ * @param fsPath normalized file system path of a URI
+ */
+function whenWorkspaceActive(
+  fsPath: string,
+): Promise<extension.ClientWorkspace> {
+  return new Promise(resolve => {
+    let disposable: Disposable | undefined;
+    disposable = extension.activeWorkspace.observe(value => {
+      if (value && value.folder.uri.fsPath === fsPath) {
+        if (disposable) {
+          disposable.dispose();
+          disposable = undefined;
+        }
+
+        resolve(value);
+      }
+    });
+  });
+}
+
+const timeoutReject = (ms: number) =>
+  new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Timed out')), ms),
+  );

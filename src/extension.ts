@@ -106,7 +106,7 @@ function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
     return;
   }
 
-  activeWorkspace = workspace;
+  activeWorkspace.value = workspace;
 
   const updateProgress = (progress: WorkspaceProgress) => {
     if (progress.state === 'progress') {
@@ -121,9 +121,9 @@ function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
   if (progressObserver) {
     progressObserver.dispose();
   }
-  progressObserver = activeWorkspace.progress.observe(updateProgress);
+  progressObserver = workspace.progress.observe(updateProgress);
   // Update UI ourselves immediately and don't wait for value update callbacks
-  updateProgress(activeWorkspace.progress.value);
+  updateProgress(workspace.progress.value);
 }
 
 function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
@@ -176,7 +176,7 @@ type WorkspaceProgress =
 // We run one RLS and one corresponding language client per workspace folder
 // (VSCode workspace, not Cargo workspace). This class contains all the per-client
 // and per-workspace stuff.
-class ClientWorkspace {
+export class ClientWorkspace {
   public readonly folder: WorkspaceFolder;
   // FIXME(#233): Don't only rely on lazily initializing it once on startup,
   // handle possible `rust-client.*` value changes while extension is running
@@ -440,7 +440,7 @@ class ClientWorkspace {
  * Tracks the most current VSCode workspace as opened by the user. Used by the
  * commands to know in which workspace these should be executed.
  */
-let activeWorkspace: ClientWorkspace | null;
+const activeWorkspace = new Observable<ClientWorkspace | null>(null);
 
 /**
  * Registers the VSCode [commands] used by the extension.
@@ -451,23 +451,24 @@ function registerCommands(): Disposable[] {
   return [
     commands.registerCommand(
       'rls.update',
-      () => activeWorkspace && activeWorkspace.rustupUpdate(),
+      () => activeWorkspace.value && activeWorkspace.value.rustupUpdate(),
     ),
     commands.registerCommand(
       'rls.restart',
-      async () => activeWorkspace && activeWorkspace.restart(),
+      async () => activeWorkspace.value && activeWorkspace.value.restart(),
     ),
     commands.registerCommand(
       'rls.run',
-      (cmd: Execution) => activeWorkspace && activeWorkspace.runRlsCommand(cmd),
+      (cmd: Execution) =>
+        activeWorkspace.value && activeWorkspace.value.runRlsCommand(cmd),
     ),
     commands.registerCommand(
       'rls.start',
-      () => activeWorkspace && activeWorkspace.start(),
+      () => activeWorkspace.value && activeWorkspace.value.start(),
     ),
     commands.registerCommand(
       'rls.stop',
-      () => activeWorkspace && activeWorkspace.stop(),
+      () => activeWorkspace.value && activeWorkspace.value.stop(),
     ),
   ];
 }

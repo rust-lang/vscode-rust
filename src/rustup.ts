@@ -75,7 +75,7 @@ export async function checkForRls(config: RustupConfig) {
   );
   if (clicked) {
     await installRlsComponents(config);
-    window.showInformationMessage('RLS successfully installed! Enjoy! 🎉');
+    window.showInformationMessage('RLS successfully installed! Enjoy! ❤️');
   } else {
     throw new Error();
   }

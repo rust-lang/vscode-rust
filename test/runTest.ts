@@ -3,11 +3,11 @@ import * as path from 'path';
 import { runTests } from 'vscode-test';
 
 (async () => {
-  const extensionPath = path.resolve(__dirname, '../../');
-  const testRunnerPath = path.resolve(__dirname, './suite');
+  const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+  const extensionTestsPath = path.resolve(__dirname, './suite');
 
   await runTests({
-    extensionPath,
-    testRunnerPath,
+    extensionDevelopmentPath,
+    extensionTestsPath,
   });
 })();

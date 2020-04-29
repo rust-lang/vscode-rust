@@ -10,8 +10,6 @@ assert(rustupVersion);
 const config: rustup.RustupConfig = {
   path: 'rustup',
   channel: 'stable',
-  // TODO: Detect if we're running in Windows and if wsl works?
-  useWSL: false,
 };
 
 suite('Rustup Tests', () => {

@@ -9,5 +9,9 @@ import { runTests } from 'vscode-test';
   await runTests({
     extensionDevelopmentPath,
     extensionTestsPath,
+    launchArgs: ['--disable-extensions'],
+  }).catch(() => {
+    console.error(`Test run failed`);
+    process.exit(1);
   });
 })();

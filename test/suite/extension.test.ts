@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { Disposable, Uri } from 'vscode';
 
 import * as extension from '../../src/extension';
+import { Observable } from '../../src/utils/observable';
 
 const fixtureDir = path.resolve(
   path.join(__dirname, '..', '..', '..', 'fixtures'),
@@ -12,10 +13,17 @@ const fixtureDir = path.resolve(
 
 suite('Extension Tests', () => {
   test('cargo tasks are auto-detected', async () => {
+    // Activate manually to ease the access to internal, exported APIs without
+    // having to open any file before
+    const ext = vscode.extensions.getExtension<extension.Api>(
+      'rust-lang.rust',
+    )!;
+    const { activeWorkspace } = await ext.activate();
+
     const projects = [
       path.join(fixtureDir, 'bare-lib-project'),
       path.join(fixtureDir, 'another-lib-project'),
-    ];
+    ].map(path => Uri.file(path).fsPath);
 
     const expected = [
       { subcommand: 'build', group: vscode.TaskGroup.Build, cwd: projects[0] },
@@ -26,10 +34,9 @@ suite('Extension Tests', () => {
       { subcommand: 'run', group: undefined },
     ];
 
-    const whenWorkspacesActive = projects.map(path => {
-      const fsPath = Uri.file(path).fsPath;
-      return whenWorkspaceActive(fsPath);
-    });
+    const whenWorkspacesActive = projects.map(path =>
+      whenWorkspaceActive(activeWorkspace, path),
+    );
 
     // This makes sure that we set the focus on the opened files (which is what
     // actually triggers the extension for the project)
@@ -89,11 +96,12 @@ async function currentTasksInclude(
  * @param fsPath normalized file system path of a URI
  */
 function whenWorkspaceActive(
+  observable: Observable<extension.ClientWorkspace | null>,
   fsPath: string,
 ): Promise<extension.ClientWorkspace> {
   return new Promise(resolve => {
     let disposable: Disposable | undefined;
-    disposable = extension.activeWorkspace.observe(value => {
+    disposable = observable.observe(value => {
       if (value && value.folder.uri.fsPath === fsPath) {
         if (disposable) {
           disposable.dispose();

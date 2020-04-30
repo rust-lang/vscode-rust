@@ -42,7 +42,7 @@ suite('Extension Tests', () => {
     );
     await vscode.commands.executeCommand('workbench.action.keepEditor');
     // Wait until the first server is ready
-    await Promise.race([whenWorkspacesActive[0], timeoutReject(3000)]);
+    await whenWorkspacesActive[0];
 
     assert(await currentTasksInclude([expected[0]]));
 
@@ -55,9 +55,9 @@ suite('Extension Tests', () => {
       'workbench.action.acceptSelectedQuickOpenItem',
     );
     // Wait until the second server is ready
-    await Promise.race([whenWorkspacesActive[1], timeoutReject(3000)]);
+    await whenWorkspacesActive[1];
     assert(await currentTasksInclude(expected));
-  }).timeout(0);
+  }).timeout(60000);
 });
 
 async function currentTasksInclude(
@@ -105,8 +105,3 @@ function whenWorkspaceActive(
     });
   });
 }
-
-const timeoutReject = (ms: number) =>
-  new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Timed out')), ms),
-  );

@@ -45,9 +45,11 @@ suite('Extension Tests', () => {
       'workbench.action.quickOpen',
       path.join(projects[0], 'src', 'lib.rs'),
     );
+    await waitForUI();
     await vscode.commands.executeCommand(
       'workbench.action.acceptSelectedQuickOpenItem',
     );
+    await waitForUI();
     await vscode.commands.executeCommand('workbench.action.keepEditor');
     // Wait until the first server is ready
     await whenWorkspacesActive[0];
@@ -59,9 +61,11 @@ suite('Extension Tests', () => {
       'workbench.action.quickOpen',
       path.join(projects[1], 'src', 'lib.rs'),
     );
+    await waitForUI();
     await vscode.commands.executeCommand(
       'workbench.action.acceptSelectedQuickOpenItem',
     );
+    await waitForUI();
     // Wait until the second server is ready
     await whenWorkspacesActive[1];
     expect(await fetchBriefTasks()).to.include.deep.members(expected);
@@ -107,3 +111,13 @@ function whenWorkspaceActive(
     });
   });
 }
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * Returns a promise that resolves after executing the current call stack.
+ * Sometimes we need to wait for the UI to catch up (since it's executed on the
+ * same thread as JS) before and UI-dependent logic, such as a sequence of
+ * user-like inputs. To avoid any races (which unfortunately *did* happen), it's
+ * best if we interweave the delays between each UI action.
+ */
+const waitForUI = () => delay(0);

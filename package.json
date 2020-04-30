@@ -53,10 +53,12 @@
         "vscode-languageclient": "^4.3.0"
     },
     "devDependencies": {
+        "@types/chai": "^4.2.11",
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.6",
         "@types/node": "^10.10",
         "@types/vscode": "^1.31.0",
+        "chai": "^4.2.0",
         "glob": "^7.1.4",
         "mocha": "^6.2.3",
         "prettier": "^1.16.4",

@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import { expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 // tslint:disable-next-line: no-duplicate-imports
@@ -28,10 +28,11 @@ suite('Extension Tests', () => {
     const expected = [
       { subcommand: 'build', group: vscode.TaskGroup.Build, cwd: projects[0] },
       { subcommand: 'build', group: vscode.TaskGroup.Build, cwd: projects[1] },
-      { subcommand: 'check', group: vscode.TaskGroup.Build },
-      { subcommand: 'test', group: vscode.TaskGroup.Test },
-      { subcommand: 'clean', group: vscode.TaskGroup.Clean },
-      { subcommand: 'run', group: undefined },
+      { subcommand: 'check', group: vscode.TaskGroup.Build, cwd: projects[0] },
+      { subcommand: 'check', group: vscode.TaskGroup.Build, cwd: projects[1] },
+      { subcommand: 'test', group: vscode.TaskGroup.Test, cwd: projects[1] },
+      { subcommand: 'clean', group: vscode.TaskGroup.Clean, cwd: projects[1] },
+      { subcommand: 'run', group: undefined, cwd: projects[1] },
     ];
 
     const whenWorkspacesActive = projects.map(path =>
@@ -51,7 +52,7 @@ suite('Extension Tests', () => {
     // Wait until the first server is ready
     await whenWorkspacesActive[0];
 
-    assert(await currentTasksInclude([expected[0]]));
+    expect(await fetchBriefTasks()).to.include.deep.members([expected[0]]);
 
     // Now test for the second project
     await vscode.commands.executeCommand(
@@ -63,32 +64,25 @@ suite('Extension Tests', () => {
     );
     // Wait until the second server is ready
     await whenWorkspacesActive[1];
-    assert(await currentTasksInclude(expected));
+    expect(await fetchBriefTasks()).to.include.deep.members(expected);
   }).timeout(60000);
 });
 
-async function currentTasksInclude(
-  expected: Array<{
+/** Fetches current VSCode tasks' partial objects for ease of assertion */
+async function fetchBriefTasks(): Promise<
+  Array<{
     subcommand: string;
     group: vscode.TaskGroup | undefined;
     cwd?: string;
-  }>,
-): Promise<boolean> {
+  }>
+> {
   const tasks = await vscode.tasks.fetchTasks();
 
-  return expected.every(({ subcommand, group, cwd }) =>
-    tasks.some(
-      task =>
-        task.definition.type === 'cargo' &&
-        task.definition.subcommand === subcommand &&
-        task.group === group &&
-        (!cwd ||
-          cwd ===
-            (task.execution &&
-              task.execution.options &&
-              task.execution.options.cwd)),
-    ),
-  );
+  return tasks.map(task => ({
+    subcommand: task.definition.subcommand,
+    group: task.group,
+    cwd: task.execution && task.execution.options && task.execution.options.cwd,
+  }));
 }
 
 /**

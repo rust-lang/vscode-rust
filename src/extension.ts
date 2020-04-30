@@ -45,7 +45,15 @@ interface ProgressParams {
   done?: boolean;
 }
 
-export async function activate(context: ExtensionContext) {
+/**
+ * External API as exposed by the extension. Can be queried by other extensions
+ * or by the integration test runner for VSCode extensions.
+ */
+export interface Api {
+  activeWorkspace: typeof activeWorkspace;
+}
+
+export async function activate(context: ExtensionContext): Promise<Api> {
   context.subscriptions.push(
     ...[
       configureLanguage(),
@@ -84,6 +92,8 @@ export async function activate(context: ExtensionContext) {
         return;
       });
   }
+
+  return { activeWorkspace };
 }
 
 export async function deactivate() {

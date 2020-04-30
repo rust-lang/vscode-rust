@@ -120,4 +120,5 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * user-like inputs. To avoid any races (which unfortunately *did* happen), it's
  * best if we interweave the delays between each UI action.
  */
-const waitForUI = () => delay(0);
+// FIXME: ... or just use 500ms? For some reason our CI just can't ever catch up
+const waitForUI = () => delay(process.env.CI === 'true' ? 500 : 0);

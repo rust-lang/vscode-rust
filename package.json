@@ -160,6 +160,16 @@
             "type": "object",
             "title": "Rust configuration",
             "properties": {
+                "rust-client.engine": {
+                    "type": "string",
+                    "enum": [
+                        "rls",
+                        "rust-analyzer"
+                    ],
+                    "default": "rls",
+                    "description": "The underlying LSP server used to provide IDE support for Rust projects.",
+                    "scope": "window"
+                },
                 "rust-client.logToFile": {
                     "type": "boolean",
                     "default": false,

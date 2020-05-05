@@ -69,7 +69,7 @@ export async function ensureToolchain(config: RustupConfig) {
  * not already.
  */
 export async function checkForRls(config: RustupConfig) {
-  if (await hasRlsComponents(config)) {
+  if (await hasComponents(config, REQUIRED_COMPONENTS.rls)) {
     return;
   }
 
@@ -77,7 +77,7 @@ export async function checkForRls(config: RustupConfig) {
     window.showInformationMessage('RLS not installed. Install?', 'Yes'),
   );
   if (clicked) {
-    await installRlsComponents(config);
+    await installComponents(config, REQUIRED_COMPONENTS.rls);
     window.showInformationMessage('RLS successfully installed! Enjoy! ❤️');
   } else {
     throw new Error();
@@ -140,13 +140,18 @@ async function listComponents(config: RustupConfig): Promise<string[]> {
   );
 }
 
-async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
+async function hasComponents(
+  config: RustupConfig,
+  components: string[],
+): Promise<boolean> {
   try {
-    const components = await listComponents(config);
+    const existingComponents = await listComponents(config);
 
-    return REQUIRED_COMPONENTS.map(isInstalledRegex).every(isInstalledRegex =>
-      components.some(c => isInstalledRegex.test(c)),
-    );
+    return components
+      .map(isInstalledRegex)
+      .every(isInstalledRegex =>
+        existingComponents.some(c => isInstalledRegex.test(c)),
+      );
   } catch (e) {
     console.log(e);
     window.showErrorMessage(`Can't detect RLS components: ${e.message}`);
@@ -155,10 +160,10 @@ async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
   }
 }
 
-async function installRlsComponents(config: RustupConfig) {
+async function installComponents(config: RustupConfig, components: string[]) {
   startSpinner('Installing components…');
 
-  for (const component of REQUIRED_COMPONENTS) {
+  for (const component of components) {
     try {
       const command = config.path;
       const args = [

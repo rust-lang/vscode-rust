@@ -11,7 +11,10 @@ import { runTaskCommand } from './tasks';
 
 const exec = util.promisify(child_process.exec);
 
-const REQUIRED_COMPONENTS = ['rust-analysis', 'rust-src', 'rls'];
+const REQUIRED_COMPONENTS = {
+  rls: ['rust-analysis', 'rust-src', 'rls'],
+  rustAnalyzer: ['rust-src'],
+};
 
 function isInstalledRegex(componentName: string): RegExp {
   return new RegExp(`^(${componentName}.*) \\((default|installed)\\)$`);

@@ -106,6 +106,11 @@ export class RLSConfiguration {
     return this.configuration.get<string>('rust-client.rlsPath');
   }
 
+  /** Returns the language analysis engine to be used for the workspace */
+  public get engine(): 'rls' | 'rust-analyzer' {
+    return this.configuration.get('rust-client.engine') || 'rls';
+  }
+
   /**
    * Whether RLS should be automaticallystarted when opening a relevant Rust project.
    */

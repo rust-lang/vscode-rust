@@ -25,6 +25,7 @@ import {
 
 import { RLSConfiguration } from './configuration';
 import { SignatureHelpProvider } from './providers/signatureHelpProvider';
+import * as rustAnalyzer from './rustAnalyzer';
 import { checkForRls, ensureToolchain, rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';
@@ -91,6 +92,13 @@ export async function activate(context: ExtensionContext): Promise<Api> {
         }
         return;
       });
+  }
+
+  if (config.get('rust-client.engine') === 'rust-analyzer') {
+    await rustAnalyzer.getServer({
+      askBeforeDownload: true,
+      package: { releaseTag: '2020-05-04' },
+    });
   }
 
   return { activeWorkspace };
@@ -219,7 +227,17 @@ export class ClientWorkspace {
 
     const serverOptions: ServerOptions = async () => {
       await this.autoUpdate();
-      return this.makeRlsProcess();
+      const engine = this.config.engine;
+      return engine === 'rust-analyzer'
+        ? rustAnalyzer
+            .getServer({
+              askBeforeDownload: true,
+              package: { releaseTag: '2020-05-04' },
+            })
+            .then(binPath =>
+              child_process.execFile(binPath!),
+            ) /* TODO: Handle possibly undefined RA */
+        : this.makeRlsProcess();
     };
 
     // This accepts `vscode.GlobPattern` under the hood, which requires only

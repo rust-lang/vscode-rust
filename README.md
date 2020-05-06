@@ -74,8 +74,7 @@ the following snippets:
 
 * `for` - a for loop
 * `macro_rules` - declare a macro
-* `if let Option` - an `if let` statement for executing code only in the `Some`
-  case.
+* `if let` - an `if let` statement for executing code only when a pattern matches
 * `spawn` - spawn a thread
 * `extern crate` - insert an `extern crate` statement
 

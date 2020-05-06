@@ -26,14 +26,14 @@
         ],
         "description": "Insert macro_rules!"
     },
-    "if let Option": {
+    "if let": {
         "prefix": "if let",
         "body": [
-            "if let Some(${1:foo}) = ${1:foo} {",
-            "\t${0:${1:foo}.}",
+            "if let ${1:pattern} = ${2:value} {",
+            "\t$3",
             "}"
         ],
-        "description": "Unwrap Option with if let"
+        "description": "Insert if to match a specific pattern, useful for enum variants e.g. `Some(inner)`"
     },
     "spawn": {
         "prefix": [

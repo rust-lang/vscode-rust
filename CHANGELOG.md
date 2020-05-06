@@ -1,5 +1,7 @@
 ### Unreleased
 
+### 0.7.5 - 2020-05-06
+
 * Remove redundant snippets and improve usability of select ones e.g. `if let`
 * Accept rustup toolchain shorthands in `rust-client.channel`, e.g. `stable-gnu` or `nightly-x86_64-msvc`
 * Remove deprecated `rust-client.useWsl` setting (use the official

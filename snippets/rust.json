@@ -2,7 +2,7 @@
     "extern crate": {
         "prefix": "extern crate",
         "body": [
-            "extern crate ${1:name};$0"
+            "extern crate ${1:name};"
         ],
         "description": "Insert extern crate"
     },
@@ -43,7 +43,7 @@
         "body": [
             "std::thread::spawn(move || {",
             "\t$1",
-            "})$0"
+            "})"
         ],
         "description": "Wrap code in thread::spawn"
     },

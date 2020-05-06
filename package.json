@@ -194,7 +194,7 @@
                 "rust-client.updateOnStartup": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Update the RLS whenever the extension starts up."
+                    "description": "Update the Rust toolchain and its required components whenever the extension starts up."
                 },
                 "rust-client.autoStartRls": {
                     "type": "boolean",

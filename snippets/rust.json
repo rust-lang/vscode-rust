@@ -15,48 +15,6 @@
         ],
         "description": "Insert for loop"
     },
-    "unimplemented": {
-        "prefix": "unimplemented",
-        "body": [
-            "unimplemented!()"
-        ],
-        "description": "Insert unimplemented!"
-    },
-    "unreachable": {
-        "prefix": "unreachable",
-        "body": [
-            "unreachable!()"
-        ],
-        "description": "Insert unreachable!"
-    },
-    "print": {
-        "prefix": "print",
-        "body": [
-            "print!(\"$1\", $2)$0"
-        ],
-        "description": "Insert print!"
-    },
-    "println": {
-        "prefix": "println",
-        "body": [
-            "println!(\"$1\", $2)$0"
-        ],
-        "description": "Insert println!"
-    },
-    "assert": {
-        "prefix": "assert",
-        "body": [
-            "assert!($1)$0"
-        ],
-        "description": "Insert assert!"
-    },
-    "assert_eq": {
-        "prefix": "assert_eq",
-        "body": [
-            "assert_eq!($1, $2)$0"
-        ],
-        "description": "Insert assert_eq!"
-    },
     "macro_rules": {
         "prefix": "macro_rules",
         "body": [

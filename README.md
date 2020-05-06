@@ -73,10 +73,6 @@ You can move to the next 'hole' in the template by pressing 'tab'. We provide
 the following snippets:
 
 * `for` - a for loop
-* `unimplemented`
-* `unreachable`
-* `print(ln)`
-* `assert(_eq)`
 * `macro_rules` - declare a macro
 * `if let Option` - an `if let` statement for executing code only in the `Some`
   case.

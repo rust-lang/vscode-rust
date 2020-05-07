@@ -475,27 +475,17 @@ const activeWorkspace = new Observable<ClientWorkspace | null>(null);
  */
 function registerCommands(): Disposable[] {
   return [
-    commands.registerCommand(
-      'rls.update',
-      () => activeWorkspace.value && activeWorkspace.value.rustupUpdate(),
+    commands.registerCommand('rls.update', () =>
+      activeWorkspace.value?.rustupUpdate(),
     ),
-    commands.registerCommand(
-      'rls.restart',
-      async () => activeWorkspace.value && activeWorkspace.value.restart(),
+    commands.registerCommand('rls.restart', async () =>
+      activeWorkspace.value?.restart(),
     ),
-    commands.registerCommand(
-      'rls.run',
-      (cmd: Execution) =>
-        activeWorkspace.value && activeWorkspace.value.runRlsCommand(cmd),
+    commands.registerCommand('rls.run', (cmd: Execution) =>
+      activeWorkspace.value?.runRlsCommand(cmd),
     ),
-    commands.registerCommand(
-      'rls.start',
-      () => activeWorkspace.value && activeWorkspace.value.start(),
-    ),
-    commands.registerCommand(
-      'rls.stop',
-      () => activeWorkspace.value && activeWorkspace.value.stop(),
-    ),
+    commands.registerCommand('rls.start', () => activeWorkspace.value?.start()),
+    commands.registerCommand('rls.stop', () => activeWorkspace.value?.stop()),
   ];
 }
 

@@ -270,6 +270,11 @@ export class ClientWorkspace {
       clientOptions,
     );
 
+    if (this.config.engine === 'rust-analyzer') {
+      // Register for semantic tokens, among others
+      this.lc.registerProposedFeatures();
+    }
+
     const selector = { language: 'rust', scheme: 'file', pattern };
 
     this.setupProgressCounter();

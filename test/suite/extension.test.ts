@@ -85,7 +85,11 @@ async function fetchBriefTasks(): Promise<
   return tasks.map(task => ({
     subcommand: task.definition.subcommand,
     group: task.group,
-    cwd: task.execution && task.execution.options && task.execution.options.cwd,
+    cwd:
+      ((task.execution instanceof vscode.ProcessExecution ||
+        task.execution instanceof vscode.ShellExecution) &&
+        task.execution?.options?.cwd) ||
+      undefined,
   }));
 }
 

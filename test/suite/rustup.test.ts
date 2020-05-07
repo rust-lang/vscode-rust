@@ -18,6 +18,6 @@ suite('Rustup Tests', () => {
     assert(rustupVersion.includes(`rustup ${version}`));
   });
   test('getActiveChannel', async () => {
-    rustup.getActiveChannel('.', config);
+    rustup.getActiveChannel('.', config.path);
   });
 });

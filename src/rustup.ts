@@ -256,7 +256,7 @@ export function hasRustup(config: RustupConfig): Promise<boolean> {
  * Returns active (including local overrides) toolchain, as specified by rustup.
  * May throw if rustup at specified path can't be executed.
  */
-export function getActiveChannel(wsPath: string, config: RustupConfig): string {
+export function getActiveChannel(wsPath: string, rustupPath: string): string {
   // rustup info might differ depending on where it's executed
   // (e.g. when a toolchain is locally overriden), so executing it
   // under our current workspace root should give us close enough result
@@ -265,7 +265,7 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
   try {
     // `rustup show active-toolchain` is available since rustup 1.12.0
     activeChannel = child_process
-      .execSync(`${config.path} show active-toolchain`, {
+      .execSync(`${rustupPath} show active-toolchain`, {
         cwd: wsPath,
       })
       .toString()
@@ -278,7 +278,7 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
   } catch (e) {
     // Possibly an old rustup version, so try rustup show
     const showOutput = child_process
-      .execSync(`${config.path} show`, {
+      .execSync(`${rustupPath} show`, {
         cwd: wsPath,
       })
       .toString();

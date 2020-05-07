@@ -50,13 +50,13 @@ export class RLSConfiguration {
    */
   private static readChannel(
     wsPath: string,
-    rustupConfiguration: RustupConfig,
+    rustupPath: string,
     configuration: WorkspaceConfiguration,
   ): string {
     const channel = configuration.get<string>('rust-client.channel');
     if (channel === 'default' || !channel) {
       try {
-        return getActiveChannel(wsPath, rustupConfiguration);
+        return getActiveChannel(wsPath, rustupPath);
       } catch (e) {
         // rustup might not be installed at the time the configuration is
         // initially loaded, so silently ignore the error and return a default value
@@ -94,7 +94,7 @@ export class RLSConfiguration {
   public get channel(): string {
     return RLSConfiguration.readChannel(
       this.wsPath,
-      this.rustupConfig(true),
+      this.rustupPath,
       this.configuration,
     );
   }
@@ -118,10 +118,9 @@ export class RLSConfiguration {
     return this.configuration.get<boolean>('rust-client.autoStartRls', true);
   }
 
-  // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.
-  public rustupConfig(ignoreChannel: boolean = false): RustupConfig {
+  public rustupConfig(): RustupConfig {
     return {
-      channel: ignoreChannel ? '' : this.channel,
+      channel: this.channel,
       path: this.rustupPath,
     };
   }

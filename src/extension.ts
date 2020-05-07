@@ -347,19 +347,12 @@ export class ClientWorkspace {
   }
 
   private async getSysroot(env: typeof process.env): Promise<string> {
-    const rustcPrintSysroot = () =>
-      this.config.rustupDisabled
-        ? exec('rustc --print sysroot', { env })
-        : exec(
-            `${this.config.rustupPath} run ${this.config.channel} rustc --print sysroot`,
-            { env },
-          );
+    const printSysrootCmd = this.config.rustupDisabled
+      ? 'rustc --print sysroot'
+      : `${this.config.rustupPath} run ${this.config.channel} rustc --print sysroot`;
 
-    const { stdout } = await rustcPrintSysroot();
-    return stdout
-      .toString()
-      .replace('\n', '')
-      .replace('\r', '');
+    const { stdout } = await exec(printSysrootCmd, { env });
+    return stdout.toString().trim();
   }
 
   // Make an evironment to run the RLS.

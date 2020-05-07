@@ -13,8 +13,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        # Lock to the version shipped with VSCode 1.36+
-        node-version: ['10.10']
+        # Lock to the version shipped with VSCode 1.43+
+        node-version: ['12.8.1']
 
     steps:
       - uses: actions/checkout@v2

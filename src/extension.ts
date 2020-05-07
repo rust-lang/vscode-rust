@@ -433,7 +433,7 @@ export class ClientWorkspace {
     if (this.config.logToFile) {
       const logPath = path.join(this.folder.uri.fsPath, `rls${Date.now()}.log`);
       const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
-      childProcess.stderr.pipe(logStream);
+      childProcess.stderr?.pipe(logStream);
     }
 
     return childProcess;

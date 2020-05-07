@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Bump required VSCode version to 1.43, use language server protocol (LSP) v3.15
+
 ### 0.7.5 - 2020-05-06
 
 * Remove redundant snippets and improve usability of select ones e.g. `if let`

@@ -11,11 +11,6 @@ import { runTaskCommand } from './tasks';
 
 const exec = util.promisify(child_process.exec);
 
-const REQUIRED_COMPONENTS = {
-  rls: ['rust-analysis', 'rust-src', 'rls'],
-  rustAnalyzer: ['rust-src'],
-};
-
 function isInstalledRegex(componentName: string): RegExp {
   return new RegExp(`^(${componentName}.*) \\((default|installed)\\)$`);
 }
@@ -65,20 +60,26 @@ export async function ensureToolchain(config: RustupConfig) {
 }
 
 /**
- * Checks for required RLS components and prompts the user to install if it's
- * not already.
+ * Checks for the required toolchain components and prompts the user to install
+ * them if they're missing.
  */
-export async function checkForRls(config: RustupConfig) {
-  if (await hasComponents(config, REQUIRED_COMPONENTS.rls)) {
+export async function ensureComponents(
+  config: RustupConfig,
+  components: string[],
+) {
+  if (await hasComponents(config, components)) {
     return;
   }
 
   const clicked = await Promise.resolve(
-    window.showInformationMessage('RLS not installed. Install?', 'Yes'),
+    window.showInformationMessage(
+      'Some Rust components not installed. Install?',
+      'Yes',
+    ),
   );
   if (clicked) {
-    await installComponents(config, REQUIRED_COMPONENTS.rls);
-    window.showInformationMessage('RLS successfully installed! Enjoy! ❤️');
+    await installComponents(config, components);
+    window.showInformationMessage('Rust components successfully installed!');
   } else {
     throw new Error();
   }
@@ -140,7 +141,7 @@ async function listComponents(config: RustupConfig): Promise<string[]> {
   );
 }
 
-async function hasComponents(
+export async function hasComponents(
   config: RustupConfig,
   components: string[],
 ): Promise<boolean> {
@@ -154,15 +155,16 @@ async function hasComponents(
       );
   } catch (e) {
     console.log(e);
-    window.showErrorMessage(`Can't detect RLS components: ${e.message}`);
-    stopSpinner("Can't detect RLS components");
+    window.showErrorMessage(`Can't detect components: ${e.message}`);
+    stopSpinner("Can't detect components");
     throw e;
   }
 }
 
-async function installComponents(config: RustupConfig, components: string[]) {
-  startSpinner('Installing components…');
-
+export async function installComponents(
+  config: RustupConfig,
+  components: string[],
+) {
   for (const component of components) {
     try {
       const command = config.path;
@@ -191,8 +193,6 @@ async function installComponents(config: RustupConfig, components: string[]) {
       throw e;
     }
   }
-
-  stopSpinner('RLS components installed successfully');
 }
 
 /**

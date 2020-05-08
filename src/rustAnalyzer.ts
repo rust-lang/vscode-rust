@@ -1,11 +1,20 @@
+import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import * as vscode from 'vscode';
+
+import * as vs from 'vscode';
+import * as lc from 'vscode-languageclient';
+
+import { WorkspaceProgress } from './extension';
 import { download, fetchRelease } from './net';
+import * as rustup from './rustup';
+import { Observable } from './utils/observable';
 
 const stat = promisify(fs.stat);
 const mkdir = promisify(fs.mkdir);
+
+const REQUIRED_COMPONENTS = ['rust-src'];
 
 /** Returns a path where rust-analyzer should be installed. */
 function installDir(): string | undefined {
@@ -49,7 +58,7 @@ async function ensureInstallDir() {
 }
 
 interface RustAnalyzerConfig {
-  askBeforeDownload: boolean;
+  askBeforeDownload?: boolean;
   package: {
     releaseTag: string;
   };
@@ -71,7 +80,7 @@ export async function getServer(
     }
   }
   if (binaryName === undefined) {
-    vscode.window.showErrorMessage(
+    vs.window.showErrorMessage(
       "Unfortunately we don't ship binaries for your platform yet. " +
         'You need to manually clone rust-analyzer repository and ' +
         'run `cargo xtask install --server` to build the language server from sources. ' +
@@ -97,7 +106,7 @@ export async function getServer(
   }
 
   if (config.askBeforeDownload) {
-    const userResponse = await vscode.window.showInformationMessage(
+    const userResponse = await vs.window.showInformationMessage(
       `Language server release ${config.package.releaseTag} for rust-analyzer is not installed.\n
       Install to ${dir}?`,
       'Download',
@@ -125,4 +134,140 @@ export async function getServer(
   );
 
   return dest;
+}
+
+/**
+ * Rust Analyzer does not work in an isolated environment and greedily analyzes
+ * the workspaces itself, so make sure to spawn only a single instance.
+ */
+let INSTANCE: lc.LanguageClient | undefined;
+
+/**
+ * TODO:
+ * Global observable progress
+ */
+const PROGRESS: Observable<WorkspaceProgress> = new Observable<
+  WorkspaceProgress
+>({ state: 'standby' });
+
+export async function createLanguageClient(
+  folder: vs.WorkspaceFolder,
+  config: {
+    revealOutputChannelOn?: lc.RevealOutputChannelOn;
+    logToFile?: boolean;
+    rustup: { disabled: boolean; path: string; channel: string };
+    rustAnalyzer?: { path?: string; releaseTag?: string };
+  },
+): Promise<lc.LanguageClient> {
+  await rustup.ensureToolchain(config.rustup);
+  await rustup.ensureComponents(config.rustup, REQUIRED_COMPONENTS);
+  await getServer({
+    askBeforeDownload: true,
+    package: { releaseTag: config.rustAnalyzer?.releaseTag || '2020-05-04' },
+  });
+
+  if (INSTANCE) {
+    return INSTANCE;
+  }
+
+  const serverOptions: lc.ServerOptions = async () => {
+    const binPath =
+      config.rustAnalyzer?.path ||
+      (await getServer({
+        package: {
+          releaseTag: config.rustAnalyzer?.releaseTag || '2020-05-04',
+        },
+      }));
+
+    if (!binPath) {
+      throw new Error("Couldn't fetch Rust Analyzer binary");
+    }
+
+    const childProcess = child_process.exec(binPath);
+    if (config.logToFile) {
+      const logPath = path.join(folder.uri.fsPath, `ra-${Date.now()}.log`);
+      const logStream = fs.createWriteStream(logPath, { flags: 'w+' });
+      childProcess.stderr?.pipe(logStream);
+    }
+
+    return childProcess;
+  };
+
+  const clientOptions: lc.LanguageClientOptions = {
+    // Register the server for Rust files
+    documentSelector: [
+      { language: 'rust', scheme: 'file' },
+      { language: 'rust', scheme: 'untitled' },
+    ],
+    diagnosticCollectionName: `rust`,
+    // synchronize: { configurationSection: 'rust' },
+    // Controls when to focus the channel rather than when to reveal it in the drop-down list
+    revealOutputChannelOn: config.revealOutputChannelOn,
+    initializationOptions: {
+      omitInitBuild: true,
+      cmdRun: true,
+    },
+  };
+
+  INSTANCE = new lc.LanguageClient(
+    'rust-client',
+    'Rust Analyzer',
+    serverOptions,
+    clientOptions,
+  );
+
+  // Enable semantic highlighting which is available in stable VSCode
+  INSTANCE.registerProposedFeatures();
+  // We can install only one progress handler so make sure to do that when
+  // setting up the singleton instance
+  setupGlobalProgress(INSTANCE);
+
+  return INSTANCE;
+}
+
+async function setupGlobalProgress(client: lc.LanguageClient) {
+  client.onDidChangeState(({ newState }) => {
+    if (newState === lc.State.Starting) {
+      PROGRESS.value = { state: 'progress', message: 'Starting' };
+    }
+  });
+
+  await client.onReady();
+
+  const RUST_ANALYZER_PROGRESS = 'rustAnalyzer/startup';
+  client.onProgress(
+    new lc.ProgressType<{
+      kind: 'begin' | 'report' | 'end';
+      message?: string;
+    }>(),
+    RUST_ANALYZER_PROGRESS,
+    ({ kind, message: msg }) => {
+      if (kind === 'report') {
+        PROGRESS.value = { state: 'progress', message: msg || '' };
+      }
+      if (kind === 'end') {
+        PROGRESS.value = { state: 'ready' };
+      }
+    },
+  );
+}
+
+export function setupClient(
+  _client: lc.LanguageClient,
+  _folder: vs.WorkspaceFolder,
+): vs.Disposable[] {
+  return [];
+}
+
+export function setupProgress(
+  _client: lc.LanguageClient,
+  workspaceProgress: Observable<WorkspaceProgress>,
+) {
+  workspaceProgress.value = PROGRESS.value;
+  // We can only ever install one progress handler per language client and since
+  // we can only ever have one instance of Rust Analyzer, fake the global
+  // progress as a workspace one.
+  PROGRESS.observe(progress => {
+    workspaceProgress.value = progress;
+  });
 }

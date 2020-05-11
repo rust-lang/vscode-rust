@@ -71,13 +71,6 @@ export async function activate(context: ExtensionContext): Promise<Api> {
       });
   }
 
-  if (config.get('rust-client.engine') === 'rust-analyzer') {
-    await rustAnalyzer.getServer({
-      askBeforeDownload: true,
-      package: { releaseTag: '2020-05-04' },
-    });
-  }
-
   return { activeWorkspace };
 }
 
@@ -213,7 +206,7 @@ export class ClientWorkspace {
         disabled: this.config.rustupDisabled,
       },
       rls: { path: this.config.rlsPath },
-      rustAnalyzer: { releaseTag: '2020-05-04' },
+      rustAnalyzer: this.config.rustAnalyzer,
     });
 
     client.onDidChangeState(({ newState }) => {

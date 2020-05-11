@@ -470,6 +470,16 @@
                     "default": {},
                     "description": "Settings passed down to rust-analyzer server",
                     "scope": "resource"
+                },
+                "rust.rust-analyzer.releaseTag": {
+                    "type": "string",
+                    "default": "nightly",
+                    "description": "Which binary release to download and use"
+                },
+                "rust.rust-analyzer.path": {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "When specified, uses the rust-analyzer binary at a given path"
                 }
             }
         }

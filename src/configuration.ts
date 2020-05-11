@@ -83,6 +83,13 @@ export class RLSConfiguration {
     );
   }
 
+  public get rustAnalyzer(): { path?: string; releaseTag: string } {
+    const cfg = this.configuration;
+    const releaseTag = cfg.get('rust.rust-analyzer.releaseTag', 'nightly');
+    const path = cfg.get<string>('rust.rust-analyzer.path');
+    return { releaseTag, ...{ path } };
+  }
+
   public get revealOutputChannelOn(): RevealOutputChannelOn {
     return RLSConfiguration.readRevealOutputChannelOn(this.configuration);
   }

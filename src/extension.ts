@@ -200,8 +200,6 @@ export class ClientWorkspace {
   }
 
   public async start() {
-    this._progress.value = { state: 'progress', message: 'Starting' };
-
     const { createLanguageClient, setupClient, setupProgress } =
       this.config.engine === 'rls' ? rls : rustAnalyzer;
 
@@ -218,6 +216,15 @@ export class ClientWorkspace {
       rustAnalyzer: { releaseTag: '2020-05-04' },
     });
 
+    client.onDidChangeState(({ newState }) => {
+      if (newState === lc.State.Starting) {
+        this._progress.value = { state: 'progress', message: 'Starting' };
+      }
+      if (newState === lc.State.Stopped) {
+        this._progress.value = { state: 'standby' };
+      }
+    });
+
     setupProgress(client, this._progress);
 
     this.disposables.push(activateTaskProvider(this.folder));
@@ -230,8 +237,6 @@ export class ClientWorkspace {
   public async stop() {
     if (this.lc) {
       await this.lc.stop();
-      this.lc = null;
-      this._progress.value = { state: 'standby' };
     }
 
     this.disposables.forEach(d => d.dispose());

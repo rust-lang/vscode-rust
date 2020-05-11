@@ -226,30 +226,28 @@ export async function createLanguageClient(
 }
 
 async function setupGlobalProgress(client: lc.LanguageClient) {
-  client.onDidChangeState(({ newState }) => {
+  client.onDidChangeState(async ({ newState }) => {
     if (newState === lc.State.Starting) {
-      PROGRESS.value = { state: 'progress', message: 'Starting' };
+      await client.onReady();
+
+      const RUST_ANALYZER_PROGRESS = 'rustAnalyzer/startup';
+      client.onProgress(
+        new lc.ProgressType<{
+          kind: 'begin' | 'report' | 'end';
+          message?: string;
+        }>(),
+        RUST_ANALYZER_PROGRESS,
+        ({ kind, message: msg }) => {
+          if (kind === 'report') {
+            PROGRESS.value = { state: 'progress', message: msg || '' };
+          }
+          if (kind === 'end') {
+            PROGRESS.value = { state: 'ready' };
+          }
+        },
+      );
     }
   });
-
-  await client.onReady();
-
-  const RUST_ANALYZER_PROGRESS = 'rustAnalyzer/startup';
-  client.onProgress(
-    new lc.ProgressType<{
-      kind: 'begin' | 'report' | 'end';
-      message?: string;
-    }>(),
-    RUST_ANALYZER_PROGRESS,
-    ({ kind, message: msg }) => {
-      if (kind === 'report') {
-        PROGRESS.value = { state: 'progress', message: msg || '' };
-      }
-      if (kind === 'end') {
-        PROGRESS.value = { state: 'ready' };
-      }
-    },
-  );
 }
 
 export function setupClient(

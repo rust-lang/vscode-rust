@@ -203,10 +203,8 @@ export async function createLanguageClient(
     // synchronize: { configurationSection: 'rust' },
     // Controls when to focus the channel rather than when to reveal it in the drop-down list
     revealOutputChannelOn: config.revealOutputChannelOn,
-    initializationOptions: {
-      omitInitBuild: true,
-      cmdRun: true,
-    },
+    // TODO: Support and type out supported settings by the rust-analyzer
+    initializationOptions: vs.workspace.getConfiguration('rust.rust-analyzer'),
   };
 
   INSTANCE = new lc.LanguageClient(

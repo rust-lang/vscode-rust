@@ -50,13 +50,13 @@ export class RLSConfiguration {
    */
   private static readChannel(
     wsPath: string,
-    rustupConfiguration: RustupConfig,
+    rustupPath: string,
     configuration: WorkspaceConfiguration,
   ): string {
     const channel = configuration.get<string>('rust-client.channel');
     if (channel === 'default' || !channel) {
       try {
-        return getActiveChannel(wsPath, rustupConfiguration);
+        return getActiveChannel(wsPath, rustupPath);
       } catch (e) {
         // rustup might not be installed at the time the configuration is
         // initially loaded, so silently ignore the error and return a default value
@@ -83,6 +83,13 @@ export class RLSConfiguration {
     );
   }
 
+  public get rustAnalyzer(): { path?: string; releaseTag: string } {
+    const cfg = this.configuration;
+    const releaseTag = cfg.get('rust.rust-analyzer.releaseTag', 'nightly');
+    const path = cfg.get<string>('rust.rust-analyzer.path');
+    return { releaseTag, ...{ path } };
+  }
+
   public get revealOutputChannelOn(): RevealOutputChannelOn {
     return RLSConfiguration.readRevealOutputChannelOn(this.configuration);
   }
@@ -94,7 +101,7 @@ export class RLSConfiguration {
   public get channel(): string {
     return RLSConfiguration.readChannel(
       this.wsPath,
-      this.rustupConfig(true),
+      this.rustupPath,
       this.configuration,
     );
   }
@@ -106,17 +113,22 @@ export class RLSConfiguration {
     return this.configuration.get<string>('rust-client.rlsPath');
   }
 
+  /** Returns the language analysis engine to be used for the workspace */
+  public get engine(): 'rls' | 'rust-analyzer' {
+    return this.configuration.get('rust-client.engine') || 'rls';
+  }
+
   /**
-   * Whether RLS should be automaticallystarted when opening a relevant Rust project.
+   * Whether a language server should be automatically started when opening
+   * a relevant Rust project.
    */
   public get autoStartRls(): boolean {
     return this.configuration.get<boolean>('rust-client.autoStartRls', true);
   }
 
-  // Added ignoreChannel for readChannel function. Otherwise we end in an infinite loop.
-  public rustupConfig(ignoreChannel: boolean = false): RustupConfig {
+  public rustupConfig(): RustupConfig {
     return {
-      channel: ignoreChannel ? '' : this.channel,
+      channel: this.channel,
       path: this.rustupPath,
     };
   }

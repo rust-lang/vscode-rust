@@ -50,6 +50,7 @@
         "installDevExtension": "npm install && ./node_modules/.bin/vsce package -o ./out/rls-vscode-dev.vsix && code --install-extension ./out/rls-vscode-dev.vsix"
     },
     "dependencies": {
+        "node-fetch": "^2.6.0",
         "vscode-languageclient": "^6.0.0"
     },
     "devDependencies": {
@@ -57,6 +58,7 @@
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.6",
         "@types/node": "^12.8.1",
+        "@types/node-fetch": "^2.5.7",
         "@types/vscode": "^1.43.0",
         "chai": "^4.2.0",
         "glob": "^7.1.4",
@@ -87,26 +89,26 @@
         "commands": [
             {
                 "command": "rls.update",
-                "title": "Update the RLS",
-                "description": "Use Rustup to update Rust, the RLS, and required data",
+                "title": "Update the current Rust toolchain",
+                "description": "Use Rustup to the current Rust toolchain, along with its components",
                 "category": "Rust"
             },
             {
                 "command": "rls.restart",
-                "title": "Restart the RLS",
+                "title": "Restart the Rust server",
                 "description": "Sometimes, it's just best to try turning it off and on again",
                 "category": "Rust"
             },
             {
                 "command": "rls.start",
-                "title": "Start the RLS",
-                "description": "Start the RLS (when rust-client.autoStartRls is false or when manually stopped)",
+                "title": "Start the Rust server",
+                "description": "Start the Rust server (when rust-client.autoStartRls is false or when manually stopped)",
                 "category": "Rust"
             },
             {
                 "command": "rls.stop",
-                "title": "Stop the RLS",
-                "description": "Stop the RLS for a workspace until manually started again",
+                "title": "Stop the Rust server",
+                "description": "Stop the Rust server for a workspace until manually started again",
                 "category": "Rust"
             }
         ],
@@ -160,6 +162,20 @@
             "type": "object",
             "title": "Rust configuration",
             "properties": {
+                "rust-client.engine": {
+                    "type": "string",
+                    "enum": [
+                        "rls",
+                        "rust-analyzer"
+                    ],
+                    "enumDescriptions": [
+                        "Use the Rust Language Server (RLS)",
+                        "Use the rust-analyzer language server (NOTE: not fully supported yet)"
+                    ],
+                    "default": "rls",
+                    "description": "The underlying LSP server used to provide IDE support for Rust projects.",
+                    "scope": "window"
+                },
                 "rust-client.logToFile": {
                     "type": "boolean",
                     "default": false,
@@ -448,6 +464,22 @@
                     "default": true,
                     "description": "Show additional context in hover tooltips when available. This is often the type local variable declaration.",
                     "scope": "resource"
+                },
+                "rust.rust-analyzer": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Settings passed down to rust-analyzer server",
+                    "scope": "resource"
+                },
+                "rust.rust-analyzer.releaseTag": {
+                    "type": "string",
+                    "default": "nightly",
+                    "description": "Which binary release to download and use"
+                },
+                "rust.rust-analyzer.path": {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "When specified, uses the rust-analyzer binary at a given path"
                 }
             }
         }

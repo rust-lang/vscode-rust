@@ -1,6 +1,7 @@
 /**
- * @file This module handles running the RLS via rustup, including checking that
- * rustup is installed and installing any required components/toolchains.
+ * @file This module wraps the most commonly used rustup interface, e.g.
+ * seeing if rustup is installed or probing for/installing the Rust toolchain
+ * components.
  */
 import * as child_process from 'child_process';
 import * as util from 'util';
@@ -10,8 +11,6 @@ import { startSpinner, stopSpinner } from './spinner';
 import { runTaskCommand } from './tasks';
 
 const exec = util.promisify(child_process.exec);
-
-const REQUIRED_COMPONENTS = ['rust-analysis', 'rust-src', 'rls'];
 
 function isInstalledRegex(componentName: string): RegExp {
   return new RegExp(`^(${componentName}.*) \\((default|installed)\\)$`);
@@ -62,20 +61,26 @@ export async function ensureToolchain(config: RustupConfig) {
 }
 
 /**
- * Checks for required RLS components and prompts the user to install if it's
- * not already.
+ * Checks for the required toolchain components and prompts the user to install
+ * them if they're missing.
  */
-export async function checkForRls(config: RustupConfig) {
-  if (await hasRlsComponents(config)) {
+export async function ensureComponents(
+  config: RustupConfig,
+  components: string[],
+) {
+  if (await hasComponents(config, components)) {
     return;
   }
 
   const clicked = await Promise.resolve(
-    window.showInformationMessage('RLS not installed. Install?', 'Yes'),
+    window.showInformationMessage(
+      'Some Rust components not installed. Install?',
+      'Yes',
+    ),
   );
   if (clicked) {
-    await installRlsComponents(config);
-    window.showInformationMessage('RLS successfully installed! Enjoy! ❤️');
+    await installComponents(config, components);
+    window.showInformationMessage('Rust components successfully installed!');
   } else {
     throw new Error();
   }
@@ -137,25 +142,31 @@ async function listComponents(config: RustupConfig): Promise<string[]> {
   );
 }
 
-async function hasRlsComponents(config: RustupConfig): Promise<boolean> {
+export async function hasComponents(
+  config: RustupConfig,
+  components: string[],
+): Promise<boolean> {
   try {
-    const components = await listComponents(config);
+    const existingComponents = await listComponents(config);
 
-    return REQUIRED_COMPONENTS.map(isInstalledRegex).every(isInstalledRegex =>
-      components.some(c => isInstalledRegex.test(c)),
-    );
+    return components
+      .map(isInstalledRegex)
+      .every(isInstalledRegex =>
+        existingComponents.some(c => isInstalledRegex.test(c)),
+      );
   } catch (e) {
     console.log(e);
-    window.showErrorMessage(`Can't detect RLS components: ${e.message}`);
-    stopSpinner("Can't detect RLS components");
+    window.showErrorMessage(`Can't detect components: ${e.message}`);
+    stopSpinner("Can't detect components");
     throw e;
   }
 }
 
-async function installRlsComponents(config: RustupConfig) {
-  startSpinner('Installing components…');
-
-  for (const component of REQUIRED_COMPONENTS) {
+export async function installComponents(
+  config: RustupConfig,
+  components: string[],
+) {
+  for (const component of components) {
     try {
       const command = config.path;
       const args = [
@@ -183,8 +194,6 @@ async function installRlsComponents(config: RustupConfig) {
       throw e;
     }
   }
-
-  stopSpinner('RLS components installed successfully');
 }
 
 /**
@@ -248,7 +257,7 @@ export function hasRustup(config: RustupConfig): Promise<boolean> {
  * Returns active (including local overrides) toolchain, as specified by rustup.
  * May throw if rustup at specified path can't be executed.
  */
-export function getActiveChannel(wsPath: string, config: RustupConfig): string {
+export function getActiveChannel(wsPath: string, rustupPath: string): string {
   // rustup info might differ depending on where it's executed
   // (e.g. when a toolchain is locally overriden), so executing it
   // under our current workspace root should give us close enough result
@@ -257,7 +266,7 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
   try {
     // `rustup show active-toolchain` is available since rustup 1.12.0
     activeChannel = child_process
-      .execSync(`${config.path} show active-toolchain`, {
+      .execSync(`${rustupPath} show active-toolchain`, {
         cwd: wsPath,
       })
       .toString()
@@ -270,7 +279,7 @@ export function getActiveChannel(wsPath: string, config: RustupConfig): string {
   } catch (e) {
     // Possibly an old rustup version, so try rustup show
     const showOutput = child_process
-      .execSync(`${config.path} show`, {
+      .execSync(`${rustupPath} show`, {
         cwd: wsPath,
       })
       .toString();

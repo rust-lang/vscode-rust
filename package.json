@@ -477,7 +477,10 @@
                     "description": "Which binary release to download and use"
                 },
                 "rust.rust-analyzer.path": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "default": null,
                     "description": "When specified, uses the rust-analyzer binary at a given path"
                 }

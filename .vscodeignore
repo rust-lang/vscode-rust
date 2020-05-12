@@ -6,10 +6,15 @@ test/**
 out/test/**
 src/**
 .gitignore
-.prettierignore
+**/.prettierignore
+**/.eslintignore
 prettier.config.js
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/tslint.json
 **/*.map
 **/*.ts
+**/tsconfig.esm*
+node_modules/**/README.md
+node_modules/**/CHANGELOG.md
+node_modules/**/package.json

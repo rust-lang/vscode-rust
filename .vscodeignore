@@ -17,4 +17,3 @@ vsc-extension-quickstart.md
 **/tsconfig.esm*
 node_modules/**/README.md
 node_modules/**/CHANGELOG.md
-node_modules/**/package.json

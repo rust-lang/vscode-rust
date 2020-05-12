@@ -170,7 +170,7 @@
                     ],
                     "enumDescriptions": [
                         "Use the Rust Language Server (RLS)",
-                        "EXPERIMENTAL: Use the rust-analyzer language server"
+                        "Use the rust-analyzer language server (NOTE: not fully supported yet)"
                     ],
                     "default": "rls",
                     "description": "The underlying LSP server used to provide IDE support for Rust projects.",

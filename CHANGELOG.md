@@ -1,5 +1,7 @@
 ### Unreleased
 
+### 0.7.6 - 2020-05-12
+
 * Support rust-analyzer as an alternate LSP server
 * Bump required VSCode version to 1.43, use language server protocol (LSP) v3.15
 

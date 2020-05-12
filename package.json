@@ -89,26 +89,26 @@
         "commands": [
             {
                 "command": "rls.update",
-                "title": "Update the RLS",
-                "description": "Use Rustup to update Rust, the RLS, and required data",
+                "title": "Update the current Rust toolchain",
+                "description": "Use Rustup to the current Rust toolchain, along with its components",
                 "category": "Rust"
             },
             {
                 "command": "rls.restart",
-                "title": "Restart the RLS",
+                "title": "Restart the Rust server",
                 "description": "Sometimes, it's just best to try turning it off and on again",
                 "category": "Rust"
             },
             {
                 "command": "rls.start",
-                "title": "Start the RLS",
-                "description": "Start the RLS (when rust-client.autoStartRls is false or when manually stopped)",
+                "title": "Start the Rust server",
+                "description": "Start the Rust server (when rust-client.autoStartRls is false or when manually stopped)",
                 "category": "Rust"
             },
             {
                 "command": "rls.stop",
-                "title": "Stop the RLS",
-                "description": "Stop the RLS for a workspace until manually started again",
+                "title": "Stop the Rust server",
+                "description": "Stop the Rust server for a workspace until manually started again",
                 "category": "Rust"
             }
         ],

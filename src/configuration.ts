@@ -119,7 +119,8 @@ export class RLSConfiguration {
   }
 
   /**
-   * Whether RLS should be automaticallystarted when opening a relevant Rust project.
+   * Whether a language server should be automatically started when opening
+   * a relevant Rust project.
    */
   public get autoStartRls(): boolean {
     return this.configuration.get<boolean>('rust-client.autoStartRls', true);

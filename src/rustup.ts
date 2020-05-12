@@ -1,6 +1,7 @@
 /**
- * @file This module handles running the RLS via rustup, including checking that
- * rustup is installed and installing any required components/toolchains.
+ * @file This module wraps the most commonly used rustup interface, e.g.
+ * seeing if rustup is installed or probing for/installing the Rust toolchain
+ * components.
  */
 import * as child_process from 'child_process';
 import * as util from 'util';

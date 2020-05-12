@@ -14,8 +14,8 @@ Adds language support for Rust to Visual Studio Code. Supports:
 * snippets
 * build tasks
 
-Rust support is powered by a separate [language server](https://microsoft.github.io/language-server-protocol/overviews/lsp/overview/)
-- either by the official [Rust Language Server](https://github.com/rust-lang/rls) (RLS) or
+Rust support is powered by a separate [language server](https://microsoft.github.io/language-server-protocol/overviews/lsp/overview/) -
+either by the official [Rust Language Server](https://github.com/rust-lang/rls) (RLS) or
 [rust-analyzer](https://github.com/rust-lang/rls), depending on the user's
 preference. If you don't have it installed, the extension will install it for
 you (with permission).

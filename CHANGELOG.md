@@ -1,5 +1,7 @@
 ### Unreleased
 
+### 0.7.8 - 2020-05-13
+
 * Rebrand extension as RLS-agnostic
 * Add missing semantic token types definition
 

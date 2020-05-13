@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Add missing semantic token types definition
+
 ### 0.7.7 - 2020-05-13
 
 * Only synchronize relevant workspace settings for RLS

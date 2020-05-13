@@ -485,6 +485,97 @@
                     "description": "When specified, uses the rust-analyzer binary at a given path"
                 }
             }
-        }
+        },
+        "semanticTokenTypes": [
+            {
+                "id": "attribute",
+                "description": "Style for attributes"
+            },
+            {
+                "id": "builtinType",
+                "description": "Style for builtin types",
+                "superType": "type"
+            },
+            {
+                "id": "lifetime",
+                "description": "Style for lifetimes"
+            },
+            {
+                "id": "typeAlias",
+                "description": "Style for type aliases",
+                "superType": "type"
+            },
+            {
+                "id": "union",
+                "description": "Style for C-style untagged unions",
+                "superType": "type"
+            },
+            {
+                "id": "unresolvedReference",
+                "description": "Style for names which can not be resolved due to compilation errors"
+            },
+            {
+                "id": "formatSpecifier",
+                "description": "Style for {} placeholders in format strings"
+            }
+        ],
+        "semanticTokenModifiers": [
+            {
+                "id": "constant",
+                "description": "Style for compile-time constants"
+            },
+            {
+                "id": "controlFlow",
+                "description": "Style for control flow keywords"
+            },
+            {
+                "id": "mutable",
+                "description": "Style for mutable bindings"
+            },
+            {
+                "id": "unsafe",
+                "description": "Style for unsafe operations"
+            }
+        ],
+        "semanticTokenScopes": [
+            {
+                "language": "rust",
+                "scopes": {
+                    "attribute": [
+                        "meta.attribute.rust"
+                    ],
+                    "builtinType": [
+                        "support.type.primitive.rust"
+                    ],
+                    "lifetime": [
+                        "storage.modifier.lifetime.rust"
+                    ],
+                    "typeAlias": [
+                        "entity.name.type.typeAlias.rust"
+                    ],
+                    "union": [
+                        "entity.name.type.union.rust"
+                    ],
+                    "struct": [
+                        "entity.name.type.struct.rust"
+                    ],
+                    "keyword": [
+                        "keyword.other.rust"
+                    ],
+                    "keyword.controlFlow": [
+                        "keyword.control.rust"
+                    ],
+                    "variable.constant": [
+                        "variable.other.constant.rust"
+                    ],
+                    "formatSpecifier": [
+                        "punctuation.section.embedded.rust"
+                    ],
+                    "*.mutable": [
+                        "markup.underline"
+                    ]
+                }
+            }
+        ]
     }
 }

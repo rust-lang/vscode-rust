@@ -15,10 +15,10 @@
     "license": "(MIT OR Apache-2.0)",
     "repository": {
         "type": "git",
-        "url": "https://github.com/rust-lang-nursery/rls-vscode"
+        "url": "https://github.com/rust-lang/rls-vscode"
     },
     "bugs": {
-        "url": "https://github.com/rust-lang-nursery/rls-vscode/issues"
+        "url": "https://github.com/rust-lang/rls-vscode/issues"
     },
     "categories": [
         "Programming Languages",

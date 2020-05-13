@@ -1,5 +1,6 @@
 ### Unreleased
 
+* Only synchronize relevant workspace settings for RLS
 * Rename configuration section to just "Rust"
 
 ### 0.7.6 - 2020-05-12

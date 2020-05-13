@@ -17,6 +17,41 @@ const exec = promisify(child_process.exec);
 const REQUIRED_COMPONENTS = ['rust-analysis', 'rust-src', 'rls'];
 
 /**
+ * VSCode settings to be observed and sent to RLS whenever they change.
+ * Previously we just used 'rust' but since RLS warns against unrecognized
+ * options and because we want to unify the options behind a single 'rust'
+ * namespace for both client/server configuration, we explicitly list the
+ * settings previously sent to the RLS.
+ * TODO: Replace RLS' configuration setup with workspace/configuration request.
+ */
+const OBSERVED_SETTINGS = [
+  'rust.sysroot',
+  'rust.target',
+  'rust.rustflags',
+  'rust.clear_env_rust_log',
+  'rust.build_lib',
+  'rust.build_bin',
+  'rust.cfg_test',
+  'rust.unstable_features',
+  'rust.wait_to_build',
+  'rust.show_warnings',
+  'rust.crate_blacklist',
+  'rust.build_on_save',
+  'rust.features',
+  'rust.all_features',
+  'rust.no_default_features',
+  'rust.racer_completion',
+  'rust.clippy_preference',
+  'rust.jobs',
+  'rust.all_targets',
+  'rust.target_dir',
+  'rust.rustfmt_path',
+  'rust.build_command',
+  'rust.full_docs',
+  'rust.show_hover_context',
+];
+
+/**
  * Parameter type to `window/progress` request as issued by the RLS.
  * https://github.com/rust-lang/rls/blob/17a439440e6b00b1f014a49c6cf47752ecae5bb7/rls/src/lsp_data.rs#L395-L419
  */
@@ -59,7 +94,7 @@ export function createLanguageClient(
       documentFilter(folder),
     ],
     diagnosticCollectionName: `rust-${folder.uri}`,
-    synchronize: { configurationSection: 'rust' },
+    synchronize: { configurationSection: OBSERVED_SETTINGS },
     // Controls when to focus the channel rather than when to reveal it in the drop-down list
     revealOutputChannelOn: config.revealOutputChannelOn,
     initializationOptions: {

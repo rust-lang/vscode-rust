@@ -160,7 +160,7 @@
         ],
         "configuration": {
             "type": "object",
-            "title": "Rust configuration",
+            "title": "Rust",
             "properties": {
                 "rust-client.engine": {
                     "type": "string",

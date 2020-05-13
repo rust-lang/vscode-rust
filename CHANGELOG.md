@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Rename configuration section to just "Rust"
+
 ### 0.7.6 - 2020-05-12
 
 * Support rust-analyzer as an alternate LSP server

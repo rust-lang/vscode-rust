@@ -7,7 +7,7 @@ import {
   tasks,
   workspace,
   WorkspaceFolder,
-  TaskDefinition
+  TaskDefinition,
 } from 'vscode';
 
 /**
@@ -80,7 +80,10 @@ export function activateTaskProvider(target: WorkspaceFolder): Disposable {
   return tasks.registerTaskProvider(TASK_TYPE, provider);
 }
 
-function resolveCargoTask(task: Task, target: WorkspaceFolder): Task | undefined {
+function resolveCargoTask(
+  task: Task,
+  target: WorkspaceFolder,
+): Task | undefined {
   const definition = task.definition as CargoTaskDefinition;
 
   if (definition.type === 'cargo' && definition.command) {
@@ -92,7 +95,7 @@ function resolveCargoTask(task: Task, target: WorkspaceFolder): Task | undefined
       task.name,
       TASK_SOURCE,
       new ShellExecution('cargo', args, definition),
-      task.problemMatchers ?? ['$rustc']
+      task.problemMatchers ?? ['$rustc'],
     );
   }
 

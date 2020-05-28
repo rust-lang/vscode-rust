@@ -7,6 +7,7 @@ import {
   tasks,
   workspace,
   WorkspaceFolder,
+  TaskDefinition
 } from 'vscode';
 
 /**
@@ -18,6 +19,16 @@ const TASK_SOURCE = 'Rust';
  * tasks. We only use `cargo` task type.
  */
 const TASK_TYPE = 'cargo';
+
+/**
+ * The format of a cargo task in tasks.json.
+ */
+interface CargoTaskDefinition extends TaskDefinition {
+  command?: string;
+  args?: string[];
+  cwd?: string;
+  env?: { [key: string]: string };
+}
 
 /**
  * Command execution parameters sent by the RLS (as of 1.35).
@@ -59,11 +70,33 @@ export function activateTaskProvider(target: WorkspaceFolder): Disposable {
     //
     // [1]: https://code.visualstudio.com/docs/editor/tasks#_task-autodetection
     provideTasks: () => detectCargoTasks(target),
-    // NOTE: Currently unused by VSCode
-    resolveTask: () => undefined,
+
+    // VSCode calls this for every cargo task in the user's tasks.json,
+    // we need to inform VSCode how to execute that command by creating
+    // a ShellExecution for it.
+    resolveTask: (task: Task) => resolveCargoTask(task, target),
   };
 
   return tasks.registerTaskProvider(TASK_TYPE, provider);
+}
+
+function resolveCargoTask(task: Task, target: WorkspaceFolder): Task | undefined {
+  const definition = task.definition as CargoTaskDefinition;
+
+  if (definition.type === 'cargo' && definition.command) {
+    const args = [definition.command].concat(definition.args ?? []);
+
+    return new Task(
+      definition,
+      target,
+      task.name,
+      TASK_SOURCE,
+      new ShellExecution('cargo', args, definition),
+      task.problemMatchers ?? ['$rustc']
+    );
+  }
+
+  return undefined;
 }
 
 function detectCargoTasks(target: WorkspaceFolder): Task[] {

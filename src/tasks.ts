@@ -2,12 +2,12 @@ import {
   Disposable,
   ShellExecution,
   Task,
+  TaskDefinition,
   TaskGroup,
   TaskProvider,
   tasks,
   workspace,
   WorkspaceFolder,
-  TaskDefinition,
 } from 'vscode';
 
 /**

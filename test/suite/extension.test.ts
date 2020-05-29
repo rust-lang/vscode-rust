@@ -26,13 +26,54 @@ suite('Extension Tests', () => {
     ].map(path => Uri.file(path).fsPath);
 
     const expected = [
-      { subcommand: 'build', group: vscode.TaskGroup.Build, cwd: projects[0] },
-      { subcommand: 'build', group: vscode.TaskGroup.Build, cwd: projects[1] },
-      { subcommand: 'check', group: vscode.TaskGroup.Build, cwd: projects[0] },
-      { subcommand: 'check', group: vscode.TaskGroup.Build, cwd: projects[1] },
-      { subcommand: 'test', group: vscode.TaskGroup.Test, cwd: projects[1] },
-      { subcommand: 'clean', group: vscode.TaskGroup.Clean, cwd: projects[1] },
-      { subcommand: 'run', group: undefined, cwd: projects[1] },
+      {
+        command: 'build',
+        group: vscode.TaskGroup.Build,
+        cwd: projects[0],
+        name: 'cargo build - bare-lib-project',
+      },
+      {
+        command: 'build',
+        group: vscode.TaskGroup.Build,
+        cwd: projects[1],
+        name: 'cargo build - another-lib-project',
+      },
+      {
+        command: 'check',
+        group: vscode.TaskGroup.Build,
+        cwd: projects[0],
+        name: 'cargo check - bare-lib-project',
+      },
+      {
+        command: 'check',
+        group: vscode.TaskGroup.Build,
+        cwd: projects[1],
+        name: 'cargo check - another-lib-project',
+      },
+      {
+        command: 'test',
+        group: vscode.TaskGroup.Test,
+        cwd: projects[1],
+        name: 'cargo test - another-lib-project',
+      },
+      {
+        command: 'clean',
+        group: vscode.TaskGroup.Clean,
+        cwd: projects[1],
+        name: 'cargo clean - another-lib-project',
+      },
+      {
+        command: 'run',
+        group: undefined,
+        cwd: projects[1],
+        name: 'cargo run - another-lib-project',
+      },
+      {
+        command: 'build',
+        group: vscode.TaskGroup.Build,
+        cwd: '${workspaceFolder}',
+        name: 'custom build task',
+      },
     ];
 
     const whenWorkspacesActive = projects.map(path =>
@@ -75,7 +116,7 @@ suite('Extension Tests', () => {
 /** Fetches current VSCode tasks' partial objects for ease of assertion */
 async function fetchBriefTasks(): Promise<
   Array<{
-    subcommand: string;
+    command: string;
     group: vscode.TaskGroup | undefined;
     cwd?: string;
   }>
@@ -83,8 +124,9 @@ async function fetchBriefTasks(): Promise<
   const tasks = await vscode.tasks.fetchTasks();
 
   return tasks.map(task => ({
-    subcommand: task.definition.subcommand,
+    command: task.definition.command,
     group: task.group,
+    name: task.name,
     cwd:
       ((task.execution instanceof vscode.ProcessExecution ||
         task.execution instanceof vscode.ShellExecution) &&

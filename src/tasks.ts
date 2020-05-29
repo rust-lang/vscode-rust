@@ -104,18 +104,18 @@ function resolveCargoTask(
 
 function detectCargoTasks(target: WorkspaceFolder): Task[] {
   return [
-    { subcommand: 'build', group: TaskGroup.Build },
-    { subcommand: 'check', group: TaskGroup.Build },
-    { subcommand: 'test', group: TaskGroup.Test },
-    { subcommand: 'clean', group: TaskGroup.Clean },
-    { subcommand: 'run', group: undefined },
+    { command: 'build', group: TaskGroup.Build },
+    { command: 'check', group: TaskGroup.Build },
+    { command: 'test', group: TaskGroup.Test },
+    { command: 'clean', group: TaskGroup.Clean },
+    { command: 'run', group: undefined },
   ]
-    .map(({ subcommand, group }) => ({
-      definition: { subcommand, type: TASK_TYPE },
-      label: `cargo ${subcommand} - ${target.name}`,
+    .map(({ command, group }) => ({
+      definition: { command, type: TASK_TYPE },
+      label: `cargo ${command} - ${target.name}`,
       execution: createShellExecution({
         command: 'cargo',
-        args: [subcommand],
+        args: [command],
         cwd: target.uri.fsPath,
       }),
       group,

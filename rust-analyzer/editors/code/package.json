@@ -1,0 +1,888 @@
+{
+    "name": "rust-analyzer",
+    "displayName": "rust-analyzer",
+    "description": "An alternative rust language server to the RLS",
+    "preview": true,
+    "private": true,
+    "icon": "icon.png",
+    "version": "0.4.0-dev",
+    "releaseTag": null,
+    "publisher": "matklad",
+    "repository": {
+        "url": "https://github.com/rust-analyzer/rust-analyzer.git",
+        "type": "git"
+    },
+    "homepage": "https://rust-analyzer.github.io/",
+    "license": "MIT OR Apache-2.0",
+    "keywords": [
+        "rust"
+    ],
+    "categories": [
+        "Programming Languages"
+    ],
+    "engines": {
+        "vscode": "^1.44.1"
+    },
+    "enableProposedApi": true,
+    "scripts": {
+        "vscode:prepublish": "tsc && rollup -c",
+        "package": "vsce package -o rust-analyzer.vsix",
+        "build": "tsc",
+        "watch": "tsc --watch",
+        "lint": "tsfmt --verify && eslint -c .eslintrc.js --ext ts ./src ./tests",
+        "fix": " tsfmt -r       && eslint -c .eslintrc.js --ext ts ./src ./tests --fix",
+        "pretest": "npm run build",
+        "test": "node ./out/tests/runTests.js"
+    },
+    "dependencies": {
+        "node-fetch": "^2.6.0",
+        "vscode-languageclient": "7.0.0-next.1"
+    },
+    "devDependencies": {
+        "@rollup/plugin-commonjs": "^13.0.0",
+        "@rollup/plugin-node-resolve": "^8.1.0",
+        "@types/glob": "^7.1.2",
+        "@types/mocha": "^7.0.2",
+        "@types/node": "~12.7.0",
+        "@types/node-fetch": "^2.5.7",
+        "@types/vscode": "^1.44.1",
+        "@typescript-eslint/eslint-plugin": "^3.4.0",
+        "@typescript-eslint/parser": "^3.4.0",
+        "eslint": "^7.3.1",
+        "glob": "^7.1.6",
+        "mocha": "^8.0.1",
+        "rollup": "^2.18.1",
+        "tslib": "^2.0.0",
+        "typescript": "^3.9.5",
+        "typescript-formatter": "^7.2.2",
+        "vsce": "^1.75.0",
+        "vscode-test": "^1.4.0"
+    },
+    "activationEvents": [
+        "onLanguage:rust",
+        "onCommand:rust-analyzer.analyzerStatus",
+        "onCommand:rust-analyzer.memoryUsage",
+        "onCommand:rust-analyzer.reloadWorkspace",
+        "workspaceContains:**/Cargo.toml"
+    ],
+    "main": "./out/src/main",
+    "contributes": {
+        "taskDefinitions": [
+            {
+                "type": "cargo",
+                "required": [
+                    "command"
+                ],
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "command": {
+                        "type": "string"
+                    },
+                    "args": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "env": {
+                        "type": "object",
+                        "patternProperties": {
+                            ".+": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "commands": [
+            {
+                "command": "rust-analyzer.syntaxTree",
+                "title": "Show Syntax Tree",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.expandMacro",
+                "title": "Expand macro recursively",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.matchingBrace",
+                "title": "Find matching brace",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.parentModule",
+                "title": "Locate parent module",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.joinLines",
+                "title": "Join lines",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.run",
+                "title": "Run",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.debug",
+                "title": "Debug",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.newDebugConfig",
+                "title": "Generate launch configuration",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.analyzerStatus",
+                "title": "Status",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.memoryUsage",
+                "title": "Memory Usage (Clears Database)",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.reloadWorkspace",
+                "title": "Reload workspace",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.reload",
+                "title": "Restart server",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.onEnter",
+                "title": "Enhanced enter key",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.ssr",
+                "title": "Structural Search Replace",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.serverVersion",
+                "title": "Show RA Version",
+                "category": "Rust Analyzer"
+            },
+            {
+                "command": "rust-analyzer.toggleInlayHints",
+                "title": "Toggle inlay hints",
+                "category": "Rust Analyzer"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "rust-analyzer.parentModule",
+                "key": "ctrl+shift+u",
+                "when": "editorTextFocus && editorLangId == rust"
+            },
+            {
+                "command": "rust-analyzer.matchingBrace",
+                "key": "ctrl+shift+m",
+                "when": "editorTextFocus && editorLangId == rust"
+            },
+            {
+                "command": "rust-analyzer.joinLines",
+                "key": "ctrl+shift+j",
+                "when": "editorTextFocus && editorLangId == rust"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "Rust Analyzer",
+            "properties": {
+                "rust-analyzer.diagnostics.enable": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Whether to show native rust-analyzer diagnostics."
+                },
+                "rust-analyzer.lruCapacity": {
+                    "type": [
+                        "null",
+                        "integer"
+                    ],
+                    "default": null,
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "description": "Number of syntax trees rust-analyzer keeps in memory."
+                },
+                "rust-analyzer.files.watcher": {
+                    "type": "string",
+                    "enum": [
+                        "client",
+                        "notify"
+                    ],
+                    "default": "client",
+                    "description": "Controls file watching implementation."
+                },
+                "rust-analyzer.files.exclude": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Paths to exclude from analysis."
+                },
+                "rust-analyzer.notifications.cargoTomlNotFound": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Whether to show `can't find Cargo.toml` error message"
+                },
+                "rust-analyzer.cargo.autoreload": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Automatically refresh project info via `cargo metadata` on Cargo.toml changes"
+                },
+                "rust-analyzer.cargo.noDefaultFeatures": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Do not activate the `default` feature"
+                },
+                "rust-analyzer.cargo.allFeatures": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Activate all available features"
+                },
+                "rust-analyzer.cargo.features": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "List of features to activate"
+                },
+                "rust-analyzer.cargo.loadOutDirsFromCheck": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Run `cargo check` on startup to get the correct value for package OUT_DIRs"
+                },
+                "rust-analyzer.cargo.target": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "default": null,
+                    "description": "Specify the compilation target"
+                },
+                "rust-analyzer.rustfmt.extraArgs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Additional arguments to rustfmt"
+                },
+                "rust-analyzer.rustfmt.overrideCommand": {
+                    "type": [
+                        "null",
+                        "array"
+                    ],
+                    "items": {
+                        "type": "string",
+                        "minItems": 1
+                    },
+                    "default": null,
+                    "markdownDescription": "Advanced option, fully override the command rust-analyzer uses for formatting."
+                },
+                "rust-analyzer.checkOnSave.enable": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Run specified `cargo check` command for diagnostics on save"
+                },
+                "rust-analyzer.checkOnSave.extraArgs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "markdownDescription": "Extra arguments for `cargo check`",
+                    "default": []
+                },
+                "rust-analyzer.checkOnSave.command": {
+                    "type": "string",
+                    "default": "check",
+                    "markdownDescription": "Cargo command to use for `cargo check`"
+                },
+                "rust-analyzer.checkOnSave.overrideCommand": {
+                    "type": [
+                        "null",
+                        "array"
+                    ],
+                    "items": {
+                        "type": "string",
+                        "minItems": 1
+                    },
+                    "default": null,
+                    "markdownDescription": "Advanced option, fully override the command rust-analyzer uses for checking. The command should include `--message-format=json` or similar option."
+                },
+                "rust-analyzer.checkOnSave.allTargets": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Check all targets and tests (will be passed as `--all-targets`)"
+                },
+                "rust-analyzer.checkOnSave.allFeatures": {
+                    "type": [
+                        "null",
+                        "boolean"
+                    ],
+                    "default": null,
+                    "markdownDescription": "Check with all features (will be passed as `--all-features`). Defaults to `rust-analyzer.cargo.allFeatures`."
+                },
+                "rust-analyzer.checkOnSave.features": {
+                    "type": [
+                        "null",
+                        "array"
+                    ],
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": null,
+                    "description": "List of features to activate. Defaults to `rust-analyzer.cargo.features`."
+                },
+                "rust-analyzer.cargoRunner": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "default": null,
+                    "description": "Custom cargo runner extension ID."
+                },
+                "rust-analyzer.runnableEnv": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "mask": {
+                                        "type": "string",
+                                        "description": "Runnable name mask"
+                                    },
+                                    "env": {
+                                        "type": "object",
+                                        "description": "Variables in form of { \"key\": \"value\"}"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "description": "Variables in form of { \"key\": \"value\"}"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Environment variables passed to the runnable launched using `Test ` or `Debug` lens or `rust-analyzer.run` command."
+                },
+                "rust-analyzer.inlayHints.enable": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to show inlay hints"
+                },
+                "rust-analyzer.inlayHints.typeHints": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to show inlay type hints for variables."
+                },
+                "rust-analyzer.inlayHints.chainingHints": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to show inlay type hints for method chains."
+                },
+                "rust-analyzer.inlayHints.parameterHints": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to show function parameter name inlay hints at the call site."
+                },
+                "rust-analyzer.inlayHints.maxLength": {
+                    "type": [
+                        "null",
+                        "integer"
+                    ],
+                    "default": 20,
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "description": "Maximum length for inlay hints"
+                },
+                "rust-analyzer.completion.addCallParenthesis": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to add parenthesis when completing functions"
+                },
+                "rust-analyzer.completion.addCallArgumentSnippets": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to add argument snippets when completing functions"
+                },
+                "rust-analyzer.completion.postfix.enable": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Whether to show postfix snippets like `dbg`, `if`, `not`, etc."
+                },
+                "rust-analyzer.callInfo.full": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show function name and docs in parameter hints"
+                },
+                "rust-analyzer.updates.channel": {
+                    "type": "string",
+                    "enum": [
+                        "stable",
+                        "nightly"
+                    ],
+                    "default": "stable",
+                    "markdownEnumDescriptions": [
+                        "`\"stable\"` updates are shipped weekly, they don't contain cutting-edge features from VSCode proposed APIs but have less bugs in general",
+                        "`\"nightly\"` updates are shipped daily (extension updates automatically by downloading artifacts directly from GitHub), they contain cutting-edge features and latest bug fixes. These releases help us get your feedback very quickly and speed up rust-analyzer development **drastically**"
+                    ],
+                    "markdownDescription": "Choose `\"nightly\"` updates to get the latest features and bug fixes every day. While `\"stable\"` releases occur weekly and don't contain cutting-edge features from VSCode proposed APIs"
+                },
+                "rust-analyzer.updates.askBeforeDownload": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to ask for permission before downloading any files from the Internet"
+                },
+                "rust-analyzer.serverPath": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "default": null,
+                    "description": "Path to rust-analyzer executable (points to bundled binary by default). If this is set, then \"rust-analyzer.updates.channel\" setting is not used"
+                },
+                "rust-analyzer.trace.server": {
+                    "type": "string",
+                    "scope": "window",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "enumDescriptions": [
+                        "No traces",
+                        "Error only",
+                        "Full log"
+                    ],
+                    "default": "off",
+                    "description": "Trace requests to the rust-analyzer (this is usually overly verbose and not recommended for regular users)"
+                },
+                "rust-analyzer.trace.extension": {
+                    "description": "Enable logging of VS Code extensions itself",
+                    "type": "boolean",
+                    "default": false
+                },
+                "rust-analyzer.procMacro.enable": {
+                    "description": "Enable Proc macro support, cargo.loadOutDirsFromCheck must be enabled.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "rust-analyzer.debug.engine": {
+                    "type": "string",
+                    "enum": [
+                        "auto",
+                        "vadimcn.vscode-lldb",
+                        "ms-vscode.cpptools"
+                    ],
+                    "default": "auto",
+                    "description": "Preferred debug engine.",
+                    "markdownEnumDescriptions": [
+                        "First try to use [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb), if it's not installed try to use [MS C++ tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools).",
+                        "Use [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb)",
+                        "Use [MS C++ tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)"
+                    ]
+                },
+                "rust-analyzer.debug.sourceFileMap": {
+                    "type": "object",
+                    "description": "Optional source file mappings passed to the debug engine.",
+                    "default": {
+                        "/rustc/<id>": "${env:USERPROFILE}/.rustup/toolchains/<toolchain-id>/lib/rustlib/src/rust"
+                    }
+                },
+                "rust-analyzer.debug.openDebugPane": {
+                    "description": "Whether to open up the Debug Pane on debugging start.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "rust-analyzer.debug.engineSettings": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Optional settings passed to the debug engine. Example:\n{ \"lldb\": { \"terminal\":\"external\"} }"
+                },
+                "rust-analyzer.lens.enable": {
+                    "description": "Whether to show CodeLens in Rust files.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.lens.run": {
+                    "markdownDescription": "Whether to show `Run` lens. Only applies when `#rust-analyzer.lens.enable#` is set.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.lens.debug": {
+                    "markdownDescription": "Whether to show `Debug` lens. Only applies when `#rust-analyzer.lens.enable#` is set.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.lens.implementations": {
+                    "markdownDescription": "Whether to show `Implementations` lens. Only applies when `#rust-analyzer.lens.enable#` is set.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.hoverActions.enable": {
+                    "description": "Whether to show HoverActions in Rust files.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.hoverActions.implementations": {
+                    "markdownDescription": "Whether to show `Implementations` action. Only applies when `#rust-analyzer.hoverActions.enable#` is set.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.hoverActions.run": {
+                    "markdownDescription": "Whether to show `Run` action. Only applies when `#rust-analyzer.hoverActions.enable#` is set.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.hoverActions.debug": {
+                    "markdownDescription": "Whether to show `Debug` action. Only applies when `#rust-analyzer.hoverActions.enable#` is set.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.hoverActions.gotoTypeDef": {
+                    "markdownDescription": "Whether to show `Go to Type Definition` action. Only applies when `#rust-analyzer.hoverActions.enable#` is set.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.linkedProjects": {
+                    "markdownDescription": "Disable project auto-discovery in favor of explicitly specified set of projects.  \nElements must be paths pointing to Cargo.toml, rust-project.json, or JSON objects in rust-project.json format",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "string",
+                            "object"
+                        ]
+                    },
+                    "default": null
+                },
+                "rust-analyzer.withSysroot": {
+                    "markdownDescription": "Internal config for debugging, disables loading of sysroot crates",
+                    "type": "boolean",
+                    "default": true
+                },
+                "rust-analyzer.diagnostics.warningsAsInfo": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of warnings that should be displayed with info severity.\nThe warnings will be indicated by a blue squiggly underline in code and a blue icon in the problems panel.",
+                    "default": []
+                },
+                "rust-analyzer.diagnostics.warningsAsHint": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of warnings warnings that should be displayed with hint severity.\nThe warnings will be indicated by faded text or three dots in code and will not show up in the problems panel.",
+                    "default": []
+                }
+            }
+        },
+        "problemPatterns": [
+            {
+                "name": "rustc",
+                "patterns": [
+                    {
+                        "regexp": "^(warning|warn|error)(?:\\[(.*?)\\])?: (.*)$",
+                        "severity": 1,
+                        "code": 2,
+                        "message": 3
+                    },
+                    {
+                        "regexp": "^[\\s->=]*(.*?):(\\d*):(\\d*)\\s*$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3
+                    }
+                ]
+            },
+            {
+                "name": "rustc-json",
+                "patterns": [
+                    {
+                        "regexp": "^.*\"message\":{\"message\":\"([^\"]*).*?\"file_name\":\"([^\"]+).*?\"line_start\":(\\d+).*?\"line_end\":(\\d+).*?\"column_start\":(\\d+).*?\"column_end\":(\\d+).*}$",
+                        "message": 1,
+                        "file": 2,
+                        "line": 3,
+                        "endLine": 4,
+                        "column": 5,
+                        "endColumn": 6
+                    }
+                ]
+            }
+        ],
+        "languages": [
+            {
+                "id": "ra_syntax_tree",
+                "extensions": [
+                    ".rast"
+                ]
+            }
+        ],
+        "grammars": [
+            {
+                "language": "rust",
+                "scopeName": "source.rust",
+                "path": "rust.tmGrammar.json"
+            },
+            {
+                "language": "ra_syntax_tree",
+                "scopeName": "source.ra_syntax_tree",
+                "path": "ra_syntax_tree.tmGrammar.json"
+            }
+        ],
+        "problemMatchers": [
+            {
+                "name": "rustc",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": "$rustc"
+            },
+            {
+                "name": "rustc-json",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": "$rustc-json"
+            },
+            {
+                "name": "rustc-watch",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "background": {
+                    "beginsPattern": "^\\[Running\\b",
+                    "endsPattern": "^\\[Finished running\\b"
+                },
+                "pattern": "$rustc"
+            }
+        ],
+        "colors": [
+            {
+                "id": "rust_analyzer.inlayHint",
+                "description": "Color for inlay hints",
+                "defaults": {
+                    "dark": "#A0A0A0F0",
+                    "light": "#747474",
+                    "highContrast": "#BEBEBE"
+                }
+            },
+            {
+                "id": "rust_analyzer.syntaxTreeBorder",
+                "description": "Color of the border displayed in the Rust source code for the selected syntax node (see \"Show Syntax Tree\" command)",
+                "defaults": {
+                    "dark": "#ffffff",
+                    "light": "#b700ff",
+                    "highContrast": "#b700ff"
+                }
+            }
+        ],
+        "semanticTokenTypes": [
+            {
+                "id": "attribute",
+                "description": "Style for attributes"
+            },
+            {
+                "id": "boolean",
+                "description": "Style for boolean literals",
+                "superType": "keyword"
+            },
+            {
+                "id": "builtinType",
+                "description": "Style for builtin types",
+                "superType": "type"
+            },
+            {
+                "id": "lifetime",
+                "description": "Style for lifetimes"
+            },
+            {
+                "id": "selfKeyword",
+                "description": "Style for the self keyword",
+                "superType": "keyword"
+            },
+            {
+                "id": "typeAlias",
+                "description": "Style for type aliases",
+                "superType": "type"
+            },
+            {
+                "id": "union",
+                "description": "Style for C-style untagged unions",
+                "superType": "type"
+            },
+            {
+                "id": "unresolvedReference",
+                "description": "Style for names which can not be resolved due to compilation errors"
+            },
+            {
+                "id": "formatSpecifier",
+                "description": "Style for {} placeholders in format strings"
+            }
+        ],
+        "semanticTokenModifiers": [
+            {
+                "id": "attribute",
+                "description": "Style for elements within attributes"
+            },
+            {
+                "id": "constant",
+                "description": "Style for compile-time constants"
+            },
+            {
+                "id": "controlFlow",
+                "description": "Style for control flow keywords"
+            },
+            {
+                "id": "mutable",
+                "description": "Style for mutable bindings"
+            },
+            {
+                "id": "unsafe",
+                "description": "Style for unsafe operations"
+            }
+        ],
+        "semanticTokenScopes": [
+            {
+                "language": "rust",
+                "scopes": {
+                    "macro": [
+                        "entity.name.function.macro.rust"
+                    ],
+                    "attribute": [
+                        "meta.attribute.rust"
+                    ],
+                    "function.attribute": [
+                        "entity.name.function.attribute.rust"
+                    ],
+                    "boolean": [
+                        "constant.language.boolean.rust"
+                    ],
+                    "builtinType": [
+                        "support.type.primitive.rust"
+                    ],
+                    "lifetime": [
+                        "storage.modifier.lifetime.rust"
+                    ],
+                    "typeAlias": [
+                        "entity.name.type.typeAlias.rust"
+                    ],
+                    "union": [
+                        "entity.name.type.union.rust"
+                    ],
+                    "struct": [
+                        "entity.name.type.struct.rust"
+                    ],
+                    "keyword": [
+                        "keyword.other.rust"
+                    ],
+                    "keyword.controlFlow": [
+                        "keyword.control.rust"
+                    ],
+                    "variable.constant": [
+                        "variable.other.constant.rust"
+                    ],
+                    "formatSpecifier": [
+                        "punctuation.section.embedded.rust"
+                    ],
+                    "*.mutable": [
+                        "markup.underline"
+                    ]
+                }
+            }
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "rust-analyzer.syntaxTree",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.expandMacro",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.matchingBrace",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.parentModule",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.joinLines",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.run",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.debug",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.newDebugConfig",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.analyzerStatus",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.memoryUsage",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.reloadWorkspace",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.reload",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.onEnter",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.ssr",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.serverVersion",
+                    "when": "inRustProject"
+                },
+                {
+                    "command": "rust-analyzer.toggleInlayHints",
+                    "when": "inRustProject"
+                }
+            ]
+        }
+    }
+}

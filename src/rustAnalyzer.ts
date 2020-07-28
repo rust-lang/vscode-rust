@@ -216,8 +216,11 @@ export async function createLanguageClient(
     rustAnalyzer: { path?: string; releaseTag: string };
   },
 ): Promise<lc.LanguageClient> {
-  await rustup.ensureToolchain(config.rustup);
-  await rustup.ensureComponents(config.rustup, REQUIRED_COMPONENTS);
+  if (!config.rustup.disabled) {
+    await rustup.ensureToolchain(config.rustup);
+    await rustup.ensureComponents(config.rustup, REQUIRED_COMPONENTS);
+  }
+
   if (!config.rustAnalyzer.path) {
     await getServer({
       askBeforeDownload: true,

@@ -285,7 +285,7 @@ async function setupGlobalProgress(client: lc.LanguageClient) {
     if (newState === lc.State.Starting) {
       await client.onReady();
 
-      const RUST_ANALYZER_PROGRESS = 'rustAnalyzer/startup';
+      const RUST_ANALYZER_PROGRESS = 'rustAnalyzer/roots scanned';
       client.onProgress(
         new lc.ProgressType<{
           kind: 'begin' | 'report' | 'end';

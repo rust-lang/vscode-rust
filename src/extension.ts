@@ -126,6 +126,7 @@ function whenChangingWorkspaceFolders(e: WorkspaceFoldersChangeEvent) {
 }
 
 // Don't use URI as it's unreliable the same path might not become the same URI.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const workspaces: Map<string, ClientWorkspace> = new Map();
 
 /**
@@ -186,6 +187,7 @@ export class ClientWorkspace {
   /**
    * Attempts to start a server instance, if not configured otherwise via
    * applicable `rust-client.autoStartRls` setting.
+   *
    * @returns whether the server has started.
    */
   public async autoStart() {
@@ -232,7 +234,7 @@ export class ClientWorkspace {
       await this.lc.stop();
     }
 
-    this.disposables.forEach(d => d.dispose());
+    this.disposables.forEach(d => void d.dispose());
   }
 
   public async restart() {

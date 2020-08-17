@@ -9,6 +9,7 @@ src/**
 **/.prettierignore
 **/.eslintignore
 prettier.config.js
+.eslintrc.json
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/tslint.json

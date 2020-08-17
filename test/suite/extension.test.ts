@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
-// tslint:disable-next-line: no-duplicate-imports
 import { Disposable, Uri } from 'vscode';
 
 import * as extension from '../../src/extension';

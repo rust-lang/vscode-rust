@@ -209,10 +209,10 @@ async function makeRlsEnv(
 
   console.info(`Setting sysroot to`, sysroot);
   if (opts.setLibPath) {
-    function appendEnv(envVar: string, newComponent: string) {
+    const appendEnv = (envVar: string, newComponent: string) => {
       const old = process.env[envVar];
       return old ? `${newComponent}:${old}` : newComponent;
-    }
+    };
     const newComponent = path.join(sysroot, 'lib');
     env.DYLD_LIBRARY_PATH = appendEnv('DYLD_LIBRARY_PATH', newComponent);
     env.LD_LIBRARY_PATH = appendEnv('LD_LIBRARY_PATH', newComponent);

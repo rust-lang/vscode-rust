@@ -16,6 +16,7 @@ export function nearestParentWorkspace(
 
   // algorithm that will strip one folder at a time and check if that folder contains "Cargo.toml"
   let current = filePath;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const old = current;
     current = path.dirname(current);

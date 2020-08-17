@@ -81,7 +81,7 @@ interface Metadata {
   releaseTag: string;
 }
 
-async function readMetadata(): Promise<Metadata | {}> {
+async function readMetadata(): Promise<Metadata | Record<string, unknown>> {
   const stateDir = metadataDir();
   if (!stateDir) {
     return { kind: 'error', code: 'NotSupported' };
@@ -93,8 +93,8 @@ async function readMetadata(): Promise<Metadata | {}> {
   }
 
   const contents = await readFile(filePath, 'utf8');
-  const obj = JSON.parse(contents);
-  return typeof obj === 'object' ? obj : {};
+  const obj = JSON.parse(contents) as unknown;
+  return typeof obj === 'object' ? (obj as Record<string, unknown>) : {};
 }
 
 async function writeMetadata(config: Metadata) {

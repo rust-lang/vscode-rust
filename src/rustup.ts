@@ -233,10 +233,10 @@ export function parseActiveToolchain(rustupOutput: string): string {
 }
 
 export async function getVersion(config: RustupConfig): Promise<string> {
-  const versionRegex = /rustup ([0-9]+\.[0-9]+\.[0-9]+)/;
+  const VERSION_REGEX = /rustup ([0-9]+\.[0-9]+\.[0-9]+)/;
 
   const output = await exec(`${config.path} --version`);
-  const versionMatch = output.stdout.toString().match(versionRegex);
+  const versionMatch = VERSION_REGEX.exec(output.stdout.toString());
   if (versionMatch && versionMatch.length >= 2) {
     return versionMatch[1];
   } else {

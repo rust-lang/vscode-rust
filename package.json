@@ -82,6 +82,13 @@
                 "configuration": "./language-configuration.json"
             }
         ],
+        "grammars": [
+            {
+                "language": "rust",
+                "scopeName": "source.rust",
+                "path": "rust.tmGrammar.json"
+            }
+        ],
         "snippets": [
             {
                 "language": "rust",

@@ -4,7 +4,7 @@ import * as path from 'path';
 
 export function run(
   testsRoot: string,
-  // tslint:disable-next-line: no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cb: (error: any, failures?: number) => void,
 ): void {
   // Create the mocha test

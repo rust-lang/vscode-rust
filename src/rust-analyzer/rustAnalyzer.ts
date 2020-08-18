@@ -10,12 +10,7 @@ import { WorkspaceProgress } from '../extension';
 import { download, fetchRelease } from '../net';
 import * as rustup from '../rustup';
 import { Observable } from '../utils/observable';
-import {
-  Metadata,
-  readMetadata,
-  writeMetadata,
-  PersistentState,
-} from './persistent_state';
+import { PersistentState } from './persistent_state';
 
 const stat = promisify(fs.stat);
 const mkdir = promisify(fs.mkdir);
@@ -64,8 +59,6 @@ export async function getServer(
   config: RustAnalyzerConfig,
   state: PersistentState,
 ): Promise<string | undefined> {
-  const { askBeforeDownload, package: pkg } = config;
-
   let binaryName: string | undefined;
   if (process.arch === 'x64' || process.arch === 'ia32') {
     if (process.platform === 'linux') {
@@ -96,22 +89,25 @@ export async function getServer(
   }
   await ensureDir(dir);
 
-  const metadata: Partial<Metadata> = await readMetadata().catch(() => ({}));
-
   const dest = path.join(dir, binaryName);
   const exists = await stat(dest).catch(() => false);
-  if (exists && metadata.releaseTag === pkg.releaseTag) {
+
+  if (!exists) {
+    await state.updateReleaseTag(undefined);
+  } else if (state.releaseTag === config.package.releaseTag) {
     return dest;
   }
 
-  if (askBeforeDownload) {
+  if (config.askBeforeDownload) {
     const userResponse = await vs.window.showInformationMessage(
       `${
-        metadata.releaseTag && metadata.releaseTag !== pkg.releaseTag
-          ? `You seem to have installed release \`${metadata.releaseTag}\` but requested a different one.`
+        state.releaseTag && state.releaseTag !== config.package.releaseTag
+          ? `You seem to have installed release \`${state.releaseTag}\` but requested a different one.`
           : ''
       }
-      Release \`${pkg.releaseTag}\` of rust-analyzer is not installed.\n
+      Release \`${
+        config.package.releaseTag
+      }\` of rust-analyzer is not installed.\n
       Install to ${dir}?`,
       'Download',
     );
@@ -123,7 +119,7 @@ export async function getServer(
   const release = await fetchRelease(
     'rust-analyzer',
     'rust-analyzer',
-    pkg.releaseTag,
+    config.package.releaseTag,
   );
   const artifact = release.assets.find(asset => asset.name === binaryName);
   if (!artifact) {
@@ -137,9 +133,7 @@ export async function getServer(
     mode: 0o755,
   });
 
-  await writeMetadata({ releaseTag: pkg.releaseTag }).catch(() => {
-    vs.window.showWarningMessage(`Couldn't save rust-analyzer metadata`);
-  });
+  await state.updateReleaseTag(config.package.releaseTag);
 
   return dest;
 }

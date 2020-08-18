@@ -11,6 +11,7 @@ import {
   workspace,
   WorkspaceFolder,
   WorkspaceFoldersChangeEvent,
+  Memento,
 } from 'vscode';
 import * as lc from 'vscode-languageclient';
 
@@ -32,17 +33,21 @@ export interface Api {
 }
 
 export async function activate(context: ExtensionContext): Promise<Api> {
+  // Weave in global state when handling changed active text editor
+  const handleChangedActiveTextEd = (ed: TextEditor | undefined) =>
+    onDidChangeActiveTextEditor(ed, context.globalState);
+
   context.subscriptions.push(
     ...[
       configureLanguage(),
       ...registerCommands(),
       workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders),
-      window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
+      window.onDidChangeActiveTextEditor(handleChangedActiveTextEd),
     ],
   );
   // Manually trigger the first event to start up server instance if necessary,
   // since VSCode doesn't do that on startup by itself.
-  onDidChangeActiveTextEditor(window.activeTextEditor);
+  handleChangedActiveTextEd(window.activeTextEditor);
 
   // Migrate the users of multi-project setup for RLS to disable the setting
   // entirely (it's always on now)
@@ -81,13 +86,16 @@ export async function deactivate() {
 /** Tracks dynamically updated progress for the active client workspace for UI purposes. */
 let progressObserver: Disposable | undefined;
 
-function onDidChangeActiveTextEditor(editor: TextEditor | undefined) {
+function onDidChangeActiveTextEditor(
+  editor: TextEditor | undefined,
+  globalState: Memento,
+) {
   if (!editor || !editor.document) {
     return;
   }
   const { languageId, uri } = editor.document;
 
-  const workspace = clientWorkspaceForUri(uri, {
+  const workspace = clientWorkspaceForUri(uri, globalState, {
     initializeIfMissing: languageId === 'rust' || languageId === 'toml',
   });
   if (!workspace) {
@@ -135,6 +143,7 @@ const workspaces: Map<string, ClientWorkspace> = new Map();
  */
 function clientWorkspaceForUri(
   uri: Uri,
+  globalState: Memento,
   options?: { initializeIfMissing: boolean },
 ): ClientWorkspace | undefined {
   const rootFolder = workspace.getWorkspaceFolder(uri);
@@ -149,7 +158,7 @@ function clientWorkspaceForUri(
 
   const existing = workspaces.get(folder.uri.toString());
   if (!existing && options && options.initializeIfMissing) {
-    const workspace = new ClientWorkspace(folder);
+    const workspace = new ClientWorkspace(folder, globalState);
     workspaces.set(folder.uri.toString(), workspace);
     workspace.autoStart();
   }
@@ -173,15 +182,17 @@ export class ClientWorkspace {
   private lc: lc.LanguageClient | null = null;
   private disposables: Disposable[];
   private _progress: Observable<WorkspaceProgress>;
+  private globalState: Memento;
   get progress() {
     return this._progress;
   }
 
-  constructor(folder: WorkspaceFolder) {
+  constructor(folder: WorkspaceFolder, globalState: Memento) {
     this.config = RLSConfiguration.loadFromWorkspace(folder.uri.fsPath);
     this.folder = folder;
     this.disposables = [];
     this._progress = new Observable<WorkspaceProgress>({ state: 'standby' });
+    this.globalState = globalState;
   }
 
   /**
@@ -198,18 +209,22 @@ export class ClientWorkspace {
     const { createLanguageClient, setupClient, setupProgress } =
       this.config.engine === 'rls' ? rls : rustAnalyzer;
 
-    const client = await createLanguageClient(this.folder, {
-      updateOnStartup: this.config.updateOnStartup,
-      revealOutputChannelOn: this.config.revealOutputChannelOn,
-      logToFile: this.config.logToFile,
-      rustup: {
-        channel: this.config.channel,
-        path: this.config.rustupPath,
-        disabled: this.config.rustupDisabled,
+    const client = await createLanguageClient(
+      this.folder,
+      {
+        updateOnStartup: this.config.updateOnStartup,
+        revealOutputChannelOn: this.config.revealOutputChannelOn,
+        logToFile: this.config.logToFile,
+        rustup: {
+          channel: this.config.channel,
+          path: this.config.rustupPath,
+          disabled: this.config.rustupDisabled,
+        },
+        rls: { path: this.config.rlsPath },
+        rustAnalyzer: this.config.rustAnalyzer,
       },
-      rls: { path: this.config.rlsPath },
-      rustAnalyzer: this.config.rustAnalyzer,
-    });
+      this.globalState,
+    );
 
     client.onDidChangeState(({ newState }) => {
       if (newState === lc.State.Starting) {

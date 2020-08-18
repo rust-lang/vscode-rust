@@ -10,7 +10,12 @@ import { WorkspaceProgress } from '../extension';
 import { download, fetchRelease } from '../net';
 import * as rustup from '../rustup';
 import { Observable } from '../utils/observable';
-import { Metadata, readMetadata, writeMetadata } from './persistent_state';
+import {
+  Metadata,
+  readMetadata,
+  writeMetadata,
+  PersistentState,
+} from './persistent_state';
 
 const stat = promisify(fs.stat);
 const mkdir = promisify(fs.mkdir);
@@ -55,10 +60,12 @@ interface RustAnalyzerConfig {
   };
 }
 
-export async function getServer({
-  askBeforeDownload,
-  package: pkg,
-}: RustAnalyzerConfig): Promise<string | undefined> {
+export async function getServer(
+  config: RustAnalyzerConfig,
+  state: PersistentState,
+): Promise<string | undefined> {
+  const { askBeforeDownload, package: pkg } = config;
+
   let binaryName: string | undefined;
   if (process.arch === 'x64' || process.arch === 'ia32') {
     if (process.platform === 'linux') {
@@ -159,6 +166,7 @@ export async function createLanguageClient(
     rustup: { disabled: boolean; path: string; channel: string };
     rustAnalyzer: { path?: string; releaseTag: string };
   },
+  state: vs.Memento,
 ): Promise<lc.LanguageClient> {
   if (!config.rustup.disabled) {
     await rustup.ensureToolchain(config.rustup);
@@ -166,10 +174,13 @@ export async function createLanguageClient(
   }
 
   if (!config.rustAnalyzer.path) {
-    await getServer({
-      askBeforeDownload: true,
-      package: { releaseTag: config.rustAnalyzer.releaseTag },
-    });
+    await getServer(
+      {
+        askBeforeDownload: true,
+        package: { releaseTag: config.rustAnalyzer.releaseTag },
+      },
+      new PersistentState(state),
+    );
   }
 
   if (INSTANCE) {
@@ -179,9 +190,12 @@ export async function createLanguageClient(
   const serverOptions: lc.ServerOptions = async () => {
     const binPath =
       config.rustAnalyzer.path ||
-      (await getServer({
-        package: { releaseTag: config.rustAnalyzer.releaseTag },
-      }));
+      (await getServer(
+        {
+          package: { releaseTag: config.rustAnalyzer.releaseTag },
+        },
+        new PersistentState(state),
+      ));
 
     if (!binPath) {
       throw new Error("Couldn't fetch Rust Analyzer binary");

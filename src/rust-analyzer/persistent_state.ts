@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
+import * as vscode from 'vscode';
 
 const stat = promisify(fs.stat);
 const mkdir = promisify(fs.mkdir);
@@ -32,22 +33,20 @@ export interface Metadata {
   releaseTag: string;
 }
 
-export async function readMetadata(): Promise<
-  Metadata | Record<string, unknown>
-> {
+export async function readMetadata(): Promise<Partial<Metadata>> {
   const stateDir = metadataDir();
   if (!stateDir) {
-    return { kind: 'error', code: 'NotSupported' };
+    throw new Error('Not supported');
   }
 
   const filePath = path.join(stateDir, 'metadata.json');
   if (!(await stat(filePath).catch(() => false))) {
-    return { kind: 'error', code: 'FileMissing' };
+    throw new Error('File missing');
   }
 
   const contents = await readFile(filePath, 'utf8');
   const obj = JSON.parse(contents) as unknown;
-  return typeof obj === 'object' ? (obj as Record<string, unknown>) : {};
+  return typeof obj === 'object' ? obj || {} : {};
 }
 
 export async function writeMetadata(config: Metadata) {
@@ -66,4 +65,43 @@ export async function writeMetadata(config: Metadata) {
 
 function ensureDir(path: string) {
   return !!path && stat(path).catch(() => mkdir(path, { recursive: true }));
+}
+
+export class PersistentState {
+  constructor(private readonly globalState: vscode.Memento) {
+    const { lastCheck, releaseId, serverVersion } = this;
+    console.info('PersistentState:', { lastCheck, releaseId, serverVersion });
+  }
+
+  /**
+   * Used to check for *nightly* updates once an hour.
+   */
+  get lastCheck(): number | undefined {
+    return this.globalState.get('lastCheck');
+  }
+  async updateLastCheck(value: number) {
+    await this.globalState.update('lastCheck', value);
+  }
+
+  /**
+   * Release id of the *nightly* extension.
+   * Used to check if we should update.
+   */
+  get releaseId(): number | undefined {
+    return this.globalState.get('releaseId');
+  }
+  async updateReleaseId(value: number) {
+    await this.globalState.update('releaseId', value);
+  }
+
+  /**
+   * Version of the extension that installed the server.
+   * Used to check if we need to update the server.
+   */
+  get serverVersion(): string | undefined {
+    return this.globalState.get('serverVersion');
+  }
+  async updateServerVersion(value: string | undefined) {
+    await this.globalState.update('serverVersion', value);
+  }
 }

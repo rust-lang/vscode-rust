@@ -179,12 +179,12 @@ export async function getServer({
     throw new Error(`Bad release: ${JSON.stringify(release)}`);
   }
 
-  await download(
-    artifact.browser_download_url,
+  await download({
+    url: artifact.browser_download_url,
     dest,
-    'Downloading rust-analyzer server',
-    { mode: 0o755 },
-  );
+    progressTitle: 'Downloading rust-analyzer server',
+    mode: 0o755,
+  });
 
   await writeMetadata({ releaseTag: pkg.releaseTag }).catch(() => {
     vs.window.showWarningMessage(`Couldn't save rust-analyzer metadata`);

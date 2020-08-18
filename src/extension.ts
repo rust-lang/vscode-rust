@@ -16,7 +16,7 @@ import * as lc from 'vscode-languageclient';
 
 import { RLSConfiguration } from './configuration';
 import * as rls from './rls';
-import * as rustAnalyzer from './rustAnalyzer';
+import * as rustAnalyzer from './rust-analyzer';
 import { rustupUpdate } from './rustup';
 import { startSpinner, stopSpinner } from './spinner';
 import { activateTaskProvider, Execution, runRlsCommand } from './tasks';

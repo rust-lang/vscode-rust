@@ -6,10 +6,10 @@ import { promisify } from 'util';
 import * as vs from 'vscode';
 import * as lc from 'vscode-languageclient';
 
-import { WorkspaceProgress } from './extension';
-import { download, fetchRelease } from './net';
-import * as rustup from './rustup';
-import { Observable } from './utils/observable';
+import { WorkspaceProgress } from '../extension';
+import { download, fetchRelease } from '../net';
+import * as rustup from '../rustup';
+import { Observable } from '../utils/observable';
 
 const stat = promisify(fs.stat);
 const mkdir = promisify(fs.mkdir);

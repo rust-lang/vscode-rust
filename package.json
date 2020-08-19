@@ -4,7 +4,7 @@
     "description": "Rust for Visual Studio Code (powered by Rust Language Server/Rust Analyzer). Provides lints, code completion and navigation, formatting and more.",
     "version": "0.7.8",
     "publisher": "rust-lang",
-    "icon": "rust-icon.png",
+    "icon": "icon.png",
     "galleryBanner": {
         "color": "#336356",
         "theme": "dark"
@@ -45,7 +45,7 @@
         "watch": "tsc -watch -p ./",
         "lint": "eslint --ext ts src",
         "test": "node ./out/test/runTest.js",
-        "prettier": "prettier **/*.ts",
+        "prettier": "prettier \"**/*.ts\"",
         "check:version": "node cmd/check-version.js",
         "installDevExtension": "npm install && ./node_modules/.bin/vsce package -o ./out/rls-vscode-dev.vsix && code --install-extension ./out/rls-vscode-dev.vsix"
     },

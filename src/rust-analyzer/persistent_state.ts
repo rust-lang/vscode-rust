@@ -1,9 +1,17 @@
 import * as vscode from 'vscode';
 
+export interface Release {
+  /**
+   * ID of a release. Used to disambiguate between different releases under *moving* tags.
+   */
+  id: number;
+  tag: string;
+}
+
 export class PersistentState {
   constructor(private readonly globalState: vscode.Memento) {
-    const { lastCheck, releaseId, releaseTag: serverVersion } = this;
-    console.info('PersistentState:', { lastCheck, releaseId, serverVersion });
+    const { lastCheck, installedRelease } = this;
+    console.info('PersistentState:', { lastCheck, installedRelease });
   }
 
   /**
@@ -17,24 +25,13 @@ export class PersistentState {
   }
 
   /**
-   * Release id of the *nightly* extension.
-   * Used to check if we should update.
-   */
-  get releaseId(): number | undefined {
-    return this.globalState.get('releaseId');
-  }
-  async updateReleaseId(value: number) {
-    await this.globalState.update('releaseId', value);
-  }
-
-  /**
    * Release tag of the installed server.
    * Used to check if we need to update the server.
    */
-  get releaseTag(): string | undefined {
-    return this.globalState.get('releaseTag');
+  get installedRelease(): Release | undefined {
+    return this.globalState.get('installedRelease');
   }
-  async updateReleaseTag(value: string | undefined) {
-    await this.globalState.update('releaseTag', value);
+  async updateInstalledRelease(value: Release | undefined) {
+    return this.globalState.update('installedRelease', value);
   }
 }

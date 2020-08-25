@@ -44,10 +44,6 @@ function installDir(): string | undefined {
   return undefined;
 }
 
-function ensureDir(path: string) {
-  return !!path && stat(path).catch(() => mkdir(path, { recursive: true }));
-}
-
 interface RustAnalyzerConfig {
   askBeforeDownload?: boolean;
   package: {
@@ -80,38 +76,39 @@ export async function getServer(
         'about that [here](https://github.com/rust-analyzer/rust-analyzer/issues) and we ' +
         'will consider it.',
     );
-    return undefined;
+    return;
   }
 
   const dir = installDir();
   if (!dir) {
     return;
+  } else {
+    await stat(dir).catch(() => mkdir(dir, { recursive: true }));
   }
-  await ensureDir(dir);
 
   const dest = path.join(dir, binaryName);
   const exists = await stat(dest).catch(() => false);
 
   if (!exists) {
-    await state.updateReleaseTag(undefined);
-  } else if (state.releaseTag === config.package.releaseTag) {
-    return dest;
+    await state.updateInstalledRelease(undefined);
   }
 
-  if (config.askBeforeDownload) {
-    const userResponse = await vs.window.showInformationMessage(
-      `${
-        state.releaseTag && state.releaseTag !== config.package.releaseTag
-          ? `You seem to have installed release \`${state.releaseTag}\` but requested a different one.`
-          : ''
-      }
-      Release \`${
-        config.package.releaseTag
-      }\` of rust-analyzer is not installed.\n
-      Install to ${dir}?`,
-      'Download',
-    );
-    if (userResponse !== 'Download') {
+  const now = Date.now();
+  if (state.installedRelease?.tag === config.package.releaseTag) {
+    // Release tags that are *moving* - these are expected to point to different
+    // commits and update as the time goes on. Make sure to poll the GitHub API
+    // (at most once per hour) to see if we need to update.
+    const MOVING_TAGS = ['nightly'];
+    const POLL_INTERVAL = 60 * 60 * 1000;
+
+    const shouldCheckForNewRelease = MOVING_TAGS.includes(
+      config.package.releaseTag,
+    )
+      ? state.installedRelease === undefined ||
+        now - (state.lastCheck ?? 0) > POLL_INTERVAL
+      : false;
+
+    if (!shouldCheckForNewRelease) {
       return dest;
     }
   }
@@ -121,9 +118,33 @@ export async function getServer(
     'rust-analyzer',
     config.package.releaseTag,
   );
+
+  if (state.installedRelease?.id === release.id) {
+    return dest;
+  }
+
   const artifact = release.assets.find(asset => asset.name === binaryName);
   if (!artifact) {
     throw new Error(`Bad release: ${JSON.stringify(release)}`);
+  }
+
+  if (config.askBeforeDownload) {
+    const userResponse = await vs.window.showInformationMessage(
+      `${
+        state.installedRelease &&
+        state.installedRelease.tag !== config.package.releaseTag
+          ? `You seem to have installed release \`${state.installedRelease?.tag}\` but requested a different one.`
+          : ''
+      }
+      Release \`${config.package.releaseTag}\` of rust-analyzer ${
+        !state.installedRelease ? 'is not installed' : 'can be updated'
+      }.\n
+      Install to ${dir}?`,
+      'Download',
+    );
+    if (userResponse !== 'Download') {
+      return exists ? dest : undefined;
+    }
   }
 
   await download({
@@ -133,7 +154,11 @@ export async function getServer(
     mode: 0o755,
   });
 
-  await state.updateReleaseTag(config.package.releaseTag);
+  await state.updateLastCheck(now);
+  await state.updateInstalledRelease({
+    id: release.id,
+    tag: config.package.releaseTag,
+  });
 
   return dest;
 }
@@ -167,14 +192,18 @@ export async function createLanguageClient(
     await rustup.ensureComponents(config.rustup, REQUIRED_COMPONENTS);
   }
 
-  if (!config.rustAnalyzer.path) {
-    await getServer(
+  const binPath =
+    config.rustAnalyzer.path ||
+    (await getServer(
       {
         askBeforeDownload: true,
         package: { releaseTag: config.rustAnalyzer.releaseTag },
       },
       new PersistentState(state),
-    );
+    ));
+
+  if (!binPath) {
+    throw new Error("Couldn't fetch Rust Analyzer binary");
   }
 
   if (INSTANCE) {
@@ -182,19 +211,6 @@ export async function createLanguageClient(
   }
 
   const serverOptions: lc.ServerOptions = async () => {
-    const binPath =
-      config.rustAnalyzer.path ||
-      (await getServer(
-        {
-          package: { releaseTag: config.rustAnalyzer.releaseTag },
-        },
-        new PersistentState(state),
-      ));
-
-    if (!binPath) {
-      throw new Error("Couldn't fetch Rust Analyzer binary");
-    }
-
     const childProcess = child_process.exec(binPath);
     if (config.logToFile) {
       const logPath = path.join(folder.uri.fsPath, `ra-${Date.now()}.log`);

@@ -90,8 +90,8 @@ too many. If you want more, check out
 ### Tasks
 
 The plugin provides tasks for building, running, and testing using the relevant
-cargo commands. You can build using <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>b</kbd>. Access other tasks via
-`Run Task` in the command palette.
+cargo commands. You can build using <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>b</kbd>(Win/Linux), <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>b</kbd>(macOS).
+Access other tasks via `Run Task` in the command palette.
 
 The plugin writes these into `tasks.json`. The plugin will not overwrite
 existing tasks, so you can customise these tasks. To refresh back to the

@@ -157,7 +157,12 @@
                         "line": 3,
                         "column": 4
                     }
-                ]
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^\\[Running",
+                    "endsPattern": "^\\[Finished running"
+                }
             }
         ],
         "configuration": {

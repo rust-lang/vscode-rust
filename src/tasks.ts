@@ -2,12 +2,14 @@ import {
   Disposable,
   ShellExecution,
   Task,
+  TaskDefinition,
   TaskGroup,
   TaskProvider,
   tasks,
   workspace,
   WorkspaceFolder,
 } from 'vscode';
+import { ensurePackage, isPackageInstalled } from './cargo';
 
 /**
  * Displayed identifier associated with each task.
@@ -18,6 +20,19 @@ const TASK_SOURCE = 'Rust';
  * tasks. We only use `cargo` task type.
  */
 const TASK_TYPE = 'cargo';
+
+interface CargoTaskDefinition extends TaskDefinition {
+  readonly type: 'cargo';
+  readonly subcommand: string;
+}
+
+interface CargoTask extends Task {
+  definition: CargoTaskDefinition;
+}
+
+function isCargoTask(task: Task): task is CargoTask {
+  return task.definition.type === 'cargo';
+}
 
 /**
  * Command execution parameters sent by the RLS (as of 1.35).
@@ -59,21 +74,49 @@ export function activateTaskProvider(target: WorkspaceFolder): Disposable {
     //
     // [1]: https://code.visualstudio.com/docs/editor/tasks#_task-autodetection
     provideTasks: () => detectCargoTasks(target),
-    // NOTE: Currently unused by VSCode
-    resolveTask: () => undefined,
+    resolveTask: async task => {
+      if (!isCargoTask(task)) {
+        return undefined;
+      }
+
+      if (task.definition.subcommand === 'watch') {
+        await ensurePackage('cargo-watch');
+
+        return new Task(
+          task.definition,
+          target,
+          task.name,
+          task.source,
+          createShellExecution({
+            command: 'cargo',
+            args: ['watch', '--clear'],
+            cwd: target.uri.fsPath,
+          }),
+          ['$rustc'],
+        );
+      }
+
+      return undefined;
+    },
   };
 
   return tasks.registerTaskProvider(TASK_TYPE, provider);
 }
 
-function detectCargoTasks(target: WorkspaceFolder): Task[] {
-  return [
+async function detectCargoTasks(target: WorkspaceFolder): Promise<Task[]> {
+  const tasks = [
     { subcommand: 'build', group: TaskGroup.Build },
     { subcommand: 'check', group: TaskGroup.Build },
     { subcommand: 'test', group: TaskGroup.Test },
     { subcommand: 'clean', group: TaskGroup.Clean },
     { subcommand: 'run', group: undefined },
-  ]
+  ];
+
+  if (await isPackageInstalled('cargo-watch')) {
+    tasks.push({ subcommand: 'watch', group: TaskGroup.Build });
+  }
+
+  return tasks
     .map(({ subcommand, group }) => ({
       definition: { subcommand, type: TASK_TYPE },
       label: `cargo ${subcommand} - ${target.name}`,

@@ -48,7 +48,7 @@ more details see [contributing.md](contributing.md).
 4. Open a Rust project (`File > Add Folder to Workspace...`). Open the folder for the whole
   project (i.e., the folder containing `Cargo.toml`, not the `src` folder).
 5. You'll be prompted to install the Rust server. Once installed, it should start
-  analyzing your project (RLS will also have to to build the project).
+  analyzing your project (RLS will also have to build the project).
 
 
 ## Configuration

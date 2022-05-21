@@ -32,6 +32,17 @@ export interface Api {
 }
 
 export async function activate(context: ExtensionContext): Promise<Api> {
+  await window.showWarningMessage(
+    "rust-lang.rust has been deprecated. Please uninstall this extension and install rust-lang.rust-analyzer instead. You can find the extension by clicking on one of the buttons",
+    "Open in your browser", "Open in a new editor tab"
+  ).then(button => {
+    commands.executeCommand(
+      'vscode.open',
+      button == "Open browser"
+        ? Uri.parse('https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer')
+        : Uri.parse("vscode:extension/rust-lang.rust-analyzer")
+    );
+  });
   context.subscriptions.push(
     ...[
       configureLanguage(),

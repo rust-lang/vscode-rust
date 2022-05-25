@@ -485,6 +485,11 @@
                     ],
                     "default": null,
                     "description": "When specified, uses the rust-analyzer binary at a given path"
+                },
+                "rust-client.ignoreDeprecationWarning": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to surpress the deprecation notification on start up."
                 }
             }
         },

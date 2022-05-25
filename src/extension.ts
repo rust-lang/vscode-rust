@@ -32,22 +32,43 @@ export interface Api {
 }
 
 export async function activate(context: ExtensionContext): Promise<Api> {
-  await window
-    .showWarningMessage(
-      'rust-lang.rust has been deprecated. Please uninstall this extension and install rust-lang.rust-analyzer instead. You can find the extension by clicking on one of the buttons',
-      'Open in your browser',
-      'Open in a new editor tab',
-    )
-    .then(button => {
-      commands.executeCommand(
-        'vscode.open',
-        button === 'Open browser'
-          ? Uri.parse(
-              'https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer',
-            )
-          : Uri.parse('vscode:extension/rust-lang.rust-analyzer'),
-      );
-    });
+  const config = workspace.getConfiguration();
+  if (!config.get<boolean>('rust-client.ignoreDeprecationWarning', false)) {
+    window
+      .showWarningMessage(
+        'rust-lang.rust has been deprecated. Please uninstall this extension and install rust-lang.rust-analyzer instead. You can find the extension by clicking on one of the buttons',
+        'Open in your browser',
+        'Open in a new editor tab',
+        'Disable Warning',
+      )
+      .then(button => {
+        switch (button) {
+          case 'Disable Warning':
+            config.update(
+              'rust-client.ignoreDeprecationWarning',
+              true,
+              ConfigurationTarget.Global,
+            );
+            break;
+          case 'Open in your browser':
+            commands.executeCommand(
+              'vscode.open',
+              Uri.parse(
+                'https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer',
+              ),
+            );
+            break;
+          case 'Open in a new editor tab':
+            commands.executeCommand(
+              'vscode.open',
+              Uri.parse('vscode:extension/rust-lang.rust-analyzer'),
+            );
+            break;
+          default:
+        }
+      });
+  }
+
   context.subscriptions.push(
     ...[
       configureLanguage(),
@@ -62,7 +83,6 @@ export async function activate(context: ExtensionContext): Promise<Api> {
 
   // Migrate the users of multi-project setup for RLS to disable the setting
   // entirely (it's always on now)
-  const config = workspace.getConfiguration();
   if (
     typeof config.get<boolean | null>(
       'rust-client.enableMultiProjectSetup',

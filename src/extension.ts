@@ -32,8 +32,20 @@ export interface Api {
 }
 
 export async function activate(context: ExtensionContext): Promise<Api> {
+  context.subscriptions.push(
+    ...[
+      configureLanguage(),
+      ...registerCommands(),
+      workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders),
+      window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
+    ],
+  );
+  // Manually trigger the first event to start up server instance if necessary,
+  // since VSCode doesn't do that on startup by itself.
+  onDidChangeActiveTextEditor(window.activeTextEditor);
+
   const config = workspace.getConfiguration();
-  if (!config.get<boolean>('rust-client.ignoreDeprecationWarning', false)) {
+  if (!config.get<boolean>('rust.ignore_deprecation_warning', false)) {
     window
       .showWarningMessage(
         'rust-lang.rust has been deprecated. Please uninstall this extension and install rust-lang.rust-analyzer instead. You can find the extension by clicking on one of the buttons',
@@ -45,7 +57,7 @@ export async function activate(context: ExtensionContext): Promise<Api> {
         switch (button) {
           case 'Disable Warning':
             config.update(
-              'rust-client.ignoreDeprecationWarning',
+              'rust.ignore_deprecation_warning',
               true,
               ConfigurationTarget.Global,
             );
@@ -68,18 +80,6 @@ export async function activate(context: ExtensionContext): Promise<Api> {
         }
       });
   }
-
-  context.subscriptions.push(
-    ...[
-      configureLanguage(),
-      ...registerCommands(),
-      workspace.onDidChangeWorkspaceFolders(whenChangingWorkspaceFolders),
-      window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
-    ],
-  );
-  // Manually trigger the first event to start up server instance if necessary,
-  // since VSCode doesn't do that on startup by itself.
-  onDidChangeActiveTextEditor(window.activeTextEditor);
 
   // Migrate the users of multi-project setup for RLS to disable the setting
   // entirely (it's always on now)

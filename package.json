@@ -50,7 +50,7 @@
         "installDevExtension": "npm install && ./node_modules/.bin/vsce package -o ./out/rls-vscode-dev.vsix && code --install-extension ./out/rls-vscode-dev.vsix"
     },
     "dependencies": {
-        "node-fetch": "^2.6.1",
+        "node-fetch": "^2.6.7",
         "vscode-languageclient": "^6.0.0"
     },
     "devDependencies": {

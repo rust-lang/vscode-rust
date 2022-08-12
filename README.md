@@ -1,7 +1,9 @@
-# Rust support for Visual Studio Code
+# Rust support for Visual Studio Code (deprecated)
 
 [![](https://vsmarketplacebadge.apphb.com/version/rust-lang.rust.svg)](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
 [![VSCode + Node.js CI](https://img.shields.io/github/workflow/status/rust-lang/rls-vscode/VSCode%20+%20Node.js%20CI.svg?logo=github)](https://github.com/rust-lang/rls-vscode/actions?query=workflow%3A%22VSCode+%2B+Node.js+CI%22)
+
+> Note: This extension has been deprecated in favor of the [rust-analyzer project](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
 
 Adds language support for Rust to Visual Studio Code. Supports:
 

@@ -1,6 +1,6 @@
 {
     "name": "rust",
-    "displayName": "Rust",
+    "displayName": "Rust (deprecated)",
     "description": "Rust for Visual Studio Code (powered by Rust Language Server/Rust Analyzer). Provides lints, code completion and navigation, formatting and more.",
     "version": "0.7.8",
     "publisher": "rust-lang",
@@ -485,6 +485,11 @@
                     ],
                     "default": null,
                     "description": "When specified, uses the rust-analyzer binary at a given path"
+                },
+                "rust.ignore_deprecation_warning": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to surpress the deprecation notification on start up."
                 }
             }
         },

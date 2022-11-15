@@ -2,7 +2,7 @@
     "name": "rust",
     "displayName": "Rust (deprecated)",
     "description": "Rust for Visual Studio Code (powered by Rust Language Server/Rust Analyzer). Provides lints, code completion and navigation, formatting and more.",
-    "version": "0.7.8",
+    "version": "0.7.9",
     "publisher": "rust-lang",
     "icon": "icon.png",
     "galleryBanner": {

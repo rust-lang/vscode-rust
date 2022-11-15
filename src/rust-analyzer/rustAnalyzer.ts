@@ -6,15 +6,14 @@ import { promisify } from 'util';
 import * as vs from 'vscode';
 import * as lc from 'vscode-languageclient';
 
-import { WorkspaceProgress } from './extension';
-import { download, fetchRelease } from './net';
-import * as rustup from './rustup';
-import { Observable } from './utils/observable';
+import { WorkspaceProgress } from '../extension';
+import { download, fetchRelease } from '../net';
+import * as rustup from '../rustup';
+import { Observable } from '../utils/observable';
+import { PersistentState } from './persistent_state';
 
 const stat = promisify(fs.stat);
 const mkdir = promisify(fs.mkdir);
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
 
 const REQUIRED_COMPONENTS = ['rust-src'];
 
@@ -45,31 +44,6 @@ function installDir(): string | undefined {
   return undefined;
 }
 
-/** Returns a path where persistent data for rust-analyzer should be installed. */
-function metadataDir(): string | undefined {
-  if (process.platform === 'linux' || process.platform === 'darwin') {
-    // Prefer, in this order:
-    // 1. $XDG_CONFIG_HOME/rust-analyzer
-    // 2. $HOME/.config/rust-analyzer
-    const { HOME, XDG_CONFIG_HOME } = process.env;
-    const baseDir = XDG_CONFIG_HOME || (HOME && path.join(HOME, '.config'));
-
-    return baseDir && path.resolve(path.join(baseDir, 'rust-analyzer'));
-  } else if (process.platform === 'win32') {
-    // %LocalAppData%\rust-analyzer\
-    const { LocalAppData } = process.env;
-    return (
-      LocalAppData && path.resolve(path.join(LocalAppData, 'rust-analyzer'))
-    );
-  }
-
-  return undefined;
-}
-
-function ensureDir(path: string) {
-  return !!path && stat(path).catch(() => mkdir(path, { recursive: true }));
-}
-
 interface RustAnalyzerConfig {
   askBeforeDownload?: boolean;
   package: {
@@ -77,44 +51,10 @@ interface RustAnalyzerConfig {
   };
 }
 
-interface Metadata {
-  releaseTag: string;
-}
-
-async function readMetadata(): Promise<Metadata | Record<string, unknown>> {
-  const stateDir = metadataDir();
-  if (!stateDir) {
-    return { kind: 'error', code: 'NotSupported' };
-  }
-
-  const filePath = path.join(stateDir, 'metadata.json');
-  if (!(await stat(filePath).catch(() => false))) {
-    return { kind: 'error', code: 'FileMissing' };
-  }
-
-  const contents = await readFile(filePath, 'utf8');
-  const obj = JSON.parse(contents) as unknown;
-  return typeof obj === 'object' ? (obj as Record<string, unknown>) : {};
-}
-
-async function writeMetadata(config: Metadata) {
-  const stateDir = metadataDir();
-  if (!stateDir) {
-    return false;
-  }
-
-  if (!(await ensureDir(stateDir))) {
-    return false;
-  }
-
-  const filePath = path.join(stateDir, 'metadata.json');
-  return writeFile(filePath, JSON.stringify(config)).then(() => true);
-}
-
-export async function getServer({
-  askBeforeDownload,
-  package: pkg,
-}: RustAnalyzerConfig): Promise<string | undefined> {
+export async function getServer(
+  config: RustAnalyzerConfig,
+  state: PersistentState,
+): Promise<string | undefined> {
   let binaryName: string | undefined;
   if (process.arch === 'x64' || process.arch === 'ia32') {
     if (process.platform === 'linux') {
@@ -136,35 +76,39 @@ export async function getServer({
         'about that [here](https://github.com/rust-analyzer/rust-analyzer/issues) and we ' +
         'will consider it.',
     );
-    return undefined;
+    return;
   }
 
   const dir = installDir();
   if (!dir) {
     return;
+  } else {
+    await stat(dir).catch(() => mkdir(dir, { recursive: true }));
   }
-  await ensureDir(dir);
-
-  const metadata: Partial<Metadata> = await readMetadata().catch(() => ({}));
 
   const dest = path.join(dir, binaryName);
   const exists = await stat(dest).catch(() => false);
-  if (exists && metadata.releaseTag === pkg.releaseTag) {
-    return dest;
+
+  if (!exists) {
+    await state.updateInstalledRelease(undefined);
   }
 
-  if (askBeforeDownload) {
-    const userResponse = await vs.window.showInformationMessage(
-      `${
-        metadata.releaseTag && metadata.releaseTag !== pkg.releaseTag
-          ? `You seem to have installed release \`${metadata.releaseTag}\` but requested a different one.`
-          : ''
-      }
-      Release \`${pkg.releaseTag}\` of rust-analyzer is not installed.\n
-      Install to ${dir}?`,
-      'Download',
-    );
-    if (userResponse !== 'Download') {
+  const now = Date.now();
+  if (state.installedRelease?.tag === config.package.releaseTag) {
+    // Release tags that are *moving* - these are expected to point to different
+    // commits and update as the time goes on. Make sure to poll the GitHub API
+    // (at most once per hour) to see if we need to update.
+    const MOVING_TAGS = ['nightly'];
+    const POLL_INTERVAL = 60 * 60 * 1000;
+
+    const shouldCheckForNewRelease = MOVING_TAGS.includes(
+      config.package.releaseTag,
+    )
+      ? state.installedRelease === undefined ||
+        now - (state.lastCheck ?? 0) > POLL_INTERVAL
+      : false;
+
+    if (!shouldCheckForNewRelease) {
       return dest;
     }
   }
@@ -172,22 +116,48 @@ export async function getServer({
   const release = await fetchRelease(
     'rust-analyzer',
     'rust-analyzer',
-    pkg.releaseTag,
+    config.package.releaseTag,
   );
+
+  if (state.installedRelease?.id === release.id) {
+    return dest;
+  }
+
   const artifact = release.assets.find(asset => asset.name === binaryName);
   if (!artifact) {
     throw new Error(`Bad release: ${JSON.stringify(release)}`);
   }
 
-  await download(
-    artifact.browser_download_url,
-    dest,
-    'Downloading rust-analyzer server',
-    { mode: 0o755 },
-  );
+  if (config.askBeforeDownload) {
+    const userResponse = await vs.window.showInformationMessage(
+      `${
+        state.installedRelease &&
+        state.installedRelease.tag !== config.package.releaseTag
+          ? `You seem to have installed release \`${state.installedRelease?.tag}\` but requested a different one.`
+          : ''
+      }
+      Release \`${config.package.releaseTag}\` of rust-analyzer ${
+        !state.installedRelease ? 'is not installed' : 'can be updated'
+      }.\n
+      Install to ${dir}?`,
+      'Download',
+    );
+    if (userResponse !== 'Download') {
+      return exists ? dest : undefined;
+    }
+  }
 
-  await writeMetadata({ releaseTag: pkg.releaseTag }).catch(() => {
-    vs.window.showWarningMessage(`Couldn't save rust-analyzer metadata`);
+  await download({
+    url: artifact.browser_download_url,
+    dest,
+    progressTitle: 'Downloading rust-analyzer server',
+    mode: 0o755,
+  });
+
+  await state.updateLastCheck(now);
+  await state.updateInstalledRelease({
+    id: release.id,
+    tag: config.package.releaseTag,
   });
 
   return dest;
@@ -215,17 +185,25 @@ export async function createLanguageClient(
     rustup: { disabled: boolean; path: string; channel: string };
     rustAnalyzer: { path?: string; releaseTag: string };
   },
+  state: vs.Memento,
 ): Promise<lc.LanguageClient> {
   if (!config.rustup.disabled) {
     await rustup.ensureToolchain(config.rustup);
     await rustup.ensureComponents(config.rustup, REQUIRED_COMPONENTS);
   }
 
-  if (!config.rustAnalyzer.path) {
-    await getServer({
-      askBeforeDownload: true,
-      package: { releaseTag: config.rustAnalyzer.releaseTag },
-    });
+  const binPath =
+    config.rustAnalyzer.path ||
+    (await getServer(
+      {
+        askBeforeDownload: true,
+        package: { releaseTag: config.rustAnalyzer.releaseTag },
+      },
+      new PersistentState(state),
+    ));
+
+  if (!binPath) {
+    throw new Error("Couldn't fetch Rust Analyzer binary");
   }
 
   if (INSTANCE) {
@@ -233,16 +211,6 @@ export async function createLanguageClient(
   }
 
   const serverOptions: lc.ServerOptions = async () => {
-    const binPath =
-      config.rustAnalyzer.path ||
-      (await getServer({
-        package: { releaseTag: config.rustAnalyzer.releaseTag },
-      }));
-
-    if (!binPath) {
-      throw new Error("Couldn't fetch Rust Analyzer binary");
-    }
-
     const childProcess = child_process.exec(binPath);
     if (config.logToFile) {
       const logPath = path.join(folder.uri.fsPath, `ra-${Date.now()}.log`);

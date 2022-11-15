@@ -1,5 +1,7 @@
 ### Unreleased
 
+* Update built-in Rust grammar
+
 ### 0.7.8 - 2020-05-13
 
 * Rebrand extension as RLS-agnostic

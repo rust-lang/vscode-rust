@@ -15,6 +15,15 @@
         ],
         "description": "Insert for loop"
     },
+    "while": {
+        "prefix": "while",
+        "body": [
+            "while ${1:statement} {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Insert while loop"
+    },
     "macro_rules": {
         "prefix": "macro_rules",
         "body": [

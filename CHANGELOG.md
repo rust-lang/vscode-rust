@@ -1,5 +1,10 @@
 ### Unreleased
 
+### 0.7.9 - 2022-11-15
+
+* This final version marks this extension as no longer supported.
+  Use the [rust-lang.rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) extension instead.
+
 ### 0.7.8 - 2020-05-13
 
 * Rebrand extension as RLS-agnostic
